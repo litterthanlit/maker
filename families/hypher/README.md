@@ -8,7 +8,7 @@ The display face for the Hypher wordmark, drawn in code after the Hypher mark: w
 
 ## Versions
 
-Each version is a named set of numbers in `STYLES` (`glyphs.py`) and builds as its own family. Plain **Hypher** is Finish.
+Each version is a named set of numbers in `STYLES` (`glyphs.py`) and builds as its own family. Plain **Hypher** is Finish. To try a mix without editing, set `HYPHER_STYLE` to a version and any of `HYPHER_RADIUS`, `HYPHER_SMOOTH`, `HYPHER_INNER` or `HYPHER_TERM` to override its numbers, then build.
 
 | Version | Family | What changes |
 | --- | --- | --- |

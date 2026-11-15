@@ -65,6 +65,9 @@ def set_style(name):
     s = {"stem_tops": "round", "e_bar": 0.44, "e_term": 0.27, "y_tail": "straight", "y_tail_end": 0.18, "y_bend": 1.0,
          "widths": {}, "sides": {}, "kern": []}
     s.update(STYLES[name])
+    for key in ("radius", "smooth", "inner", "term"):  # HYPHER_RADIUS etc. try a mix without editing
+        if f"HYPHER_{key.upper()}" in os.environ:
+            s[key] = float(os.environ[f"HYPHER_{key.upper()}"])
     s.setdefault("inner_smooth", s["smooth"])
     STYLE.clear()
     STYLE.update(s, name=name)
