@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Hypher Display beside the mark</title>
+<style>
+@font-face { font-family: "Hypher Display"; src: url("../fonts/variable/HypherDisplay%5Bwght%5D.woff2") format("woff2"); font-weight: 300 700; }
+body { margin: 0; padding: 40px 48px; background: #fff; color: #111; font: 13px/1.4 system-ui, sans-serif; width: 1400px; }
+h2 { font-size: 12px; font-weight: 500; color: #888; margin: 36px 0 12px; }
+.row { display: flex; align-items: center; gap: 30px; height: 130px; border-bottom: 1px solid #eee; }
+.row img.mark { height: 72px; }
+.word { font-family: "Hypher Display"; font-size: 128px; line-height: 1; }
+.text { font-family: "Hypher Display"; font-size: 64px; line-height: 1.4; margin: 0; }
+</style>
+<h2>Current lockup (word in Michroma)</h2>
+<div class="row"><img src="hypher-lockup.svg" alt="Current Hypher lockup" style="height:96px"></div>
+<h2>The mark with Hypher Display at 300 · 400 · 700</h2>
+<div class="row"><img class="mark" src="hypher-mark.svg" alt=""><span class="word" style="font-weight:300">hypher</span></div>
+<div class="row"><img class="mark" src="hypher-mark.svg" alt=""><span class="word" style="font-weight:400">hypher</span></div>
+<div class="row"><img class="mark" src="hypher-mark.svg" alt=""><span class="word" style="font-weight:700">hypher</span></div>
+<h2>Every letter so far</h2>
+<p class="text" style="font-weight:300">hypher peony honey hop</p>
+<p class="text" style="font-weight:400">hypher peony honey hop</p>
+<p class="text" style="font-weight:700">hypher peony honey hop</p>
+</html>

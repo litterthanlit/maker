@@ -5,7 +5,7 @@ A font factory. Each family is drawn in code and built by one shared pipeline.
 | Family | What | Build |
 | --- | --- | --- |
 | [Litt Grotesk](families/litt-grotesk/README.md) | Variable Swiss grotesque for UI text, 300–700 | `python3 families/litt-grotesk/build.py` |
-| [Hypher](families/hypher/README.md) | Wide display face for the Hypher wordmark, after Michroma, 300–700 (prototype) | `python3 families/hypher/build.py` |
+| [Hypher Display](families/hypher-display/README.md) | Wide, machined display face for the Hypher wordmark and headlines, 300–700 (prototype) | `python3 families/hypher-display/build.py` |
 
 ```bash
 pip install -r requirements.txt   # fonttools, skia-pathops, ttfautohint-py
