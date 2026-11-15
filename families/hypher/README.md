@@ -13,7 +13,7 @@ Every letter is a few polygons from `rounded()` in `src/core/geometry.py`: corne
 - **Corners:** outer radius 0.20 x-heights; counters follow it one stroke inside. The mark's own 0.043 read as pixel type at letter size and 0.26 drifted back to a squircle (`HYPHER_RADIUS` overrides it for a comparison proof).
 - **Horizontals** are 0.86 of the stem, so they look equal to it.
 - **Width** grows by twice the stem's gain, so Bold's counters stay open.
-- **y** is two straight arms; a u-shaped y read as a g and broke the word's rhythm.
+- **y** is a symmetric V that meets on the baseline, its right arm running on into the descender; a u-shaped y read as a g and broke the word's rhythm.
 
 ## Build and check
 

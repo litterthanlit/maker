@@ -130,14 +130,28 @@ def g_r(p):
 
 @glyph("y", "y")
 def g_y(p):
-    """Two straight arms, the right one running on into the descender."""
+    """A symmetric V meeting on the baseline; the right arm runs on into the descender."""
     W = p.w(620)
-    V = p.V
-    hw = diag_hw(W * 0.6, XH - DSC, V)  # horizontal width of the long arm
-    xb = W * 0.16  # where the long arm's left edge leaves the descender
-    right = poly((xb, DSC), (xb + hw, DSC), (W, XH), (W - hw, XH))
-    xj = xb + (W - hw - xb) * (0 - DSC) / (XH - DSC)  # long arm's left edge at the baseline
-    hl = diag_hw(xj, XH, V)
-    left = poly((xj - hl * 0.5, 0), (xj + hl * 0.5, 0), (hl, XH), (0, XH))
-    return [right, left], W, (SB * 0.5, SB * 0.5)
+    V, r = p.V, p.ri
+    cx = W / 2  # the arms' centre lines cross here, on the baseline
+    dx = cx - 0  # each arm travels half the width over the x-height
+    hw = diag_hw(dx, XH, V)  # horizontal width of either arm
+    slope = (cx - hw / 2) / XH  # x per unit of height, along a centre line
 
+    def on_right(y, off):  # x on the right arm, offset from its centre line
+        return cx + slope * y + off
+
+    xd = on_right(DSC, 0)  # right arm's centre at the descender
+    right = rounded(
+        (xd - hw / 2, DSC, r), (xd + hw / 2, DSC, 0), (W, XH, r), (W - hw, XH, 0),
+    )
+    # The left arm mirrors the right and stops on the right arm's centre line,
+    # so the join has no foot.
+    def meet(edge):  # where a left-arm edge (offset from its centre) crosses the right centre line
+        # left centre: x = cx - slope * y; edge: x = cx - slope * y + edge; right centre: x = cx + slope * y
+        y = edge / (2 * slope)
+        return (cx + slope * y, y)
+    left = rounded(
+        (0, XH, r), meet(-hw / 2) + (0,), meet(hw / 2) + (0,), (hw, XH, 0),
+    )
+    return [right, left], W, (SB * 0.5, SB * 0.5)
