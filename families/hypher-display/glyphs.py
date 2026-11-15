@@ -112,8 +112,77 @@ _LATHE = {**STYLES["Wordmark"], "radius": 0.215, "smooth": 0.6, "inner_smooth": 
           "y_tail": "straight"}
 STYLES["LatheWide"] = {**_LATHE, "widths": {c: round(w * 1.06) for c, w in WM_WIDTHS.items()}, "kern_scale": 1.06}
 STYLES["LatheNarrow"] = {**_LATHE, "widths": {c: round(w * 0.95) for c, w in WM_WIDTHS.items()}, "kern_scale": 0.95}
+
+# Billet: Hypher's own proportion system, with a fifth of the wordmark font in it.
+# Widths come from rules (one width per family of shapes, as multiples of the
+# x-height or cap height), sidebearings from the shape of each side, and
+# landmarks from shared heights (terminals at 0.30 and 0.70, bars in the
+# middle, the f at the ascender, the g at the descender). Each number is then
+# blended: 80% Hypher's rule, 20% the wordmark font's measurement.
+MICHROMA_SHARE = 0.2
+
+_X, _C = XH, ASC
+_OWN_W = {
+    **dict.fromkeys("oce", 1.14 * _X), **dict.fromkeys("bdpqg", 1.16 * _X), "a": 1.08 * _X,
+    **dict.fromkeys("nhu", 1.06 * _X), "m": 2 * 1.06 * _X - REGULAR_STEM, "r": 0.62 * _X, "f": 0.74 * _X,
+    "t": 0.76 * _X, "i": 93, "l": 93, "j": 0.42 * _X, "k": 1.04 * _X, "s": 1.08 * _X,
+    **dict.fromkeys("vy", 1.14 * _X), "x": 1.12 * _X, "z": 1.02 * _X, "w": 1.74 * _X,
+    **dict.fromkeys("OCGQD", 1.15 * _C), **dict.fromkeys("BPR", 1.06 * _C), **dict.fromkeys("HNU", 1.10 * _C),
+    "E": 0.95 * _C, "F": 0.92 * _C, "L": 0.88 * _C, **dict.fromkeys("AVX", 1.22 * _C), "Y": 1.15 * _C,
+    "M": 1.45 * _C, "W": 1.95 * _C, "K": 1.08 * _C, "S": 1.12 * _C, "T": 1.05 * _C, "Z": 1.08 * _C,
+    "J": 0.90 * _C, "I": 93,
+    **dict.fromkeys(["zero", "two", "three", "five", "six", "seven", "eight", "nine"], 0.98 * _C),
+    "one": 0.80 * _C, "four": 1.05 * _C,
+}
+# Sidebearing by the shape of the side: straight, round, open (a terminal), diagonal.
+_SIDE = {"S": 0.18 * _X, "R": 0.15 * _X, "T": 0.10 * _X, "D": 0.08 * _X, "F": 0.12 * _X}
+_TYPES = {
+    "a": "RS", "b": "SR", "c": "RT", "d": "RS", "e": "RR", "f": "TD", "g": "RS", "h": "SS", "i": "SS",
+    "j": "DS", "k": "SD", "l": "SS", "m": "SS", "n": "SS", "o": "RR", "p": "SR", "q": "RS", "r": "ST",
+    "s": "RR", "t": "ST", "u": "SS", "v": "DD", "w": "DD", "x": "DD", "y": "DD", "z": "FF",
+    "A": "DD", "B": "SR", "C": "RT", "D": "SR", "E": "ST", "F": "ST", "G": "RS", "H": "SS", "I": "SS",
+    "J": "TS", "K": "SD", "L": "SD", "M": "SS", "N": "SS", "O": "RR", "P": "SR", "Q": "RR", "R": "SD",
+    "S": "RR", "T": "DD", "U": "SS", "V": "DD", "W": "DD", "X": "DD", "Y": "DD", "Z": "FF",
+    **dict.fromkeys(["zero", "two", "three", "five", "six", "seven", "eight", "nine", "four"], "RR"),
+    "one": "SS",
+}
+_OWN_LM = {
+    "a_bowl": 0.55, "a_hook": 0.70, "c_t0": 0.30, "c_t1": 0.70, "f_top": ASC / XH, "g_deep": DSC,
+    "k_ya": 0.56, "k_yl": 0.50, "s_mid": 0.50, "s_t0": 0.30, "s_t1": 0.70, "t_top": 1.20, "t_foot": 0.30,
+    "two_bar": 0.447, "two_t": 0.70, "three_tb": 0.30, "three_tt": 0.70, "three_mid": 0.50, "four_bar": 0.25,
+    "five_bowl": 0.60, "five_t": 0.30, "six_bowl": 0.55, "six_t": 0.70, "A_bar": 0.25, "B_mid": 0.50,
+    "C_t0": 0.30, "C_t1": 0.70, "EFH_mid": 0.50, "G_bar": 0.50, "G_t1": 0.70, "J_t": 0.30, "M_dip": 0.0,
+    "P_bowl": 0.40, "R_bowl": 0.40, "S_mid": 0.50, "S_t0": 0.30, "S_t1": 0.70, "Y_join": 0.45,
+}
+_MICH_LM = {  # the defaults lm() falls back to, from the wordmark font
+    "a_bowl": 0.58, "a_hook": 0.73, "c_t0": 0.334, "c_t1": 0.686, "f_top": 1.40, "g_deep": -213,
+    "k_ya": 0.563, "k_yl": 0.513, "s_mid": 0.523, "s_t0": 0.29, "s_t1": 0.72, "t_top": 1.273, "t_foot": 0.436,
+    "two_bar": 0.446, "two_t": 0.736, "three_tb": 0.29, "three_tt": 0.736, "three_mid": 0.518, "four_bar": 0.209,
+    "five_bowl": 0.636, "five_t": 0.29, "six_bowl": 0.57, "six_t": 0.736, "A_bar": 0.229, "B_mid": 0.532,
+    "C_t0": 0.337, "C_t1": 0.656, "EFH_mid": 0.510, "G_bar": 0.526, "G_t1": 0.70, "J_t": 0.375, "M_dip": 0.066,
+    "P_bowl": 0.386, "R_bowl": 0.404, "S_mid": 0.515, "S_t0": 0.33, "S_t1": 0.70, "Y_join": 0.416,
+}
+
+
+def _mix(own, michroma):
+    return own * (1 - MICHROMA_SHARE) + michroma * MICHROMA_SHARE
+
+
+STYLES["Billet"] = {
+    **STYLES["Finish"],
+    "y_tail": "straight", "stem_tops": "round", "e_bar": _mix(0.43, 0.454), "e_term": _mix(0.30, 0.297),
+    "widths": {**WM_WIDTHS, **{c: round(_mix(w, WM_WIDTHS[c])) for c, w in _OWN_W.items()}},
+    "sides": {**WM_SIDES, **{c: (round(_mix(_SIDE[t[0]] * (1.15 if c[0].isupper() else 1), WM_SIDES[c][0])),
+                                 round(_mix(_SIDE[t[1]] * (1.15 if c[0].isupper() else 1), WM_SIDES[c][1])))
+                             for c, t in _TYPES.items()}},
+    "lm": {k: _mix(v, _MICH_LM[k]) for k, v in _OWN_LM.items()},
+    "kern_scale": 0.95,
+}
+# Billet Compact: Billet at 90% width, out of the wordmark font's wide stance.
+STYLES["BilletCompact"] = {**STYLES["Billet"], "widths": {c: round(w * 0.90) for c, w in STYLES["Billet"]["widths"].items()},
+                           "kern_scale": 0.86}
 DEFAULT_STYLE = "Wordmark"
-LABELS = {"LatheWide": "Lathe Wide", "LatheNarrow": "Lathe Narrow"}  # family-name spelling, where it differs from the key
+LABELS = {"LatheWide": "Lathe Wide", "LatheNarrow": "Lathe Narrow", "BilletCompact": "Billet Compact"}  # family-name spelling, where it differs from the key
 
 
 
@@ -159,6 +228,11 @@ def glyph(name, char):
         GLYPHS[name] = (char, fn)
         return fn
     return deco
+
+
+def lm(key, default):
+    """A landmark height (or the g's depth): the version's own, or the wordmark font's."""
+    return STYLE.get("lm", {}).get(key, default)
 
 
 def rounded(*corners):
@@ -315,8 +389,8 @@ def g_y(p):
 def g_a(p):
     """A hook over a bowl: the hook's right leg is the stem; the bowl tucks under it."""
     W = p.w("a")
-    top = XH * 0.58 + (p.H - 79) * 0.6  # top of the bowl, raised with weight so its counter stays open
-    hook = arch(p, 0, W, XH, left_bottom=XH * 0.73)
+    top = XH * lm("a_bowl", 0.58) + (p.H - 79) * 0.6  # top of the bowl, raised with weight so its counter stays open
+    hook = arch(p, 0, W, XH, left_bottom=XH * lm("a_hook", 0.73))
     return [hook] + bowl(p, 0, W, top=top), W, p.sides("a")
 
 
@@ -332,7 +406,7 @@ def g_c(p):
     """A bowl opened on the right between two flat terminals."""
     W = p.w("c")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    t0, t1 = XH * 0.334, XH * 0.686
+    t0, t1 = XH * lm("c_t0", 0.334), XH * lm("c_t1", 0.686)
     c = rounded(
         (0, 0, ro), (W, 0, ro), (W, t0, rt), (W - V, t0, rt), (W - V, H, ri), (V, H, ri),
         (V, XH - H, ri), (W - V, XH - H, ri), (W - V, t1, rt), (W, t1, rt), (W, XH, ro), (0, XH, ro),
@@ -352,7 +426,7 @@ def g_f(p):
     """The r's arm raised above the ascender, with a crossbar at the x-height."""
     W = p.w("f")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    x0, top = W * 0.208, XH * 1.40
+    x0, top = W * 0.208, XH * lm("f_top", 1.40)
     c = rounded(
         (x0, 0, rt), (x0 + V, 0, rt), (x0 + V, top - H, ri), (W, top - H, rt), (W, top, rt), (x0, top, ro),
     )
@@ -365,7 +439,7 @@ def g_g(p):
     """A bowl with a stem that runs down into a tail ending in an upturned terminal."""
     W = p.w("g")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    deep, xt = -213, W * 0.037  # the g's tail goes below the other descenders
+    deep, xt = lm("g_deep", -213), W * 0.037  # the g's tail goes below the other descenders
     tip = min(deep + H + XH * 0.12, -30)  # the terminal stands 0.12 x-heights above the tail, clear of the bowl
     tail = rounded(
         (xt, tip, rt), (xt, deep, ro), (W, deep, ro), (W, XH, square(p, ro)), (W - V, XH, rt),
@@ -401,7 +475,7 @@ def g_k(p):
     W = p.w("k")
     V, rt = p.V, p.rt
     t = V * 0.98  # diagonals look heavier than stems at the same thickness
-    ya, yl = XH * 0.563, XH * 0.513  # where the arm's upper and the leg's lower edge leave the stem
+    ya, yl = XH * lm("k_ya", 0.563), XH * lm("k_yl", 0.513)  # where the arm's upper and the leg's lower edge leave the stem
     xt, xb = W * 0.748, W * 0.777  # the arm's top-left and the leg's bottom-left
     ha = diag_hw(xt - V, XH - ya, t)
     hl = diag_hw(xb - V, yl, t)
@@ -450,9 +524,9 @@ def g_s(p):
     """Two bowls sharing a middle bar, each opening onto a flat terminal."""
     W = p.w("s")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    m0 = XH * 0.523 - H / 2  # bottom of the middle bar
+    m0 = XH * lm("s_mid", 0.523) - H / 2  # bottom of the middle bar
     m1 = m0 + H
-    t0, t1 = XH * 0.29, XH * 0.72  # tops of the lower terminal, bottom of the upper
+    t0, t1 = XH * lm("s_t0", 0.29), XH * lm("s_t1", 0.72)  # tops of the lower terminal, bottom of the upper
     c = rounded(
         (0, t0, rt), (0, 0, ro), (W, 0, ro), (W, m1, ro), (V, m1, ri), (V, XH - H, ri),
         (W - V, XH - H, ri), (W - V, t1, rt), (W, t1, rt), (W, XH, ro), (0, XH, ro), (0, m0, ro),
@@ -466,7 +540,7 @@ def g_t(p):
     """A stem that turns right at the baseline into a short upturned foot, with a crossbar."""
     W = p.w("t")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    top, foot = XH * 1.273, XH * 0.436
+    top, foot = XH * lm("t_top", 1.273), XH * lm("t_foot", 0.436)
     c = rounded(
         (0, top, rt), (0, 0, ro), (W, 0, ro), (W, foot, rt), (W - V, foot, rt), (W - V, H, ri),
         (V, H, ri), (V, top, rt),
@@ -570,8 +644,8 @@ def g_one(p):
 def g_two(p):
     W = p.w("two")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    m0 = FH * 0.446  # bottom of the middle bar
-    m1, t = m0 + H, FH * 0.736  # top of the middle bar; the hook's terminal
+    m0 = FH * lm("two_bar", 0.446)  # bottom of the middle bar
+    m1, t = m0 + H, FH * lm("two_t", 0.736)  # top of the middle bar; the hook's terminal
     c = rounded(
         (0, 0, rt), (W, 0, rt), (W, H, rt), (V, H, ri), (V, m0, ri), (W, m0, ro), (W, FH, ro), (0, FH, ro),
         (0, t, rt), (V, t, rt), (V, FH - H, ri), (W - V, FH - H, ri), (W - V, m1, ri), (0, m1, ro),
@@ -584,8 +658,8 @@ def g_three(p):
     """Two bowls open to the left, meeting at a short middle bar."""
     W = p.w("three")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    tb, tt = FH * 0.29, FH * 0.736  # terminal heights
-    m0 = FH * 0.518 - H / 2
+    tb, tt = FH * lm("three_tb", 0.29), FH * lm("three_tt", 0.736)  # terminal heights
+    m0 = FH * lm("three_mid", 0.518) - H / 2
     m1, xm = m0 + H, W * 0.405  # the middle bar starts here
     c = rounded(
         (0, tb, rt), (0, 0, ro), (W, 0, ro), (W, FH, ro), (0, FH, ro), (0, tt, rt), (V, tt, rt),
@@ -600,7 +674,7 @@ def g_four(p):
     W = p.w("four")
     V, H, rt = p.V, p.H, p.rt
     xs = W * 0.751  # the stem's left edge
-    b0 = FH * 0.209  # bottom of the crossbar
+    b0 = FH * lm("four_bar", 0.209)  # bottom of the crossbar
     hw = diag_hw(xs, FH - b0, V * 0.98)
     diagonal = rpoly((0, b0, 0), (hw, b0, 0), (xs + V / 2, FH, rt), (xs + V / 2 - hw, FH, rt))
     stem = box(xs, 0, xs + V, FH, rt, rt, rt, 0)
@@ -612,7 +686,7 @@ def g_four(p):
 def g_five(p):
     W = p.w("five")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    bt, tb = FH * 0.636, FH * 0.29  # top of the bowl; its terminal
+    bt, tb = FH * lm("five_bowl", 0.636), FH * lm("five_t", 0.29)  # top of the bowl; its terminal
     c = rounded(
         (0, tb, rt), (0, 0, ro), (W, 0, ro), (W, bt, ro), (V, bt, ri), (V, FH - H, ri), (W, FH - H, rt),
         (W, FH, rt), (0, FH, rt), (0, bt - H, rt), (W - V, bt - H, ri), (W - V, H, ri), (V, H, ri), (V, tb, rt),
@@ -625,7 +699,7 @@ def g_six(p):
     """A closed lower bowl whose left side runs up into a hook."""
     W = p.w("six")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    bt, t = FH * 0.57, FH * 0.736
+    bt, t = FH * lm("six_bowl", 0.57), FH * lm("six_t", 0.736)
     c = rounded(
         (0, 0, ro), (W, 0, ro), (W, bt, ro), (V, bt, ri), (V, FH - H, ri), (W - V, FH - H, ri),
         (W - V, t, rt), (W, t, rt), (W, FH, ro), (0, FH, ro),
@@ -912,7 +986,7 @@ def g_A(p):
     vee, hw = v_shape(p, 0, W, top=CH, r_top=p.rt)
     legs = rotate180([vee], W / 2, CH / 2)
     apex = (W - 0.85 * hw) / 2  # the outer edges' run, from foot to apex
-    y0 = CH * 0.229
+    y0 = CH * lm("A_bar", 0.229)
     x = (y0 + p.H) / CH * apex + 2  # inside both legs over the whole bar
     return legs + [bar(p, x, W - x, y0)], W, p.sides("A")
 
@@ -920,7 +994,7 @@ def g_A(p):
 @glyph("B", "B")
 def g_B(p):
     W = p.w("B")
-    m0 = CH * 0.532 - p.H / 2  # bottom of the middle bar
+    m0 = CH * lm("B_mid", 0.532) - p.H / 2  # bottom of the middle bar
     return [stem(p, 0)] + capbowl(p, 0, W, 0, m0 + p.H, "square") + capbowl(p, 0, W * 0.965, m0, CH, "square"), W, p.sides("B")
 
 
@@ -935,7 +1009,7 @@ def c_shape(p, W, h, t0, t1):
 @glyph("C", "C")
 def g_C(p):
     W = p.w("C")
-    return [c_shape(p, W, CH, CH * 0.337, CH * 0.656)], W, p.sides("C")
+    return [c_shape(p, W, CH, CH * lm("C_t0", 0.337), CH * lm("C_t1", 0.656))], W, p.sides("C")
 
 
 @glyph("D", "D")
@@ -947,14 +1021,14 @@ def g_D(p):
 @glyph("E", "E")
 def g_E(p):
     W = p.w("E")
-    m0 = CH * 0.510 - p.H / 2
+    m0 = CH * lm("EFH_mid", 0.510) - p.H / 2
     return [stem(p, 0), bar(p, 0, W * 0.981, CH - p.H), bar(p, 0, W * 0.945, m0), bar(p, 0, W, 0)], W, p.sides("E")
 
 
 @glyph("F", "F")
 def g_F(p):
     W = p.w("F")
-    m0 = CH * 0.510 - p.H / 2
+    m0 = CH * lm("EFH_mid", 0.510) - p.H / 2
     return [stem(p, 0), bar(p, 0, W, CH - p.H), bar(p, 0, W * 0.96, m0)], W, p.sides("F")
 
 
@@ -963,7 +1037,7 @@ def g_G(p):
     """The C, whose lower terminal turns into a bar reaching back into the counter."""
     W = p.w("G")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    gt, xb, t1 = CH * 0.526, W * 0.508, CH * 0.70
+    gt, xb, t1 = CH * lm("G_bar", 0.526), W * 0.508, CH * lm("G_t1", 0.70)
     c = rounded(
         (0, 0, ro), (W, 0, ro), (W, gt, rt), (xb, gt, rt), (xb, gt - H, rt), (W - V, gt - H, ri),
         (W - V, H, ri), (V, H, ri), (V, CH - H, ri), (W - V, CH - H, ri), (W - V, t1, rt), (W, t1, rt),
@@ -975,7 +1049,7 @@ def g_G(p):
 @glyph("H", "H")
 def g_H(p):
     W = p.w("H")
-    return [stem(p, 0), stem(p, W - p.V), bar(p, 0, W, CH * 0.510 - p.H / 2)], W, p.sides("H")
+    return [stem(p, 0), stem(p, W - p.V), bar(p, 0, W, CH * lm("EFH_mid", 0.510) - p.H / 2)], W, p.sides("H")
 
 
 @glyph("I", "I")
@@ -988,7 +1062,7 @@ def g_J(p):
     """A stem that turns left at the baseline into a short upturned terminal."""
     W = p.w("J")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    jt = CH * 0.375
+    jt = CH * lm("J_t", 0.375)
     c = rounded((0, jt, rt), (0, 0, ro), (W, 0, ro), (W, CH, rt), (W - V, CH, rt), (W - V, H, ri), (V, H, ri), (V, jt, rt))
     return [c], W, p.sides("J")
 
@@ -999,7 +1073,7 @@ def g_K(p):
     W = p.w("K")
     V, H, rt = p.V, p.H, p.rt
     t = V * 0.98
-    m0 = CH * 0.510 - H / 2  # the stub, level with the H's bar
+    m0 = CH * lm("EFH_mid", 0.510) - H / 2  # the stub, level with the H's bar
     m1, xj = m0 + H, W * 0.253  # its top; where it ends
     xa, xl = W * 0.818, W * 0.836  # the arm's top-left, the leg's bottom-left
     ha = diag_hw(xa - xj, CH - m1, t)
@@ -1031,7 +1105,7 @@ def g_L(p):
 def g_M(p):
     """Two stems and a V between them that dips almost to the baseline."""
     W = p.w("M")
-    vee = v_shape(p, 0, W, top=CH, bottom=CH * 0.066, r_top=p.rt)[0]
+    vee = v_shape(p, 0, W, top=CH, bottom=CH * lm("M_dip", 0.066), r_top=p.rt)[0]
     return [stem(p, 0), stem(p, W - p.V), vee], W, p.sides("M")
 
 
@@ -1052,7 +1126,7 @@ def g_O(p):
 @glyph("P", "P")
 def g_P(p):
     W = p.w("P")
-    return [stem(p, 0)] + capbowl(p, 0, W, CH * 0.386, CH, "square"), W, p.sides("P")
+    return [stem(p, 0)] + capbowl(p, 0, W, CH * lm("P_bowl", 0.386), CH, "square"), W, p.sides("P")
 
 
 @glyph("Q", "Q")
@@ -1066,7 +1140,7 @@ def g_Q(p):
 @glyph("R", "R")
 def g_R(p):
     W = p.w("R")
-    pb = CH * 0.404  # bottom of the bowl
+    pb = CH * lm("R_bowl", 0.404)  # bottom of the bowl
     x0, x1 = W * 0.672, W * 0.975  # the leg leaves the bowl here and lands here
     hw = diag_hw(x1 - x0, pb, p.V * 0.98)
     leg = rpoly((x0, pb + p.H / 2, 0), (x0 + hw, pb + p.H / 2, 0), (x1, 0, p.rt), (x1 - hw, 0, p.rt))
@@ -1077,9 +1151,9 @@ def g_R(p):
 def g_S(p):
     W = p.w("S")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    m0 = CH * 0.515 - H / 2
+    m0 = CH * lm("S_mid", 0.515) - H / 2
     m1 = m0 + H
-    t0, t1 = CH * 0.33, CH * 0.70
+    t0, t1 = CH * lm("S_t0", 0.33), CH * lm("S_t1", 0.70)
     c = rounded(
         (0, t0, rt), (0, 0, ro), (W, 0, ro), (W, m1, ro), (V, m1, ri), (V, CH - H, ri),
         (W - V, CH - H, ri), (W - V, t1, rt), (W, t1, rt), (W, CH, ro), (0, CH, ro), (0, m0, ro),
@@ -1130,7 +1204,7 @@ def g_X(p):
 def g_Y(p):
     """A V whose foot is a stem's width, standing on a stem."""
     W = p.w("Y")
-    yj = CH * 0.416
+    yj = CH * lm("Y_join", 0.416)
     vee = v_shape(p, 0, W, top=CH, bottom=yj, foot=p.V, r_top=p.rt)[0]
     return [vee, stem(p, W / 2 - p.V / 2, 0, yj + p.H)], W, p.sides("Y")
 

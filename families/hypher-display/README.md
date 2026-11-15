@@ -36,8 +36,10 @@ Each version is a named set of numbers in `STYLES` (`glyphs.py`) and builds as i
 | Finish | Hypher Display Finish | A little of each: radius 0.215, eased 0.6, rounder counters, soft ends |
 | Lathe Wide | Hypher Display Lathe Wide | Wordmark's landmarks, spacing and kerning with Hypher's own machined corners and straight y, 6% wider |
 | Lathe Narrow | Hypher Display Lathe Narrow | The same, 5% narrower |
+| Billet | Hypher Display Billet | Hypher's own proportion system (widths by shape family, sidebearings by side shape, terminals at 0.30 and 0.70, bars centred, f at the ascender, g at the descender), blended 80/20 with the wordmark font's measurements; Hypher's corners, straight y and round stem tops |
+| Billet Compact | Hypher Display Billet Compact | Billet at 90% width: about as close to Michroma as any font of the genre |
 
-**How close each is to Michroma** (share of letter area both cover, lowercase a–z, at the same x-height): Wordmark 88%, Lathe Wide and Lathe Narrow 75%, Mill and Finish 67%. Unrelated wide or futuristic fonts land at 41–54% (Krona One 54%, Orbitron 52%, Audiowide 44%). Corners barely move the number; width moves it most.
+**How close each is to Michroma** (share of letter area both cover, lowercase a–z, at the same x-height): Wordmark 88%, Lathe Wide and Lathe Narrow 75%, Billet 73%, Mill and Finish 67%, Billet Compact 55%. Unrelated wide or futuristic fonts land at 41–54% (Krona One 54%, Orbitron 52%, Audiowide 44%). Corners barely move the number; width moves it most.
 
 To try a mix without editing, set `HYPHER_STYLE` to a version and any of `HYPHER_RADIUS`, `HYPHER_SMOOTH`, `HYPHER_INNER` or `HYPHER_TERM` to override its numbers, then build.
 
