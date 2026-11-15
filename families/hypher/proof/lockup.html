@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Hypher beside the lockup</title>
+<style>
+@font-face { font-family: "Hypher"; src: url("../fonts/variable/Hypher%5Bwght%5D.woff2") format("woff2"); font-weight: 300 700; }
+:root { --ink: #111; --mute: #8a8a8a; --rule: #e6e6e6; --em: 125px; }
+body { margin: 0; padding: 48px 56px; background: #fff; color: var(--ink); font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; }
+h2 { font-size: 12px; font-weight: 500; color: var(--mute); margin: 40px 0 10px; letter-spacing: .02em; }
+.row { position: relative; height: 118px; width: 1077px; border-bottom: 1px solid var(--rule); }
+.row svg, .word { position: absolute; left: 0; top: 0; }
+/* The lockup's word starts at x 494.06 with the h's ink; its baseline is at y 93.75 and the em is 125 units. */
+.word { font-family: "Hypher"; font-size: var(--em); line-height: 1; left: calc(494.06px - 132 / 2048 * var(--em) - 82 / 2048 * var(--em)); top: calc(93.75px - 2368 / 2048 * var(--em)); line-height: calc((2368 + 544) / 2048 * var(--em)); white-space: nowrap; font-kerning: normal; }
+.over .word { color: rgba(230, 40, 40, .55); }
+.mark { position: absolute; left: 0; top: 0; width: 446px; height: 118px; overflow: hidden; }
+.row img { position: absolute; left: 0; top: 0; }
+.alpha { font-family: "Hypher"; font-size: 44px; line-height: 1.5; margin: 0; }
+</style>
+<h2>Brand lockup (hypher-lockup.svg)</h2>
+<div class="row"><img src="hypher-lockup.svg" alt="Hypher brand lockup"></div>
+<h2>Hypher Regular in red over the lockup's word in black</h2>
+<div class="row over"><img src="hypher-lockup.svg" alt=""><span class="word" style="font-weight:400">hypher</span></div>
+<h2>Hypher 300 · 400 · 700, with the lockup's mark</h2>
+<div class="row w"><span class="mark"><img src="hypher-lockup.svg" alt=""></span><span class="word" style="font-weight:300">hypher</span></div>
+<div class="row w"><span class="mark"><img src="hypher-lockup.svg" alt=""></span><span class="word" style="font-weight:400">hypher</span></div>
+<div class="row w"><span class="mark"><img src="hypher-lockup.svg" alt=""></span><span class="word" style="font-weight:700">hypher</span></div>
+<h2>Lowercase</h2>
+<p class="alpha" style="font-weight:300">abcdefghijklmnopqrstuvwxyz</p>
+<p class="alpha" style="font-weight:400">abcdefghijklmnopqrstuvwxyz</p>
+<p class="alpha" style="font-weight:700">abcdefghijklmnopqrstuvwxyz</p>
