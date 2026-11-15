@@ -125,3 +125,9 @@ def take(path, glyph, target_stem, target_height, use="x"):
     x0, _, x1, _ = pen.bounds
     lsb, rsb = x0 * k, (adv - x1) * k
     return translate(contours, -x0 * k), (x1 - x0) * k, (lsb, rsb), w
+
+
+@lru_cache(maxsize=None)
+def glyph_for(path, char):
+    """The base font's glyph name for a character, by its cmap."""
+    return TTFont(path).getBestCmap()[ord(char)]

@@ -1060,3 +1060,34 @@ def ccmp_pairs():
 
 
 G_NAME = {ch: nm for nm, (ch, _) in GLYPHS.items() if ch and len(ch) == 1 and ord(ch) < 0x80}
+
+
+# --- symbols from Archivo ------------------------------------------------------------
+# Litt's own quotes, commas and primes were slanted wedges, and its guillemets, ¶ ° * ¤ ™
+# ran small and heavy. These come from Archivo instead, fitted like the s: its weight
+# axis is solved so its stem matches Litt's, then it is scaled to Litt's x-height
+# ("x") or cap height ("cap"). Glyphs built on them (ș ț, the .case forms) follow.
+ARCHIVO_SYMBOLS = {
+    "comma": "x", "semicolon": "x", "quotesinglbase": "x", "quotedblbase": "x",
+    "quotesingle": "cap", "quotedbl": "cap", "quoteleft": "cap", "quoteright": "cap",
+    "quotedblleft": "cap", "quotedblright": "cap", "minute": "cap", "second": "cap",
+    "guillemotleft": "x", "guillemotright": "x", "guilsinglleft": "x", "guilsinglright": "x",
+    "paragraph": "cap", "degree": "cap", "asterisk": "cap", "currency": "x",
+    "trademark": "cap", "cedilla": "x",
+}
+
+
+def archivo_symbol(name, use):
+    char = GLYPHS[name][0]
+
+    def g(p):
+        import borrowed
+        from penglyphs import _BORROW
+        src = borrowed.glyph_for(_BORROW, char)
+        c, ink, sb, _ = borrowed.take(_BORROW, src, p.V, XH if use == "x" else CH, use)
+        return c, ink, sb
+    return g
+
+
+for nm, use in ARCHIVO_SYMBOLS.items():
+    add(nm, GLYPHS[nm][0], archivo_symbol(nm, use))
