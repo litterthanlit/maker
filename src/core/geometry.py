@@ -168,7 +168,7 @@ def band(outer, inner, a, b, ai=None, bi=None):
     return contour
 
 
-def rounded(*corners, smooth=0.0):
+def rounded(*corners, smooth=0.0, chamfer=False):
     """A polygon whose corners are rounded: rounded((x, y, r), (x, y, r), ...).
 
     Points run counter-clockwise for an outline, clockwise for a counter.
@@ -179,6 +179,9 @@ def rounded(*corners, smooth=0.0):
     smooth (0 to 1) starts each curve further back along the sides, with
     longer handles, so the curve eases out of the straight edge instead of
     joining it as a circle does: a softer corner at the same radius.
+
+    chamfer cuts each corner with a straight line between the same two points
+    the curve would join, instead of a curve.
     """
     n = len(corners)
     pts = [(c[0], c[1]) for c in corners]
@@ -207,6 +210,9 @@ def rounded(*corners, smooth=0.0):
     for i, pc in enumerate(pieces):
         if pc is None:
             out.append(("l", pts[i]))
+        elif chamfer:
+            out.append(("l", pc[0]))
+            out.append(("l", pc[3]))
         else:
             out.append(("l", pc[0]))
             out.append(("c", pc[1], pc[2], pc[3]))

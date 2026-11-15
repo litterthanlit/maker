@@ -214,6 +214,14 @@ STYLES["Datum"] = {
     "types": {**_TYPES, **_SYM_TYPES},
 }
 
+# Chamfer: as far from the wordmark font as Hypher goes. Datum's own rules and
+# kerning, every corner cut with a straight chamfer instead of a curve, and
+# letters at 86% of Datum's width: Michroma is wide and round; this is
+# neither.
+STYLES["Chamfer"] = {**STYLES["Datum"], "chamfer": True, "smooth": 0.0, "inner_smooth": 0.0, "radius": 0.17,
+                     "inner": 0.55, "term": 0.0,
+                     "widths": {c: round(w * 0.86) for c, w in STYLES["Datum"]["widths"].items()}}
+
 # Billet Compact: Billet at 90% width, out of the wordmark font's wide stance.
 STYLES["BilletCompact"] = {**STYLES["Billet"], "widths": {c: round(w * 0.90) for c, w in STYLES["Billet"]["widths"].items()},
                            "kern_scale": 0.86}
@@ -272,7 +280,7 @@ def lm(key, default):
 
 
 def rounded(*corners):
-    return geometry.rounded(*corners, smooth=STYLE["smooth"])
+    return geometry.rounded(*corners, smooth=STYLE["smooth"], chamfer=STYLE.get("chamfer", False))
 
 
 def box(x0, y0, x1, y1, bl, br, tr, tl):
@@ -282,7 +290,8 @@ def box(x0, y0, x1, y1, bl, br, tr, tl):
 
 def hole(x0, y0, x1, y1, r):
     """A counter: a rounded rectangle running clockwise."""
-    return geometry.rounded((x0, y0, r), (x0, y1, r), (x1, y1, r), (x1, y0, r), smooth=STYLE["inner_smooth"])
+    return geometry.rounded((x0, y0, r), (x0, y1, r), (x1, y1, r), (x1, y0, r), smooth=STYLE["inner_smooth"],
+                            chamfer=STYLE.get("chamfer", False))
 
 
 def stem_top(p, x0, bottom):
