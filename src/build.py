@@ -28,7 +28,7 @@ from geometry import reverse, translate  # noqa: E402
 
 FAMILY = "Litt Grotesk"
 FILE = "LittGrotesk"
-VERSION = "0.700"
+VERSION = "0.800"
 UPM = 1000
 
 # Vertical metrics, chosen for UI: one set shared by every platform, no line
@@ -183,7 +183,7 @@ def build_master(wght, gl, path):
         "fullName": f"{FAMILY} {style}",
         "psName": f"{FILE}-{style}",
         "version": f"Version {VERSION}",
-        "copyright": "Copyright 2026 The Litt Grotesk Project Authors; s and S from Archivo, Copyright 2020 The Archivo Project Authors",
+        "copyright": "Copyright 2026 The Litt Grotesk Project Authors; s, S, 6 and 9 from Archivo, Copyright 2020 The Archivo Project Authors",
         "licenseDescription": "This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: https://openfontlicense.org",
         "licenseInfoURL": "https://openfontlicense.org",
     })

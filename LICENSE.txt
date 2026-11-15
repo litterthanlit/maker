@@ -1,5 +1,5 @@
 Copyright 2026 The Litt Grotesk Project Authors
-Copyright 2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo), for the outlines of s and S
+Copyright 2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo), for the outlines of s, S, 6 and 9
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:

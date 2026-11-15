@@ -393,13 +393,13 @@ def g_percent(p):
 
 
 # --- s and S from an open-licence base (make-font skill) -----------------------
-# The s and S are Archivo's (OFL), fitted to Litt's stem, x-height and cap
+# The s, S, 6 and 9 are Archivo's (OFL), fitted to Litt's stem, x-height and cap
 # height by src/borrowed.py: Archivo's weight axis is solved per master so its
 # stem matches Litt's, and the outline is scaled, never traced or redrawn.
-# data/base holds a subset with only s, S and n (n is measured for the stem),
+# data/base holds a subset with only s, S, 6, 9 and n (n is measured for the stem),
 # with its licence. LITT_BORROW_S can point at another variable OFL font to try it.
 _BORROW = os.environ.get("LITT_BORROW_S") or os.path.join(
-    os.path.dirname(__file__), "data", "base", "Archivo-sSn[wdth,wght].ttf")
+    os.path.dirname(__file__), "data", "base", "Archivo-base[wdth,wght].ttf")
 if _BORROW:
     import borrowed
 
@@ -412,3 +412,13 @@ if _BORROW:
     def g_S_borrowed(p):
         c, ink, sb, _ = borrowed.take(_BORROW, "S", p.V * 1.04, CH, "cap")
         return c, ink, sb
+
+    @glyph("six", "6")
+    def g_6_borrowed(p):
+        c, ink, _, _ = borrowed.take(_BORROW, "six", p.VR * 1.02, CH, "cap")
+        return c, ink, (fig_sb(p, ink),) * 2  # centred in the shared figure width
+
+    @glyph("nine", "9")
+    def g_9_borrowed(p):
+        c, ink, _, _ = borrowed.take(_BORROW, "nine", p.VR * 1.02, CH, "cap")
+        return c, ink, (fig_sb(p, ink),) * 2
