@@ -17,18 +17,24 @@ from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
 from fontTools.fontBuilder import FontBuilder
 from fontTools.otlLib.builder import buildStatTable
 from fontTools.pens.ttGlyphPen import TTGlyphPen
-from fontTools.ttLib import TTFont
+from fontTools.ttLib import TTFont, newTable
 from fontTools.varLib import build as build_variable
 from fontTools.varLib.instancer import instantiateVariableFont, OverlapMode
 
 sys.path.insert(0, os.path.dirname(__file__))
 import glyphs as G  # noqa: E402
+import extended as X  # noqa: E402  (registers the extended character set)
 from geometry import reverse, translate  # noqa: E402
 
 FAMILY = "Kanton Grotesk"
 FILE = "KantonGrotesk"
-VERSION = "0.100"
+VERSION = "0.200"
 UPM = 1000
+
+# Vertical metrics, chosen for UI: one set shared by every platform, no line
+# gap, and a line box whose centre (960 - 240) / 2 = 360 is the centre of the
+# capitals. Text in a button or input then sits optically centred.
+ASCENT, DESCENT = 960, -240
 
 # weight -> lowercase stem width. Everything else derives from the stem.
 MASTERS = {300: 46, 400: 84, 700: 140}
@@ -111,9 +117,35 @@ KERN_PAIRS = [  # (left, right, value at Regular)
 ]
 
 
+def kern_classes():
+    """Kerning classes, extended so accented letters kern like their base."""
+    out = {}
+    for k, v in KERN_CLASSES.items():
+        members = v.split()
+        members += [c for c, base in X.BASE.items() if base in members and c not in members]
+        out[k] = " ".join(members)
+    return out
+
+
+def gsub_fea():
+    lines = ["languagesystem DFLT dflt;", "languagesystem latn dflt;"]
+    lines.append("feature ccmp {")
+    for base, mark, comp in X.ccmp_pairs():
+        lines.append(f"  sub {base} {mark} by {comp};")
+    lines.append("} ccmp;")
+    for tag, pairs in X.ALT.items():
+        lines.append(f"feature {tag} {{")
+        if tag == "ss01":
+            lines.append('  featureNames { name "Disambiguation (Il1 0)"; };')
+        for a, b in pairs:
+            lines.append(f"  sub {a} by {b};")
+        lines.append(f"}} {tag};")
+    return "\n".join(lines)
+
+
 def kern_fea(wght):
     scale = 1 + (MASTERS[wght] - 84) * 0.002
-    lines = [f"@{k} = [{v}];" for k, v in KERN_CLASSES.items()]
+    lines = [f"@{k} = [{v}];" for k, v in kern_classes().items()]
     lines.append("feature kern {")
     for l, r, v in KERN_PAIRS:
         ls = f"@{l}" if l in KERN_CLASSES else l
@@ -134,15 +166,18 @@ def build_master(wght, gl, path):
         g.recalcBounds(None) if hasattr(g, "recalcBounds") else None
         lsb = g.xMin if g.numberOfContours else 0
         metrics[name] = (adv, lsb)
-        cmap[ord(char)] = name
+        if char:
+            cmap[ord(char)] = name
 
+    ys = [(g.yMin, g.yMax) for g, _ in gl.values() if g.numberOfContours]
+    win = (min(y[0] for y in ys), max(y[1] for y in ys))  # Windows clips outside these
     style = INSTANCES.get(wght, str(wght))
     fb = FontBuilder(UPM, isTTF=True)
     fb.setupGlyphOrder(order)
     fb.setupCharacterMap(cmap)
     fb.setupGlyf(glyf)
     fb.setupHorizontalMetrics(metrics)
-    fb.setupHorizontalHeader(ascent=950, descent=-250)
+    fb.setupHorizontalHeader(ascent=ASCENT, descent=DESCENT, lineGap=0)
     fb.setupNameTable({
         "familyName": FAMILY,
         "styleName": style,
@@ -152,14 +187,14 @@ def build_master(wght, gl, path):
         "version": f"Version {VERSION}",
     })
     fb.setupOS2(
-        sTypoAscender=G.ASC + 2, sTypoDescender=G.DSC - 38, sTypoLineGap=200,
-        usWinAscent=950, usWinDescent=250, sxHeight=G.XH, sCapHeight=G.CH,
+        sTypoAscender=ASCENT, sTypoDescender=DESCENT, sTypoLineGap=0,
+        usWinAscent=max(ASCENT, win[1]), usWinDescent=max(-DESCENT, -win[0]), sxHeight=G.XH, sCapHeight=G.CH,
         usWeightClass=wght, achVendID="NONE", fsSelection=0x80 | (0x40 if wght == 400 else 0),
     )
     fb.font["OS/2"].version = 4
     fb.setupPost()
     fb.setupHead(unitsPerEm=UPM, fontRevision=float(VERSION))
-    addOpenTypeFeaturesFromString(fb.font, kern_fea(wght))
+    addOpenTypeFeaturesFromString(fb.font, gsub_fea() + "\n" + kern_fea(wght))
     fb.save(path)
 
 
@@ -193,6 +228,9 @@ def main():
         "tag": "wght", "name": "Weight",
         "values": [{"value": w, "name": s, **({"flags": 0x2} if w == DEFAULT else {})} for w, s in INSTANCES.items()],
     }])
+    gasp = newTable("gasp")
+    gasp.gaspRange = {0xFFFF: 0x000F}  # smooth and grid-fit at every size
+    vf["gasp"] = gasp
     vf_path = OUT / "variable" / f"{FILE}[wght].ttf"
     vf.save(vf_path)
     vf.flavor = "woff2"
@@ -205,11 +243,25 @@ def main():
         inst["OS/2"].usWeightClass = w
         sp = OUT / "static" / f"{FILE}-{style}.ttf"
         inst.save(sp)
+        autohint(sp)
+        inst = TTFont(sp)
         inst.flavor = "woff2"
         inst.save(sp.with_suffix(".woff2"))
         print("static:  ", sp)
 
     write_specimen(vf_path.with_suffix(".woff2"))
+
+
+def autohint(path):
+    """Hint a static font with ttfautohint, for crisp text on Windows."""
+    try:
+        import ttfautohint
+    except ImportError:
+        print("  ttfautohint-py not installed; static fonts left unhinted")
+        return
+    data = ttfautohint.ttfautohint(in_file=str(path), hint_composites=True,
+                                   increase_x_height=14, windows_compatibility=True)
+    Path(path).write_bytes(data)
 
 
 def write_specimen(woff2, embed_to=None):

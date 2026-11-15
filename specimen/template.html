@@ -150,6 +150,24 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .trait p { margin: 0; color: var(--muted); font-size: 15px; }
 .kicker { margin: 56px 0 0; }
 
+/* ui demo */
+.ui-demo { display: grid; gap: 18px; margin-top: 28px; padding: clamp(16px, 3vw, 28px); background: var(--panel); border-radius: 6px; font-size: 14px; }
+.ui-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ui-btn { font: inherit; font-weight: 500; height: 36px; padding: 0 16px; border-radius: 6px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); cursor: pointer; }
+.ui-btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ui-tag { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; font-feature-settings: "case"; padding: 3px 9px; border-radius: 99px; background: var(--accent); color: var(--paper); }
+.ui-field { display: grid; gap: 6px; max-width: 360px; }
+.ui-field span { font-size: 12px; font-weight: 500; color: var(--muted); }
+.ui-field input { font: inherit; height: 36px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink); font-feature-settings: "ss01"; min-width: 0; }
+.ui-table { border-collapse: collapse; width: 100%; max-width: 520px; font-size: 13px; }
+.ui-table th { font-weight: 600; text-align: left; color: var(--muted); font-size: 12px; }
+.ui-table th, .ui-table td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--rule); }
+.ui-table .n { text-align: right; font-variant-numeric: tabular-nums; }
+.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 28px; }
+.feature p { font-size: 40px; margin: 8px 0; display: flex; flex-wrap: wrap; gap: 8px 24px; letter-spacing: -0.01em; }
+.feature p .on { color: var(--accent); }
+.feature small { color: var(--muted); font-size: 14px; }
+
 /* usage */
 pre {
   font-family: var(--mono); font-size: 13px; line-height: 1.6; background: var(--panel); color: var(--ink);
@@ -163,15 +181,15 @@ footer { border-top: 1px solid var(--rule); padding-block: 28px 48px; }
 <div class="wrap">
   <header>
     <div class="top">
-      <span class="label">Type specimen · v0.1</span>
+      <span class="label">Type specimen · v0.2</span>
       <span class="label">Variable · wght 300–700</span>
     </div>
     <h1 class="hero-name" aria-label="Kanton Grotesk"><span>Kanton</span><span class="accent">Grotesk</span></h1>
     <div class="facts">
       <div><span class="label">Weights</span><b>300 to 700</b></div>
-      <div><span class="label">Glyphs</span><b>95 Latin</b></div>
+      <div><span class="label">Characters</span><b>370</b></div>
       <div><span class="label">x-height / cap</span><b>0.733</b></div>
-      <div><span class="label">Web font</span><b>10 KB</b></div>
+      <div><span class="label">Web font</span><b>30 KB</b></div>
     </div>
   </header>
 
@@ -234,8 +252,8 @@ footer { border-top: 1px solid var(--rule); padding-block: 28px 48px; }
     <div class="grid">
       <div class="rail"><span class="label">03 — Character set</span></div>
       <div class="main">
-        <h2 id="char-h">Basic Latin, complete.</h2>
-        <p class="lede">All 95 printable ASCII characters, kerned. Select one to inspect it.</p>
+        <h2 id="char-h">Latin for names in 40+ languages.</h2>
+        <p class="lede">Basic Latin, Latin-1 and Latin Extended-A, plus the punctuation, currency, arrows and math signs interfaces need. Select a character to inspect it.</p>
         <div class="glyph-layout">
           <div class="glyphs" id="glyphs" role="listbox" aria-label="Glyphs"></div>
           <aside class="inspect" aria-live="polite">
@@ -291,9 +309,39 @@ footer { border-top: 1px solid var(--rule); padding-block: 28px 48px; }
     </div>
   </section>
 
+  <section aria-labelledby="ui-h">
+    <div class="grid">
+      <div class="rail"><span class="label">07 — In interfaces</span></div>
+      <div class="main">
+        <h2 id="ui-h">Built for buttons, tables and forms.</h2>
+        <p class="lede">The line box is centred on the capitals, so labels sit in the middle of buttons and inputs without nudging. Figures are tabular, so columns of numbers line up.</p>
+        <div class="ui-demo">
+          <div class="ui-row">
+            <button class="ui-btn primary" type="button">Save changes</button>
+            <button class="ui-btn" type="button">Cancel</button>
+            <span class="ui-tag">Beta</span>
+          </div>
+          <label class="ui-field"><span>Email</span><input id="ui-email" value="jürgen.müller@firma.ch"></label>
+          <table class="ui-table">
+            <thead><tr><th>Client</th><th class="n">Amount</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Øresund Logistik</td><td class="n">€1,240.00</td><td>Paid</td></tr>
+              <tr><td>Łódź Studio</td><td class="n">€980.50</td><td>Overdue</td></tr>
+              <tr><td>Ságvári &amp; Ţepeş</td><td class="n">€12,111.11</td><td>Draft</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="features">
+          <div class="feature"><span class="label">ss01 · Disambiguation</span><p><span>Il1 O0</span><span class="on" style="font-feature-settings:'ss01'">Il1 O0</span></p><small>Tailed l, serifed I and slashed zero, for passwords, codes and IDs.</small></div>
+          <div class="feature"><span class="label">case · Capital forms</span><p><span>(BETA) – [NEW]</span><span class="on" style="font-feature-settings:'case'">(BETA) – [NEW]</span></p><small>Lifts brackets and dashes to the capitals. Turn it on with uppercase labels.</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section aria-labelledby="u-h">
     <div class="grid">
-      <div class="rail"><span class="label">07 — Use it</span></div>
+      <div class="rail"><span class="label">08 — Use it</span></div>
       <div class="main">
         <h2 id="u-h">Load one variable file.</h2>
         <p class="lede">The variable WOFF2 covers every weight. Static TTF and WOFF2 files are in the repository too, for apps that don't support variable fonts.</p>
@@ -305,7 +353,13 @@ footer { border-top: 1px solid var(--rule); padding-block: 28px 48px; }
 }
 
 body { font-family: "Kanton Grotesk", "Helvetica Neue", Arial, sans-serif; }
-h1   { font-weight: 650; letter-spacing: -0.02em; }</pre>
+
+/* UI text: open up a little below 15px, tighten for headlines */
+.small, .caption   { letter-spacing: 0.01em; }
+h1, .display       { font-weight: 650; letter-spacing: -0.02em; }
+.label-caps        { text-transform: uppercase; letter-spacing: 0.06em;
+                     font-feature-settings: "case"; }
+input, code, .id   { font-feature-settings: "ss01"; }  /* Il1 O0 */</pre>
         <button class="chip copy" id="copy">Copy CSS</button>
         <ul class="files">
           <li>fonts/variable/KantonGrotesk[wght].woff2</li>
@@ -349,7 +403,7 @@ h1   { font-weight: 650; letter-spacing: -0.02em; }</pre>
     if (n >= 65 && n <= 90) return "LATIN CAPITAL LETTER " + c;
     if (n >= 97 && n <= 122) return "LATIN SMALL LETTER " + c.toUpperCase();
     if (n >= 48 && n <= 57) return "DIGIT " + DIGITS[n - 48];
-    return NAMES_U[n] || "";
+    return NAMES_U[n] || "U+" + n.toString(16).toUpperCase().padStart(4, "0");
   };
   const grid = document.getElementById("glyphs");
   const big = document.getElementById("big");
@@ -358,6 +412,7 @@ h1   { font-weight: 650; letter-spacing: -0.02em; }</pre>
   for (let i = 97; i <= 122; i++) chars.push(String.fromCharCode(i));
   for (let i = 48; i <= 57; i++) chars.push(String.fromCharCode(i));
   for (let i = 33; i <= 126; i++) { const c = String.fromCharCode(i); if (!/[A-Za-z0-9]/.test(c)) chars.push(c); }
+  for (const c of "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿĀāĂăĄąĆćČčĎďĐđĒēĖėĘęĚěĞğĢģĪīĮįİıĶķĹĺĻļĽľŁłŃńŅņŇňŌōŐőŒœŔŕŘřŚśŞşŠšŢţŤťŪūŮůŰűŲųŴŵŶŷŸŹźŻżŽž‘’“”‚„–—…•·‹›«»¡¿§¶€£¥¢−±×÷≠≤≥≈°←→↑↓¹²³½¼¾©®™") chars.push(c);
   let selected = null;
   function select(btn) {
     if (selected) selected.setAttribute("aria-selected", "false");
