@@ -9,6 +9,7 @@ Drawn in code for Hypher Display; no outlines are taken from another font.
 
 ## Changelog
 
+- **0.450 (2026-11-15):** Datum 20: Datum at 93% width, 20% resemblance to Michroma above the genre baseline (57% raw lowercase overlap), kerning re-measured from its own outlines.
 - **0.440 (2026-11-15):** Chamfer: Datum with every corner cut straight and letters at 86% width, 50% overlap with Michroma, the genre's floor. `rounded()` gains a `chamfer` option.
 - **0.430 (2026-11-15):** Datum: no number from the wordmark font. Its own widths, sidebearings, landmarks and placements, and kerning measured from its own outlines by a new auto-kerner. 70% lowercase overlap with Michroma, by resemblance alone.
 - **0.420 (2026-11-15):** Billet and Billet Compact: Hypher's own proportion system with a fifth of the wordmark font blended in; Billet Compact sits at 55% overlap with Michroma, the genre's own level. Landmark heights are now named values (`lm()`) a version can set.

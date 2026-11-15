@@ -40,8 +40,11 @@ Each version is a named set of numbers in `STYLES` (`glyphs.py`) and builds as i
 | Billet Compact | Hypher Display Billet Compact | Billet at 90% width: about as close to Michroma as any font of the genre |
 | Datum | Hypher Display Datum | None of the wordmark font: every width, sidebearing, landmark and placement is Hypher's own rule, and kerning is measured from Datum's own outlines (`autokern.py`) |
 | Chamfer | Hypher Display Chamfer | As unlike the wordmark font as Hypher goes: Datum's rules and kerning, every corner cut with a straight chamfer instead of a curve, letters at 86% of Datum's width |
+| Datum 20 | Hypher Display Datum 20 | Datum at 93% width: 20% resemblance to Michroma above the genre's baseline (see below), with Datum's soft corners and its own kerning |
 
 **How close each is to Michroma** (share of letter area both cover, lowercase a–z, at the same x-height): Wordmark 88%, Lathe Wide and Lathe Narrow 75%, Billet 73%, Datum 70%, Mill and Finish 67%, Billet Compact 55%, Chamfer 50%. Unrelated wide or futuristic fonts land at 41–54% (Krona One 54%, Orbitron 52%, Audiowide 44%). Corners barely move the number; width moves it most. Datum shows the number measures resemblance, not borrowing: it takes nothing from Michroma, yet its own rules are wide too, and wide letters resemble each other.
+
+Because unrelated fonts of the genre already share about 47% of their letter area with Michroma (the mean of the eight measured), **resemblance above that baseline** reads more naturally: (overlap − 46.8) / (100 − 46.8). On that scale Wordmark is 77%, Lathe 53%, Datum 43%, Datum 20 20%, Billet Compact 14% and Chamfer 5%.
 
 To try a mix without editing, set `HYPHER_STYLE` to a version and any of `HYPHER_RADIUS`, `HYPHER_SMOOTH`, `HYPHER_INNER` or `HYPHER_TERM` to override its numbers, then build.
 

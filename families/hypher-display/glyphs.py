@@ -222,11 +222,16 @@ STYLES["Chamfer"] = {**STYLES["Datum"], "chamfer": True, "smooth": 0.0, "inner_s
                      "inner": 0.55, "term": 0.0,
                      "widths": {c: round(w * 0.86) for c, w in STYLES["Datum"]["widths"].items()}}
 
+# Datum 20: Datum at 93% width. Fonts of the same genre share about 47% of
+# their letter area with the wordmark font whatever their design (the floor);
+# measured above that floor, this one resembles it by 20%.
+STYLES["Datum20"] = {**STYLES["Datum"], "widths": {c: round(w * 0.93) for c, w in STYLES["Datum"]["widths"].items()}}
+
 # Billet Compact: Billet at 90% width, out of the wordmark font's wide stance.
 STYLES["BilletCompact"] = {**STYLES["Billet"], "widths": {c: round(w * 0.90) for c, w in STYLES["Billet"]["widths"].items()},
                            "kern_scale": 0.86}
 DEFAULT_STYLE = "Wordmark"
-LABELS = {"LatheWide": "Lathe Wide", "LatheNarrow": "Lathe Narrow", "BilletCompact": "Billet Compact"}  # family-name spelling, where it differs from the key
+LABELS = {"LatheWide": "Lathe Wide", "LatheNarrow": "Lathe Narrow", "BilletCompact": "Billet Compact", "Datum20": "Datum 20"}  # family-name spelling, where it differs from the key
 
 
 
