@@ -8,19 +8,19 @@ type face for litt.md. It is released under the SIL Open Font License 1.1
 
 ## Provenance
 
-- **Drawn for Litt:** every glyph except those below, generated from code in `src/`
+- **Drawn for Litt:** every glyph except those below, generated from code in `families/litt-grotesk/`
   (`glyphs.py`, `extended.py`, `penglyphs.py`). No outline of any measured font is used.
 - **From Archivo (OFL):** the outlines of **a**, **æ**, **s**, **S**, **all ten figures 0–9**, and every punctuation mark and symbol except the spacing accents (` ´ ¨ ¯ ˘ ˙ ˚ ˛ ˜ ˝ ^, which match Litt's accented letters), and so of the glyphs built on them (à á â ã ä å ā ă ą ª, ś ŝ ş š Ś Ŝ Ş Š, $, the tabular
   figures, the slashed zero, superscripts ² ³ ¹ and the fractions ¼ ½ ¾). Archivo is by Omnibus-Type, Copyright 2020 The
   Archivo Project Authors (https://github.com/Omnibus-Type/Archivo). Litt takes them
-  from Archivo's variable font (`src/data/base`, subset to those glyphs and n) following the
+  from Archivo's variable font (`families/litt-grotesk/data/base`, subset to those glyphs and n) following the
   make-font method (design.how): for each Litt master the weight axis is solved so
   Archivo's stem matches Litt's, and the outline is scaled to Litt's x-height and cap
   height. Points are not edited. The figures are centred in Litt's shared figure
   width, not stretched. Archivo's 4 is open at the top, its 1 has a foot and its 7 a curved
   stem; Litt's earlier figures were closed, footless and straight.
   At Light, Archivo's thinnest weight is a touch heavier than Litt's Light stem, so
-  these glyphs run slightly heavy there. Archivo's licence: `src/data/base/Archivo-OFL.txt`.
+  these glyphs run slightly heavy there. Archivo's licence: `families/litt-grotesk/data/base/Archivo-OFL.txt`.
   Archivo has no Reserved Font Name.
 
 ## Changelog

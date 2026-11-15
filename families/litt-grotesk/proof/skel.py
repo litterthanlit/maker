@@ -1,8 +1,9 @@
 """Draw a glyph's outline (grey) with its pen skeleton (red) to an SVG, for tuning.
-    python3 proof/skel.py S 400 out.svg"""
+    python3 families/litt-grotesk/proof/skel.py S 400 out.svg"""
 import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-import geometry
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "src"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from core import geometry
 captured = []
 _orig = geometry.pen
 def spy(sk, *a, **k):

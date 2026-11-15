@@ -13,7 +13,7 @@ are drawn with the leftmost ink at x = 0; the builder adds the sidebearings.
 import math
 from dataclasses import dataclass
 
-from geometry import (
+from core.geometry import (
     Ellipse, band, bounds, diag, stroke, diag_hw, flip_y, mirror_x, poly, rect, ring,
     rotate, rotate180, solve_hw, transform, translate,
 )

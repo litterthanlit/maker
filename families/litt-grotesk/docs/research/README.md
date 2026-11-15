@@ -23,7 +23,7 @@ grotesques draw them.
    resampled, so like is averaged with like. Terminal ends are trimmed where
    the skeleton forks into a cut's corners.
 5. **Fit.** The average is fitted with one cubic per span, with extremes kept
-   level or upright, and saved to `src/data/consensus.json`. It is the genre's
+   level or upright, and saved to `data/consensus.json`. It is the genre's
    shared shape, not any one font's drawing.
 
 The overlays in this folder show every reference's centre line (grey,
@@ -61,5 +61,5 @@ python3 proof/research.py <out_dir>          # traces and overlays (needs the re
 python3 -c "import sys,json; sys.path.insert(0,'proof'); import research as r; \
   json.dump({k:{'aspect':v['aspect'],'cubics':v['cubics'],'fonts':v['fonts']} \
   for k,v in r.consensus(json.load(open('<out_dir>/research.json'))).items()}, \
-  open('src/data/consensus.json','w'), indent=1)"
+  open('data/consensus.json','w'), indent=1)"
 ```

@@ -19,7 +19,7 @@ from fontTools.agl import UV2AGL
 
 import glyphs as G
 from glyphs import ASC, CH, DSC, O, XH, P, dot_size, fig_width, math_width, math_sb
-from geometry import (
+from core.geometry import (
     Ellipse, band, bounds, diag_hw, flip_y, mirror_x, poly, rect, ring, rotate,
     rotate180, stroke, transform, translate,
 )
@@ -443,7 +443,7 @@ def merged(p, left, right, overlap, keep_left=None):
 
 def g_ae(p):
     # Archivo's æ, fitted like the a: one drawn shape, not an a and an e stitched together
-    import borrowed
+    from core import borrowed
     from penglyphs import _BORROW
     c, ink, sb, _ = borrowed.take(_BORROW, "ae", p.V, XH, "x")
     return c, ink, sb
@@ -1094,7 +1094,7 @@ def archivo_symbol(name, use, stem="letter"):
     char = GLYPHS[name][0]
 
     def g(p):
-        import borrowed
+        from core import borrowed
         from penglyphs import _BORROW
         src = borrowed.glyph_for(_BORROW, char)
         v = p.V if stem == "letter" else p.VR * 1.02

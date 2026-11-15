@@ -18,7 +18,7 @@ from fontTools.pens.recordingPen import RecordingPen
 from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont
 
-from geometry import reverse, translate
+from .geometry import reverse, translate
 
 HERE = os.path.dirname(__file__)
 BASE = os.path.join(HERE, "data", "base")

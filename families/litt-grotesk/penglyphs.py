@@ -17,7 +17,7 @@ import glyphs as G
 from glyphs import ASC, CH, DSC, O, XH, dot_size, fig_sb, fig_strokes, fig_width, glyph, math_sb, math_width
 from fontTools.misc.bezierTools import splitCubicAtT
 
-from geometry import _d, _pt, flip_y, mirror_x, pen, rect, rotate180, seg, translate
+from core.geometry import _d, _pt, flip_y, mirror_x, pen, rect, rotate180, seg, translate
 
 
 def _u(dx, dy):
@@ -387,21 +387,21 @@ def g_percent(p):
     W = 2 * rw + gap
     r1 = G.ring(G.Ellipse(0, CH - rh, rw, CH, 0.6), G.Ellipse(v, CH - rh + h, rw - v, CH - h, 0.62))
     r2 = G.ring(G.Ellipse(W - rw, 0, W, rh, 0.6), G.Ellipse(W - rw + v, h, W - v, rh - h, 0.62))
-    from geometry import stroke
+    from core.geometry import stroke
     sl = stroke((rw * 0.55, -6), (W - rw * 0.55, CH + 6), p.D * 0.95, ("h", 0), ("h", CH))
     return r1 + r2 + [sl], W, (p.SBR, p.SBR)
 
 
 # --- s and S from an open-licence base (make-font skill) -----------------------
 # The s, S and all ten figures are Archivo's (OFL), fitted to Litt's stem, x-height and cap
-# height by src/borrowed.py: Archivo's weight axis is solved per master so its
+# height by src/core/borrowed.py: Archivo's weight axis is solved per master so its
 # stem matches Litt's, and the outline is scaled, never traced or redrawn.
 # data/base holds a subset with only those glyphs and n (n is measured for the stem),
 # with its licence. LITT_BORROW_S can point at another variable OFL font to try it.
 _BORROW = os.environ.get("LITT_BORROW_S") or os.path.join(
     os.path.dirname(__file__), "data", "base", "Archivo-base[wdth,wght].ttf")
 if _BORROW:
-    import borrowed
+    from core import borrowed
 
     @glyph("a", "a")
     def g_a_borrowed(p):
