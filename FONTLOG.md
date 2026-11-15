@@ -10,7 +10,8 @@ type face for litt.md. It is released under the SIL Open Font License 1.1
 
 - **Drawn for Litt:** every glyph except those below, generated from code in `src/`
   (`glyphs.py`, `extended.py`, `penglyphs.py`). No outline of any measured font is used.
-- **From Archivo (OFL):** the outlines of **s**, **S** and **all ten figures 0–9**, and so of the glyphs built on them (ś ŝ ş š Ś Ŝ Ş Š, $, the tabular
+- **From Archivo (OFL):** the outlines of **a**, **æ**, **s**, **S**, **%**, **€** and
+  **all ten figures 0–9**, and so of the glyphs built on them (à á â ã ä å ā ă ą ª, ś ŝ ş š Ś Ŝ Ş Š, $, the tabular
   figures, the slashed zero, superscripts ² ³ ¹ and the fractions ¼ ½ ¾). Archivo is by Omnibus-Type, Copyright 2020 The
   Archivo Project Authors (https://github.com/Omnibus-Type/Archivo). Litt takes them
   from Archivo's variable font (`src/data/base`, subset to those glyphs and n) following the
@@ -25,6 +26,8 @@ type face for litt.md. It is released under the SIL Open Font License 1.1
 
 ## Changelog
 
+- 0.96: a, æ, % and € from Archivo. `LITT_BORROW_ALL=1` builds an opt-in preview
+  with every basic letter from Archivo.
 - 0.95: 0, 1, 7 and 8 from Archivo: all ten figures now come from it.
 - 0.9: 2, 3, 4 and 5 from Archivo, fitted to Litt.
 - 0.8: 6 and 9 from Archivo, fitted to Litt.

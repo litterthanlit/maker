@@ -422,3 +422,36 @@ if _BORROW:
     for _name, _char in (("zero", "0"), ("one", "1"), ("two", "2"), ("three", "3"), ("four", "4"),
                          ("five", "5"), ("six", "6"), ("seven", "7"), ("eight", "8"), ("nine", "9")):
         glyph(_name, _char)(_borrowed_figure(_name))
+
+    global _borrowed_letter
+
+    def _borrowed_letter(name, use="x", stem=1.0):
+        def g(p):
+            height = XH if use == "x" else CH
+            c, ink, sb, _ = borrowed.take(_BORROW, name, p.V * stem, height, use)
+            return c, ink, sb
+        return g
+
+    glyph("a", "a")(_borrowed_letter("a"))
+    glyph("percent", "%")(_borrowed_letter("percent", "cap", 1.06))
+
+
+def register_late():
+    """Borrowed glyphs that extended.py defines too: registered after it, so these win."""
+    if not _BORROW:
+        return
+    glyph("ae", "æ")(_borrowed_letter("ae"))
+    glyph("Euro", "€")(_borrowed_letter("Euro", "cap", 1.06))
+
+
+def register_all_preview():
+    """LITT_BORROW_ALL: every basic letter from the base, as the full make-font
+    skill would. A preview of a Litt drawn in Archivo's hand; not the default."""
+    if not (_BORROW and os.environ.get("LITT_BORROW_ALL")):
+        return
+    for ch in "abcdefghijklmnopqrstuvwxyz":
+        glyph(ch, ch)(_borrowed_letter(ch))
+    for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+        glyph(ch, ch)(_borrowed_letter(ch, "cap", 1.06))
+    for name, ch in (("dotlessi", "\u0131"), ("uni0237", "\u0237"), ("kgreenlandic", "\u0138"), ("germandbls", "ß")):
+        glyph(name, ch)(_borrowed_letter(name))
