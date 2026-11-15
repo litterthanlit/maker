@@ -436,7 +436,7 @@ if _BORROW:
     glyph("percent", "%")(_borrowed_letter("percent", "cap", 1.06))
     # the curved and complex letters, where drawing by hand shows most; the
     # straight letters (n h m i l H E F T L ...) stay Litt's own
-    for _ch in "cegyjtf":
+    for _ch in "cegyjtfobdpq":
         glyph(_ch, _ch)(_borrowed_letter(_ch))
     for _ch in "GRK":
         glyph(_ch, _ch)(_borrowed_letter(_ch, "cap", 1.06))
@@ -454,6 +454,8 @@ def register_late():
     glyph("uni0237", "\u0237")(_borrowed_letter("uni0237"))
     glyph("tbar", "ŧ")(_borrowed_letter("tbar"))
     glyph("oe", "œ")(_borrowed_letter("oe"))
+    glyph("thorn", "þ")(_borrowed_letter("thorn"))
+    glyph("dcroat", "đ")(_borrowed_letter("dcroat"))
 
 
 def register_all_preview():

@@ -65,7 +65,7 @@ Legibility at 400, per 1000 units (v0.3 changes: lowercase ×1.05, sidebearings 
 
 ## Licence
 
-SIL Open Font License 1.1 (`LICENSE.txt`). The curved and complex letters (a c e f g j s t y, G K R S, & @ % €) and all ten figures are Archivo's (OFL, Omnibus-Type); the straight letters are Litt's own, fitted to Litt's stem and heights; everything else is drawn for Litt. Provenance and changelog: `FONTLOG.md`.
+SIL Open Font License 1.1 (`LICENSE.txt`). The curved and complex letters (a b c d e f g j o p q s t y, G K R S, & @ % €) and all ten figures are Archivo's (OFL, Omnibus-Type); the straight letters are Litt's own, fitted to Litt's stem and heights; everything else is drawn for Litt. Provenance and changelog: `FONTLOG.md`.
 
 ## Build
 

@@ -1,5 +1,5 @@
 Copyright 2026 The Litt Grotesk Project Authors
-Copyright 2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo), for the outlines of a c e f g j s t y G K R S, ae oe dotlessj tbar, & @ % Euro and the figures 0-9
+Copyright 2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo), for the outlines of a b c d e f g j o p q s t y G K R S, ae oe dotlessj tbar thorn dcroat, & @ % Euro and the figures 0-9
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
