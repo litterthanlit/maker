@@ -11,7 +11,7 @@ style is a version of Hypher; set_style() picks one before drawing.
 import os
 
 from core import geometry
-from core.geometry import diag_hw, rotate180
+from core.geometry import diag_hw, mirror_x, rect, rotate, rotate180
 
 XH, ASC, DSC = 560, 740, -185  # x-height; ascender and descender at 1.32 and 0.33 x-heights
 CH = ASC
@@ -33,6 +33,24 @@ WM_SIDES = {
     "s": (107, 102), "t": (127, 114), "u": (100, 104), "v": (71, 71), "w": (74, 74), "x": (87, 87),
     "y": (62, 73), "z": (102, 102),
 }
+# Figures and symbols, measured the same way.
+WM_WIDTHS.update({
+    "zero": 822, "one": 662, "two": 808, "three": 819, "four": 871, "five": 799, "six": 819,
+    "seven": 840, "eight": 819, "nine": 819, "question": 700, "hyphen": 373, "endash": 404,
+    "emdash": 529, "parenleft": 249, "parenright": 249, "bracketleft": 280, "bracketright": 280,
+    "slash": 436, "plus": 529, "equal": 489, "asterisk": 563, "underscore": 529, "numbersign": 690,
+})
+WM_SIDES.update({
+    "zero": (102, 102), "one": (219, 146), "two": (121, 98), "three": (104, 104), "four": (102, 102),
+    "five": (126, 102), "six": (115, 93), "seven": (102, 102), "eight": (104, 104), "nine": (104, 122),
+    "period": (102, 102), "comma": (71, 102), "colon": (102, 102), "semicolon": (71, 102),
+    "exclam": (131, 131), "question": (146, 137), "hyphen": (102, 102), "endash": (102, 102),
+    "emdash": (40, 40), "quotesingle": (102, 102), "quotedbl": (102, 102), "quoteleft": (102, 102),
+    "quoteright": (102, 102), "quotedblleft": (102, 102), "quotedblright": (102, 102),
+    "parenleft": (102, 102), "parenright": (102, 102), "bracketleft": (102, 102),
+    "bracketright": (102, 102), "slash": (71, 71), "plus": (116, 116), "equal": (136, 136),
+    "asterisk": (102, 102), "underscore": (40, 40), "numbersign": (91, 91),
+})
 # The other versions are a little narrower and tighter; h y p e r n o keep the
 # numbers they were first drawn with.
 WIDTHS = {c: round(w * 0.92) for c, w in WM_WIDTHS.items()}
@@ -495,5 +513,339 @@ def g_z(p):
     bottom = box(0, 0, W, H, rt, rt, rt, rt)
     diagonal = rpoly((W - hw, XH - H, 0), (W, XH - H, 0), (hw, H, 0), (0, H, 0))
     return [top, bottom, diagonal], W, p.sides("z")
+
+
+# --- Figures --------------------------------------------------------------
+# Lining figures at cap height, as wide as the bowls of the lowercase. Their
+# landmark heights are fractions of FH, measured from the lockup's font.
+
+FH = ASC
+
+
+@glyph("zero", "0")
+def g_zero(p):
+    W = p.w("zero")
+    return bowl(p, 0, W, top=FH), W, p.sides("zero")
+
+
+@glyph("one", "1")
+def g_one(p):
+    """A stem on a full-width base, with a flag falling to the left."""
+    W = p.w("one")
+    V, H, rt = p.V, p.H, p.rt
+    xs = W * 0.465 - (V - REGULAR_STEM) / 2  # the stem stays centred on the same line as it thickens
+    drop = FH * 0.10  # how far the flag falls across its length
+    flag = rpoly((xs + 2, FH, 0), (0, FH - drop, rt), (0, FH - drop - H * 1.05, rt), (xs + 2, FH - H * 1.05, 0))
+    stem = box(xs, 0, xs + V, FH, 0, 0, rt, square(p, p.ro))
+    base = box(0, 0, W, H, rt, rt, rt, rt)
+    return [stem, flag, base], W, p.sides("one")
+
+
+@glyph("two", "2")
+def g_two(p):
+    W = p.w("two")
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    m0 = FH * 0.446  # bottom of the middle bar
+    m1, t = m0 + H, FH * 0.736  # top of the middle bar; the hook's terminal
+    c = rounded(
+        (0, 0, rt), (W, 0, rt), (W, H, rt), (V, H, ri), (V, m0, ri), (W, m0, ro), (W, FH, ro), (0, FH, ro),
+        (0, t, rt), (V, t, rt), (V, FH - H, ri), (W - V, FH - H, ri), (W - V, m1, ri), (0, m1, ro),
+    )
+    return [c], W, p.sides("two")
+
+
+@glyph("three", "3")
+def g_three(p):
+    """Two bowls open to the left, meeting at a short middle bar."""
+    W = p.w("three")
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    tb, tt = FH * 0.29, FH * 0.736  # terminal heights
+    m0 = FH * 0.518 - H / 2
+    m1, xm = m0 + H, W * 0.405  # the middle bar starts here
+    c = rounded(
+        (0, tb, rt), (0, 0, ro), (W, 0, ro), (W, FH, ro), (0, FH, ro), (0, tt, rt), (V, tt, rt),
+        (V, FH - H, ri), (W - V, FH - H, ri), (W - V, m1, ri), (xm, m1, rt), (xm, m0, rt),
+        (W - V, m0, ri), (W - V, H, ri), (V, H, ri), (V, tb, rt),
+    )
+    return [c], W, p.sides("three")
+
+
+@glyph("four", "4")
+def g_four(p):
+    W = p.w("four")
+    V, H, rt = p.V, p.H, p.rt
+    xs = W * 0.751  # the stem's left edge
+    b0 = FH * 0.209  # bottom of the crossbar
+    hw = diag_hw(xs, FH - b0, V * 0.98)
+    diagonal = rpoly((0, b0, 0), (hw, b0, 0), (xs + V / 2, FH, rt), (xs + V / 2 - hw, FH, rt))
+    stem = box(xs, 0, xs + V, FH, rt, rt, rt, 0)
+    bar = box(0, b0, W, b0 + H, rt, rt, rt, rt)
+    return [stem, bar, diagonal], W, p.sides("four")
+
+
+@glyph("five", "5")
+def g_five(p):
+    W = p.w("five")
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    bt, tb = FH * 0.636, FH * 0.29  # top of the bowl; its terminal
+    c = rounded(
+        (0, tb, rt), (0, 0, ro), (W, 0, ro), (W, bt, ro), (V, bt, ri), (V, FH - H, ri), (W, FH - H, rt),
+        (W, FH, rt), (0, FH, rt), (0, bt - H, rt), (W - V, bt - H, ri), (W - V, H, ri), (V, H, ri), (V, tb, rt),
+    )
+    return [c], W, p.sides("five")
+
+
+@glyph("six", "6")
+def g_six(p):
+    """A closed lower bowl whose left side runs up into a hook."""
+    W = p.w("six")
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    bt, t = FH * 0.57, FH * 0.736
+    c = rounded(
+        (0, 0, ro), (W, 0, ro), (W, bt, ro), (V, bt, ri), (V, FH - H, ri), (W - V, FH - H, ri),
+        (W - V, t, rt), (W, t, rt), (W, FH, ro), (0, FH, ro),
+    )
+    return [c, hole(V, H, W - V, bt - H, ri)], W, p.sides("six")
+
+
+@glyph("seven", "7")
+def g_seven(p):
+    W = p.w("seven")
+    V, H, rt = p.V, p.H, p.rt
+    xb = W * 0.186  # where the diagonal lands
+    hw = diag_hw(W - xb, FH - H, V * 0.98)
+    diagonal = rpoly((xb, 0, rt), (xb + hw, 0, rt), (W, FH - H / 2, 0), (W - hw, FH - H / 2, 0))
+    bar = box(0, FH - H, W, FH, rt, rt, rt, rt)
+    return [bar, diagonal], W, p.sides("seven")
+
+
+@glyph("eight", "8")
+def g_eight(p):
+    W = p.w("eight")
+    V, H, ro, ri = p.V, p.H, p.ro, p.ri
+    m0 = FH * 0.518 - H / 2
+    outer = box(0, 0, W, FH, ro, ro, ro, ro)
+    return [outer, hole(V, H, W - V, m0, ri), hole(V, m0 + H, W - V, FH - H, ri)], W, p.sides("eight")
+
+
+@glyph("nine", "9")
+def g_nine(p):
+    """The six turned upside down."""
+    W = p.w("nine")
+    contours = g_six(p)[0]
+    return rotate180(contours, p.w("six") / 2, FH / 2), W, p.sides("nine")
+
+
+# --- Punctuation and symbols ---------------------------------------------
+
+def dot_at(p, x0, y0):
+    return box(x0, y0, x0 + p.V, y0 + p.V, p.rt, p.rt, p.rt, p.rt)
+
+
+def comma_at(p, x0, top):
+    """A wedge leaning down to the left: a stem wide at the top, two thirds of that at the tip."""
+    V, rt = p.V, p.rt
+    tail = V * 2.0  # from top to tip
+    return rpoly((x0 + V / 3, top, rt), (x0 + V / 3 + V, top, rt), (x0 + V * 0.67, top - tail, rt), (x0, top - tail, rt))
+
+
+@glyph("period", ".")
+def g_period(p):
+    return [dot_at(p, 0, 0)], p.V, p.sides("period")
+
+
+@glyph("comma", ",")
+def g_comma(p):
+    return [comma_at(p, 0, p.V * 0.67)], p.V * 4 / 3, p.sides("comma")
+
+
+@glyph("colon", ":")
+def g_colon(p):
+    """Two dots floating on the x-height, centred at a quarter and three quarters."""
+    V = p.V
+    return [dot_at(p, 0, XH * 0.249 - V / 2), dot_at(p, 0, XH * 0.75 - V / 2)], V, p.sides("colon")
+
+
+@glyph("semicolon", ";")
+def g_semicolon(p):
+    V = p.V
+    return [comma_at(p, 0, V * 0.67), dot_at(p, V / 3, XH * 0.75 - V / 2)], V * 4 / 3, p.sides("semicolon")
+
+
+@glyph("exclam", "!")
+def g_exclam(p):
+    V, rt = p.V, p.rt
+    return [box(0, V * 1.7, V, FH, rt, rt, rt, rt), dot_at(p, 0, 0)], V, p.sides("exclam")
+
+
+@glyph("question", "?")
+def g_question(p):
+    """The two's hook, whose middle bar drops into a short stem over a dot."""
+    W = p.w("question")
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    xs = W * 0.323 - (V - REGULAR_STEM) / 2
+    m0, t = FH * 0.479, FH * 0.73  # bar bottom, terminal
+    sb = V * 1.68  # the stem stops 0.68 of a stroke above the dot, at any weight
+    m1 = m0 + H
+    c = rounded(
+        (0, t, rt), (V, t, rt), (V, FH - H, ri), (W - V, FH - H, ri), (W - V, m1, ri), (xs, m1, ro),
+        (xs, sb, rt), (xs + V, sb, rt), (xs + V, m0, ri), (W, m0, ro), (W, FH, ro), (0, FH, ro),
+    )
+    return [c, dot_at(p, xs, 0)], W, p.sides("question")
+
+
+def dash(p, name, width=None):
+    W = width if width is not None else p.w(name)
+    c = XH * 0.514  # the dashes sit on the middle of the x-height
+    return [box(0, c - p.H / 2, W, c + p.H / 2, p.rt, p.rt, p.rt, p.rt)], W, p.sides(name)
+
+
+@glyph("hyphen", "-")
+def g_hyphen(p):
+    return dash(p, "hyphen")
+
+
+@glyph("endash", "\u2013")
+def g_endash(p):
+    return dash(p, "endash")
+
+
+@glyph("emdash", "\u2014")
+def g_emdash(p):
+    return dash(p, "emdash")
+
+
+@glyph("underscore", "_")
+def g_underscore(p):
+    W = p.w("underscore")
+    return [box(0, -p.H, W, 0, p.rt, p.rt, p.rt, p.rt)], W, p.sides("underscore")
+
+
+@glyph("quotesingle", "'")
+def g_quotesingle(p):
+    V, rt = p.V, p.rt
+    return [box(0, XH, V, FH, rt, rt, rt, rt)], V, p.sides("quotesingle")
+
+
+@glyph("quotedbl", '"')
+def g_quotedbl(p):
+    V, rt = p.V, p.rt
+    gap = V * 0.68
+    return [box(0, XH, V, FH, rt, rt, rt, rt), box(V + gap, XH, 2 * V + gap, FH, rt, rt, rt, rt)], 2 * V + gap, p.sides("quotedbl")
+
+
+def quote(p, n, turned):
+    """One or two commas hung from cap height; turned for the opening quotes, so their wide end is low."""
+    V = p.V
+    w1, gap = V * 4 / 3, V * 0.5
+    marks = [comma_at(p, i * (w1 + gap), FH) for i in range(n)]
+    W = n * w1 + (n - 1) * gap
+    if turned:
+        marks = rotate180(marks, W / 2, FH - V)
+    return marks, W
+
+
+@glyph("quoteright", "\u2019")
+def g_quoteright(p):
+    m, W = quote(p, 1, False)
+    return m, W, p.sides("quoteright")
+
+
+@glyph("quoteleft", "\u2018")
+def g_quoteleft(p):
+    m, W = quote(p, 1, True)
+    return m, W, p.sides("quoteleft")
+
+
+@glyph("quotedblright", "\u201d")
+def g_quotedblright(p):
+    m, W = quote(p, 2, False)
+    return m, W, p.sides("quotedblright")
+
+
+@glyph("quotedblleft", "\u201c")
+def g_quotedblleft(p):
+    m, W = quote(p, 2, True)
+    return m, W, p.sides("quotedblleft")
+
+
+def bracket(p, W, r_out, r_in):
+    """An opening bracket: a stroke with arms at top and bottom."""
+    V, H, rt = p.V, p.H, p.rt
+    bot, top = DSC * 0.61, FH + 34  # below the baseline and above cap height, as in the wordmark's font
+    return rounded(
+        (0, bot, r_out), (W, bot, rt), (W, bot + H, rt), (V, bot + H, r_in), (V, top - H, r_in),
+        (W, top - H, rt), (W, top, rt), (0, top, r_out),
+    )
+
+
+@glyph("parenleft", "(")
+def g_parenleft(p):
+    W = p.w("parenleft")
+    return [bracket(p, W, p.ro * 1.6, p.ri * 1.6)], W, p.sides("parenleft")
+
+
+@glyph("parenright", ")")
+def g_parenright(p):
+    W = p.w("parenright")
+    return mirror_x([bracket(p, W, p.ro * 1.6, p.ri * 1.6)], W), W, p.sides("parenright")
+
+
+@glyph("bracketleft", "[")
+def g_bracketleft(p):
+    W = p.w("bracketleft")
+    return [bracket(p, W, p.rt, p.rt)], W, p.sides("bracketleft")
+
+
+@glyph("bracketright", "]")
+def g_bracketright(p):
+    W = p.w("bracketright")
+    return mirror_x([bracket(p, W, p.rt, p.rt)], W), W, p.sides("bracketright")
+
+
+@glyph("slash", "/")
+def g_slash(p):
+    W = p.w("slash")
+    hw = diag_hw(W, FH, p.V * 0.98)
+    return [rpoly((0, 0, p.rt), (hw, 0, p.rt), (W, FH, p.rt), (W - hw, FH, p.rt))], W, p.sides("slash")
+
+
+@glyph("plus", "+")
+def g_plus(p):
+    W = p.w("plus")
+    V, H, rt = p.V, p.H, p.rt
+    c = XH * 0.62  # centred a little above the middle of the x-height, as the wordmark's font has it
+    return [box(W / 2 - V / 2, c - W / 2, W / 2 + V / 2, c + W / 2, rt, rt, rt, rt),
+            box(0, c - H / 2, W, c + H / 2, rt, rt, rt, rt)], W, p.sides("plus")
+
+
+@glyph("equal", "=")
+def g_equal(p):
+    W = p.w("equal")
+    H, rt = p.H, p.rt
+    c, gap = XH * 0.657, XH * 0.236  # centre, and the space between the bars
+    return [box(0, c - gap / 2 - H, W, c - gap / 2, rt, rt, rt, rt),
+            box(0, c + gap / 2, W, c + gap / 2 + H, rt, rt, rt, rt)], W, p.sides("equal")
+
+
+@glyph("asterisk", "*")
+def g_asterisk(p):
+    """Three bars crossing at sixty degrees, hung from cap height."""
+    W = p.w("asterisk")
+    t = p.V * 0.9
+    cx, cy = W / 2, FH - W / 2
+    bar = [rect(cx - t / 2, cy - W / 2, cx + t / 2, cy + W / 2)]
+    return bar + rotate(bar, 60, cx, cy) + rotate(bar, -60, cx, cy), W, p.sides("asterisk")
+
+
+@glyph("numbersign", "#")
+def g_numbersign(p):
+    W = p.w("numbersign")
+    V, H, rt = p.V, p.H, p.rt
+    x1, x2 = W * 0.27, W * 0.73 - V  # the two uprights
+    y1, y2 = FH * 0.30, FH * 0.70 - H  # the two crossbars
+    up = [box(x, 0, x + V, FH, rt, rt, rt, rt) for x in (x1, x2)]
+    across = [box(0, y, W, y + H, rt, rt, rt, rt) for y in (y1, y2)]
+    return up + across, W, p.sides("numbersign")
 
 set_style(os.environ.get("HYPHER_STYLE", DEFAULT_STYLE))

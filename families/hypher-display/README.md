@@ -3,7 +3,7 @@
 The display face for the Hypher wordmark and headlines, drawn in code. Its main design redraws the letters of today's Hypher logo (set in Michroma) in a corner system of its own: wide, flat-sided letters whose curves live only in their corners, after the Hypher mark. No outline comes from another font.
 
 - **Weights:** variable `wght` 300–700; Light, Regular, Medium, SemiBold and Bold instances
-- **Characters:** a–z and space (prototype)
+- **Characters:** a–z, figures 0–9, `. , : ; ! ? - – — ' " ‘ ’ “ ” ( ) [ ] / + = * _ #` and space (prototype; no capitals, `& @ %` or accents yet)
 - **Metrics:** 1000 UPM · x-height 560 · ascender 740 (1.32 x-heights) · descender −185 (0.33)
 
 ## Using it
@@ -47,6 +47,8 @@ Every glyph is a few polygons from `rounded()` in `src/core/geometry.py`: corner
 - **Horizontals** are 0.86 of the stem, so they look equal to it, and **width** grows by twice the stem's gain, so Bold's counters stay open.
 - **k:** the outer edges of arm and leg meet the stem at fixed heights and the crotch falls where the inner edges cross, so the diagonals never cross on thin weights.
 - **y:** a symmetric V that meets on the baseline; in the Wordmark design its tail hooks left into a flat foot.
+- **Figures** are lining, at cap height, as wide as the lowercase bowls. Their landmarks (the 2's middle bar, the 3's and 5's terminals, the 6's bowl, the 4's crossbar) are measured from the lockup's font; the 9 is the 6 turned.
+- **Comma and quotes** are a wedge, wide at the top; the opening quotes turn it so their wide end is low, so “ and ” point opposite ways.
 
 ## Files
 

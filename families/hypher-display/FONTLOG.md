@@ -6,6 +6,7 @@ Drawn in code for Hypher Display; no outlines are taken from another font. The r
 
 ## Changelog
 
+- **0.320 (2026-11-15):** figures 0–9 and punctuation: `. , : ; ! ? - – — ' " ‘ ’ “ ” ( ) [ ] / + = * _ #`, in every version, at 300–700.
 - **0.310 (2026-11-15):** renamed Hypher Display (files `HypherDisplay`, folder `families/hypher-display/`), so the font and the product are not one word; the alternates are Hypher Display Mill, Fillet, Polish, Bore, Deburr and Finish.
 - **0.300 (2026-11-15):** Wordmark becomes the main design (plain Hypher); Finish becomes a version. The full lowercase a–z, in every version, at 300–700.
 - **0.220 (2026-11-15):** named versions: Mill, Fillet, Polish, Bore, Deburr, Finish (the default, plain Hypher) and Wordmark, each its own family. Wordmark redraws the current lockup's letters in this system, its corners fitted to the lockup's outlines.
