@@ -1,9 +1,10 @@
 # Hypher Display (prototype)
 
-The display face for the Hypher wordmark and headlines, drawn in code. Its main design redraws the letters of today's Hypher logo (set in Michroma) in a corner system of its own: wide, flat-sided letters whose curves live only in their corners, after the Hypher mark. No outline comes from another font.
+The display face for the Hypher wordmark and headlines, drawn in code. Its main design redraws the letters of today's Hypher logo (set in Michroma) in a corner system of its own: wide, flat-sided letters whose curves live only in their corners, after the Hypher mark. No outline comes from another font; widths, spacing, landmark heights and kerning are measured from Michroma (SIL Open Font License 1.1), which is credited in the font and in `FONTLOG.md`.
 
 - **Weights:** variable `wght` 300–700; Light, Regular, Medium, SemiBold and Bold instances
-- **Characters:** a–z, figures 0–9, `. , : ; ! ? - – — ' " ‘ ’ “ ” ( ) [ ] / + = * _ #` and space (prototype; no capitals, `& @ %` or accents yet)
+- **Characters:** A–Z, a–z, figures 0–9, `. , : ; ! ? - – — ' " ‘ ’ “ ” ( ) [ ] / + = * _ # & @ %`, the space, and the accented letters of Western European languages (à–ÿ, À–Ý: grave, acute, circumflex, tilde, dieresis, ring, cedilla), 145 in all
+- **Kerning:** 592 pairs; accented letters kern like their base letter
 - **Metrics:** 1000 UPM · x-height 560 · ascender 740 (1.32 x-heights) · descender −185 (0.33)
 
 ## Using it
@@ -49,12 +50,16 @@ Every glyph is a few polygons from `rounded()` in `src/core/geometry.py`: corner
 - **y:** a symmetric V that meets on the baseline; in the Wordmark design its tail hooks left into a flat foot.
 - **Figures** are lining, at cap height, as wide as the lowercase bowls. Their landmarks (the 2's middle bar, the 3's and 5's terminals, the 6's bowl, the 4's crossbar) are measured from the lockup's font; the 9 is the 6 turned.
 - **Comma and quotes** are a wedge, wide at the top; the opening quotes turn it so their wide end is low, so “ and ” point opposite ways.
+- **Capitals** stand at the ascender. B's top bowl is narrower than its lower one, E's middle bar is shorter than its top, K's arm and leg leave a short stub on the stem, M's V dips almost to the baseline, and Y's arms meet at 0.42 of the cap height, all as in the lockup's font.
+- **Accents** are drawn once (`mark()`) and hung over the base letter; i takes them on a dotless i.
+- **Kerning** (`kerning.py`) is Michroma's own pair list, scaled. The Wordmark design shares Michroma's widths and spacing, so its pairs fit.
 
 ## Files
 
 | File | Role |
 | --- | --- |
 | `glyphs.py` | Every glyph as a function of the weight, plus the versions in `STYLES` |
+| `kerning.py` | The kerning pairs, after Michroma |
 | `build.py` | Family names, masters, kerning; `--versions` builds every version |
 | `proof/check_outlines.py` | Fails if any glyph's outline runs backwards over itself, at any master |
 | `proof/lockup.html` | The mark beside the word at each weight, with today's lockup for reference |

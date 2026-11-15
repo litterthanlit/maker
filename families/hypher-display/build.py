@@ -17,14 +17,31 @@ sys.path.insert(0, str(HERE))
 
 from core.fontbuild import Family, build  # noqa: E402
 import glyphs as G  # noqa: E402
+import kerning as K  # noqa: E402
 
 # weight -> lowercase stem width; everything else derives from it.
 MASTERS = {300: 60, 400: 92, 700: 150}
 
 
+def kern_pairs():
+    """Every kerning pair for the current version, accented letters kerning like their base."""
+    scale = 1.0 if G.STYLE["name"] == "Wordmark" else 0.92
+    pairs = {k: round(v * scale) for k, v in K.PAIRS.items()}
+    pairs.update({(l, r): v for l, r, v in G.STYLE["kern"]})
+    family = {}  # base glyph -> itself and its accented forms
+    for name in G.GLYPHS:
+        family.setdefault(G.BASE.get(name, name), []).append(name)
+    out = {}
+    for (l, r), v in pairs.items():
+        for ll in family.get(l, [l]):
+            for rr in family.get(r, [r]):
+                out[(ll, rr)] = v
+    return out
+
+
 def features(wght):
     lines = ["languagesystem DFLT dflt;", "languagesystem latn dflt;", "feature kern {"]
-    lines += [f"  pos {l} {r} {v};" for l, r, v in G.STYLE["kern"]]
+    lines += [f"  pos {l} {r} {v};" for (l, r), v in sorted(kern_pairs().items()) if l in G.GLYPHS and r in G.GLYPHS]
     lines.append("} kern;")
     return "\n".join(lines)
 
@@ -36,8 +53,8 @@ def family(style):
     return Family(
         name="Hypher Display" if default else f"Hypher Display {style}",
         file="HypherDisplay" if default else f"HypherDisplay{style}",
-        version="0.320",
-        copyright="Copyright 2026 The Hypher Project Authors",
+        version="0.400",
+        copyright="Copyright 2026 The Hypher Project Authors; proportions and kerning after Michroma, Copyright 2011 The Michroma Project Authors",
         glyphs=G.GLYPHS,
         params=lambda w: G.P(w, MASTERS[w]),
         masters=list(MASTERS),

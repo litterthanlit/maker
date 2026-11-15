@@ -79,8 +79,10 @@ def quadratic_glyphs(fam, masters):
                 else:
                     cubics = [(c,) + s[1:] for c, s in zip(cur, segs)]
                     splines = curves_to_quadratic(cubics, [0.5] * len(cubics))
-                    for pen, spl in zip(pens, splines):
-                        pen.qCurveTo(*spl[1:])
+                    for pen, spl, s in zip(pens, splines, segs):
+                        # cu2qu rounds the end point through complex numbers; keep the
+                        # exact one, so a contour that closes on its start always does
+                        pen.qCurveTo(*spl[1:-1], s[-1])
                 cur = [s[-1] for s in segs]
             for pen in pens:
                 pen.closePath()

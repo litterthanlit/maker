@@ -192,7 +192,9 @@ def rounded(*corners, smooth=0.0):
         ub = _unit((b[0] - x, b[1] - y))
         theta = math.acos(max(-1.0, min(1.0, ua[0] * ub[0] + ua[1] * ub[1])))  # interior angle
         t = r / math.tan(theta / 2) * (1 + 0.6 * smooth)
-        t = min(t, 0.5 * math.dist(a, (x, y)), 0.5 * math.dist(b, (x, y)))
+        # Stop half a unit short of using up an edge: an edge of zero length
+        # can vanish from one master and not another, and break interpolation.
+        t = min(t, 0.5 * math.dist(a, (x, y)) - 0.5, 0.5 * math.dist(b, (x, y)) - 0.5)
         r = t * math.tan(theta / 2) / (1 + 0.6 * smooth)
         h = 4 / 3 * math.tan((math.pi - theta) / 4) * r * (1 + 0.6 * smooth) * (1 + 0.22 * smooth)
         t1 = (x + ua[0] * t, y + ua[1] * t)

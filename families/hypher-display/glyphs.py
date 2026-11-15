@@ -11,7 +11,7 @@ style is a version of Hypher; set_style() picks one before drawing.
 import os
 
 from core import geometry
-from core.geometry import diag_hw, mirror_x, rect, rotate, rotate180
+from core.geometry import diag_hw, mirror_x, rect, rotate, rotate180, translate
 
 XH, ASC, DSC = 560, 740, -185  # x-height; ascender and descender at 1.32 and 0.33 x-heights
 CH = ASC
@@ -50,6 +50,20 @@ WM_SIDES.update({
     "parenleft": (102, 102), "parenright": (102, 102), "bracketleft": (102, 102),
     "bracketright": (102, 102), "slash": (71, 71), "plus": (116, 116), "equal": (136, 136),
     "asterisk": (102, 102), "underscore": (40, 40), "numbersign": (91, 91),
+})
+# Capitals and the last symbols, measured the same way.
+WM_WIDTHS.update({
+    "A": 996, "B": 871, "C": 917, "D": 915, "E": 747, "F": 704, "G": 917, "H": 871, "I": 93, "J": 684,
+    "K": 856, "L": 684, "M": 1174, "N": 942, "O": 918, "P": 836, "Q": 918, "R": 836, "S": 917, "T": 840,
+    "U": 898, "V": 928, "W": 1543, "X": 996, "Y": 933, "Z": 871, "ampersand": 1000, "at": 964,
+    "percent": 920,
+})
+WM_SIDES.update({
+    "A": (71, 71), "B": (133, 102), "C": (102, 104), "D": (135, 102), "E": (133, 71), "F": (133, 83),
+    "G": (102, 119), "H": (135, 135), "I": (133, 133), "J": (102, 127), "K": (133, 71), "L": (133, 71),
+    "M": (135, 135), "N": (133, 133), "O": (102, 102), "P": (135, 76), "Q": (102, 40), "R": (135, 123),
+    "S": (105, 100), "T": (86, 86), "U": (106, 106), "V": (73, 75), "W": (77, 77), "X": (71, 71),
+    "Y": (102, 102), "Z": (102, 101), "ampersand": (102, 90), "at": (102, 102), "percent": (102, 102),
 })
 # The other versions are a little narrower and tighter; h y p e r n o keep the
 # numbers they were first drawn with.
@@ -459,20 +473,22 @@ def g_u(p):
     return rotate180(contours, W / 2, XH / 2), W, p.sides("u")
 
 
-def v_shape(p, x0, W):
-    """Two diagonals meeting on the baseline with a flat foot."""
-    V, r, rt = p.V, p.ri, p.rt
+def v_shape(p, x0, W, top=XH, bottom=0, foot=None, r_top=None):
+    """Two diagonals meeting at the bottom on a flat foot (b wide, 0.85 of an arm by default)."""
+    V, rt = p.V, p.rt
+    r = p.ri if r_top is None else r_top
     t = V * 0.98
     cx = x0 + W / 2
+    h = top - bottom
     hw = t
     for _ in range(4):  # the foot's width and the arms' slope depend on each other
-        b = 0.85 * hw
-        slope = (W / 2 - b / 2) / XH
-        hw = diag_hw(W / 2 - b / 2, XH, t)
-    y_in = XH - (W / 2 - hw) / slope  # where the inner edges meet
+        b = 0.85 * hw if foot is None else foot
+        slope = (W / 2 - b / 2) / h
+        hw = diag_hw(W / 2 - b / 2, h, t)
+    y_in = top - (W / 2 - hw) / slope  # where the inner edges meet
     return rpoly(
-        (x0, XH, r), (cx - b / 2, 0, rt), (cx + b / 2, 0, rt), (x0 + W, XH, r), (x0 + W - hw, XH, rt),
-        (cx, y_in, 0), (x0 + hw, XH, rt),
+        (x0, top, r), (cx - b / 2, bottom, rt), (cx + b / 2, bottom, rt), (x0 + W, top, r), (x0 + W - hw, top, rt),
+        (cx, y_in, 0), (x0 + hw, top, rt),
     ), hw
 
 
@@ -847,5 +863,410 @@ def g_numbersign(p):
     up = [box(x, 0, x + V, FH, rt, rt, rt, rt) for x in (x1, x2)]
     across = [box(0, y, W, y + H, rt, rt, rt, rt) for y in (y1, y2)]
     return up + across, W, p.sides("numbersign")
+
+
+# --- Capitals -------------------------------------------------------------
+# Cap height is the ascender. Widths, spacing and landmark heights are
+# measured from the lockup's font, as for the lowercase.
+
+CH = ASC
+
+
+def capbowl(p, x0, x1, y0, y1, left="round"):
+    """A bowl for B, D, P and R: square on the left, where it meets the stem."""
+    ro, ri, rt = p.ro, p.ri, p.rt
+    l = ro if left == "round" else rt
+    return [box(x0, y0, x1, y1, l, ro, ro, l), hole(x0 + p.V, y0 + p.H, x1 - p.V, y1 - p.H, ri)]
+
+
+def stem(p, x0, y0=0, y1=CH):
+    return box(x0, y0, x0 + p.V, y1, p.rt, p.rt, p.rt, p.rt)
+
+
+def bar(p, x0, x1, y0):
+    return box(x0, y0, x1, y0 + p.H, p.rt, p.rt, p.rt, p.rt)
+
+
+def stroke(p, a, b, t):
+    """A straight stroke of thickness t from a to b, cut square at both ends."""
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    L = (dx * dx + dy * dy) ** 0.5
+    nx, ny = -dy / L * t / 2, dx / L * t / 2
+    return rpoly((a[0] + nx, a[1] + ny, p.rt), (b[0] + nx, b[1] + ny, p.rt), (b[0] - nx, b[1] - ny, p.rt),
+                 (a[0] - nx, a[1] - ny, p.rt))
+
+
+@glyph("A", "A")
+def g_A(p):
+    """The V turned over, with a flat apex, and a crossbar low in the counter."""
+    W = p.w("A")
+    vee, hw = v_shape(p, 0, W, top=CH, r_top=p.rt)
+    legs = rotate180([vee], W / 2, CH / 2)
+    apex = (W - 0.85 * hw) / 2  # the outer edges' run, from foot to apex
+    y0 = CH * 0.229
+    x = (y0 + p.H) / CH * apex + 2  # inside both legs over the whole bar
+    return legs + [bar(p, x, W - x, y0)], W, p.sides("A")
+
+
+@glyph("B", "B")
+def g_B(p):
+    W = p.w("B")
+    m0 = CH * 0.532 - p.H / 2  # bottom of the middle bar
+    return [stem(p, 0)] + capbowl(p, 0, W, 0, m0 + p.H, "square") + capbowl(p, 0, W * 0.965, m0, CH, "square"), W, p.sides("B")
+
+
+def c_shape(p, W, h, t0, t1):
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    return rounded(
+        (0, 0, ro), (W, 0, ro), (W, t0, rt), (W - V, t0, rt), (W - V, H, ri), (V, H, ri),
+        (V, h - H, ri), (W - V, h - H, ri), (W - V, t1, rt), (W, t1, rt), (W, h, ro), (0, h, ro),
+    )
+
+
+@glyph("C", "C")
+def g_C(p):
+    W = p.w("C")
+    return [c_shape(p, W, CH, CH * 0.337, CH * 0.656)], W, p.sides("C")
+
+
+@glyph("D", "D")
+def g_D(p):
+    W = p.w("D")
+    return [stem(p, 0)] + capbowl(p, 0, W, 0, CH, "square"), W, p.sides("D")
+
+
+@glyph("E", "E")
+def g_E(p):
+    W = p.w("E")
+    m0 = CH * 0.510 - p.H / 2
+    return [stem(p, 0), bar(p, 0, W * 0.981, CH - p.H), bar(p, 0, W * 0.945, m0), bar(p, 0, W, 0)], W, p.sides("E")
+
+
+@glyph("F", "F")
+def g_F(p):
+    W = p.w("F")
+    m0 = CH * 0.510 - p.H / 2
+    return [stem(p, 0), bar(p, 0, W, CH - p.H), bar(p, 0, W * 0.96, m0)], W, p.sides("F")
+
+
+@glyph("G", "G")
+def g_G(p):
+    """The C, whose lower terminal turns into a bar reaching back into the counter."""
+    W = p.w("G")
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    gt, xb, t1 = CH * 0.526, W * 0.508, CH * 0.70
+    c = rounded(
+        (0, 0, ro), (W, 0, ro), (W, gt, rt), (xb, gt, rt), (xb, gt - H, rt), (W - V, gt - H, ri),
+        (W - V, H, ri), (V, H, ri), (V, CH - H, ri), (W - V, CH - H, ri), (W - V, t1, rt), (W, t1, rt),
+        (W, CH, ro), (0, CH, ro),
+    )
+    return [c], W, p.sides("G")
+
+
+@glyph("H", "H")
+def g_H(p):
+    W = p.w("H")
+    return [stem(p, 0), stem(p, W - p.V), bar(p, 0, W, CH * 0.510 - p.H / 2)], W, p.sides("H")
+
+
+@glyph("I", "I")
+def g_I(p):
+    return [stem(p, 0)], p.V, p.sides("I")
+
+
+@glyph("J", "J")
+def g_J(p):
+    """A stem that turns left at the baseline into a short upturned terminal."""
+    W = p.w("J")
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    jt = CH * 0.375
+    c = rounded((0, jt, rt), (0, 0, ro), (W, 0, ro), (W, CH, rt), (W - V, CH, rt), (W - V, H, ri), (V, H, ri), (V, jt, rt))
+    return [c], W, p.sides("J")
+
+
+@glyph("K", "K")
+def g_K(p):
+    """A stem with a short stub, from which an arm rises and a leg falls."""
+    W = p.w("K")
+    V, H, rt = p.V, p.H, p.rt
+    t = V * 0.98
+    m0 = CH * 0.510 - H / 2  # the stub, level with the H's bar
+    m1, xj = m0 + H, W * 0.253  # its top; where it ends
+    xa, xl = W * 0.818, W * 0.836  # the arm's top-left, the leg's bottom-left
+    ha = diag_hw(xa - xj, CH - m1, t)
+    hl = diag_hw(xl - xj, m0, t)
+
+    def line(p0, p1):  # x = a + b*y
+        b = (p1[0] - p0[0]) / (p1[1] - p0[1])
+        return (p0[0] - b * p0[1], b)
+
+    def cross(l1, l2):
+        y = (l2[0] - l1[0]) / (l1[1] - l2[1])
+        return (l1[0] + l1[1] * y, y)
+
+    crotch = cross(line((xj + ha, m1), (xa + ha, CH)), line((xj + hl, m0), (xl + hl, 0)))
+    diagonals = rounded(
+        (V - 2, m0, 0), (xj, m0, 0), (xl, 0, rt), (xl + hl, 0, rt), crotch + (0,), (xa + ha, CH, rt), (xa, CH, rt),
+        (xj, m1, 0), (V - 2, m1, 0),
+    )
+    return [stem(p, 0), diagonals], W, p.sides("K")
+
+
+@glyph("L", "L")
+def g_L(p):
+    W = p.w("L")
+    return [stem(p, 0), bar(p, 0, W, 0)], W, p.sides("L")
+
+
+@glyph("M", "M")
+def g_M(p):
+    """Two stems and a V between them that dips almost to the baseline."""
+    W = p.w("M")
+    vee = v_shape(p, 0, W, top=CH, bottom=CH * 0.066, r_top=p.rt)[0]
+    return [stem(p, 0), stem(p, W - p.V), vee], W, p.sides("M")
+
+
+@glyph("N", "N")
+def g_N(p):
+    W = p.w("N")
+    hw = diag_hw(W, CH, p.V * 0.98)
+    diagonal = rpoly((0, CH, p.rt), (hw, CH, p.rt), (W, 0, p.rt), (W - hw, 0, p.rt))
+    return [stem(p, 0), stem(p, W - p.V), diagonal], W, p.sides("N")
+
+
+@glyph("O", "O")
+def g_O(p):
+    W = p.w("O")
+    return bowl(p, 0, W, top=CH), W, p.sides("O")
+
+
+@glyph("P", "P")
+def g_P(p):
+    W = p.w("P")
+    return [stem(p, 0)] + capbowl(p, 0, W, CH * 0.386, CH, "square"), W, p.sides("P")
+
+
+@glyph("Q", "Q")
+def g_Q(p):
+    """The O, with a tail crossing its lower right."""
+    W = p.w("Q")
+    tail = stroke(p, (W * 0.52, CH * 0.37), (W * 1.04, -CH * 0.10), p.H * 0.98)
+    return bowl(p, 0, W, top=CH) + [tail], W, p.sides("Q")
+
+
+@glyph("R", "R")
+def g_R(p):
+    W = p.w("R")
+    pb = CH * 0.404  # bottom of the bowl
+    x0, x1 = W * 0.672, W * 0.975  # the leg leaves the bowl here and lands here
+    hw = diag_hw(x1 - x0, pb, p.V * 0.98)
+    leg = rpoly((x0, pb + p.H / 2, 0), (x0 + hw, pb + p.H / 2, 0), (x1, 0, p.rt), (x1 - hw, 0, p.rt))
+    return [stem(p, 0)] + capbowl(p, 0, W, pb, CH, "square") + [leg], W, p.sides("R")
+
+
+@glyph("S", "S")
+def g_S(p):
+    W = p.w("S")
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    m0 = CH * 0.515 - H / 2
+    m1 = m0 + H
+    t0, t1 = CH * 0.33, CH * 0.70
+    c = rounded(
+        (0, t0, rt), (0, 0, ro), (W, 0, ro), (W, m1, ro), (V, m1, ri), (V, CH - H, ri),
+        (W - V, CH - H, ri), (W - V, t1, rt), (W, t1, rt), (W, CH, ro), (0, CH, ro), (0, m0, ro),
+        (W - V, m0, ri), (W - V, H, ri), (V, H, ri), (V, t0, rt),
+    )
+    return [c], W, p.sides("S")
+
+
+@glyph("T", "T")
+def g_T(p):
+    W = p.w("T")
+    return [bar(p, 0, W, CH - p.H), stem(p, W / 2 - p.V / 2)], W, p.sides("T")
+
+
+@glyph("U", "U")
+def g_U(p):
+    W = p.w("U")
+    return rotate180([arch(p, 0, W, CH)], W / 2, CH / 2), W, p.sides("U")
+
+
+@glyph("V", "V")
+def g_V(p):
+    W = p.w("V")
+    return [v_shape(p, 0, W, top=CH, r_top=p.rt)[0]], W, p.sides("V")
+
+
+@glyph("W", "W")
+def g_W(p):
+    W = p.w("W")
+    hw = p.V * 1.3
+    for _ in range(4):
+        Wv = (W + hw) / 2
+        hw = v_shape(p, 0, Wv, top=CH)[1]
+    Wv = (W + hw) / 2
+    return [v_shape(p, 0, Wv, top=CH, r_top=p.rt)[0], v_shape(p, W - Wv, Wv, top=CH, r_top=p.rt)[0]], W, p.sides("W")
+
+
+@glyph("X", "X")
+def g_X(p):
+    W = p.w("X")
+    rt = p.rt
+    hw = diag_hw(W, CH, p.V * 0.98)
+    return [rpoly((0, CH, rt), (hw, CH, rt), (W, 0, rt), (W - hw, 0, rt)),
+            rpoly((W - hw, CH, rt), (W, CH, rt), (hw, 0, rt), (0, 0, rt))], W, p.sides("X")
+
+
+@glyph("Y", "Y")
+def g_Y(p):
+    """A V whose foot is a stem's width, standing on a stem."""
+    W = p.w("Y")
+    yj = CH * 0.416
+    vee = v_shape(p, 0, W, top=CH, bottom=yj, foot=p.V, r_top=p.rt)[0]
+    return [vee, stem(p, W / 2 - p.V / 2, 0, yj + p.H)], W, p.sides("Y")
+
+
+@glyph("Z", "Z")
+def g_Z(p):
+    W = p.w("Z")
+    H = p.H
+    hw = diag_hw(W, CH - 2 * H, p.V * 0.98)
+    diagonal = rpoly((W - hw, CH - H, 0), (W, CH - H, 0), (hw, H, 0), (0, H, 0))
+    return [bar(p, W * 0.036, W * 0.983, CH - H), bar(p, 0, W, 0), diagonal], W, p.sides("Z")
+
+
+# --- & @ % ----------------------------------------------------------------
+
+@glyph("ampersand", "&")
+def g_ampersand(p):
+    """A small bowl on a larger, open one, with a diagonal running out to the lower right."""
+    W = p.w("ampersand")
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    Wl, top = W * 0.80, CH * 0.56  # the lower bowl
+    tr = top * 0.87  # the lower bowl's right side rises through the diagonal into a terminal
+    lower = rounded(
+        (0, 0, ro), (Wl, 0, ro), (Wl, tr, rt), (Wl - V, tr, rt), (Wl - V, H, ri), (V, H, ri),
+        (V, top - H, ri), (W * 0.30, top - H, rt), (W * 0.30, top, rt), (0, top, ro),
+    )
+    upper = [box(W * 0.07, top - H, W * 0.60, CH, ro, ro, ro, ro), hole(W * 0.07 + V, top, W * 0.60 - V, CH - H, ri)]
+    tail = stroke(p, (W * 0.22, top - H / 2), (W * 0.985, H * 0.2), V * 0.98)
+    return [lower] + upper + [tail], W, p.sides("ampersand")
+
+
+@glyph("at", "@")
+def g_at(p):
+    """A small a inside a larger bowl that opens at the lower right."""
+    W = p.w("at")
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    b, t = -XH * 0.195, XH * 1.195  # the outer bowl reaches below the baseline, as the wordmark's font has it
+    xi0, xi1 = W * 0.26, W * 0.74  # the inner a
+    yi0, yi1 = b + H + (t - b) * 0.12, t - H - (t - b) * 0.12
+    outer = rounded(
+        (0, b, ro), (xi1, b, rt), (xi1, b + H, rt), (V, b + H, ri), (V, t - H, ri), (W - V, t - H, ri),
+        (W - V, yi0, rt), (W, yi0, rt), (W, t, ro), (0, t, ro),
+    )
+    inner = [box(xi0, yi0, xi1, yi1, ro * 0.6, rt, ro * 0.6, ro * 0.6), hole(xi0 + V, yi0 + H, xi1 - V, yi1 - H, ri * 0.6),
+             box(xi1 - V, b, xi1, yi1, rt, rt, rt, rt)]
+    return [outer] + inner, W, p.sides("at")
+
+
+@glyph("percent", "%")
+def g_percent(p):
+    """Two small rings either side of a slash."""
+    W = p.w("percent")
+    V, H, ri = p.V, p.H, p.ri
+    rw, rh = W * 0.38, CH * 0.44  # each ring, big enough that Bold keeps a counter
+    r = min(p.ro, rh / 2)
+
+    def ring(x0, y0):
+        return [box(x0, y0, x0 + rw, y0 + rh, r, r, r, r), hole(x0 + V, y0 + H, x0 + rw - V, y0 + rh - H, min(ri, r))]
+
+    hw = diag_hw(W * 0.62, CH, V * 0.98)
+    slash = rpoly((W * 0.19, 0, p.rt), (W * 0.19 + hw, 0, p.rt), (W * 0.81, CH, p.rt), (W * 0.81 - hw, CH, p.rt))
+    return ring(0, CH - rh) + ring(W - rw, 0) + [slash], W, p.sides("percent")
+
+
+# --- Accents --------------------------------------------------------------
+# Marks are drawn once, centred on x = 0 with their bottom at y = 0, then
+# hung over a base letter: above the x-height for lowercase, above cap height
+# for capitals.
+
+@glyph("dotlessi", "\u0131")
+def g_dotlessi(p):
+    return [box(0, 0, p.V, XH, p.rt, p.rt, p.rt, p.rt)], p.V, p.sides("i")
+
+
+def mark(p, kind, cap=False):
+    """(contours, height) for one mark."""
+    V, H, rt = p.V, p.H, p.rt
+    s = 0.9 if cap else 1.0  # marks on capitals sit lower and a touch smaller
+    if kind in ("acute", "grave"):
+        w, h = V * 1.9 * s, V * 1.7 * s
+        c = rpoly((-w / 2, 0, rt), (-w / 2 + V * 1.1, 0, rt), (w / 2, h, rt), (w / 2 - V * 1.1, h, rt))
+        return ([c] if kind == "acute" else mirror_x([c], 0)), h
+    if kind == "circumflex":
+        w, h = V * 4.2 * s, V * 1.7 * s
+        vee = v_shape(p, -w / 2, w, top=h, foot=V * 1.2, r_top=rt)[0]
+        return rotate180([vee], 0, h / 2), h
+    if kind == "dieresis":
+        g = V * 0.9
+        return [dot_at(p, -g / 2 - V, 0), dot_at(p, g / 2, 0)], V
+    if kind == "ring":
+        w = V * 3.0 * s
+        r = min(p.ri, w / 3)
+        return [box(-w / 2, 0, w / 2, w * 0.8, r, r, r, r), hole(-w / 2 + V * 0.8, H * 0.8, w / 2 - V * 0.8, w * 0.8 - H * 0.8, r / 2)], w * 0.8
+    if kind == "tilde":
+        w, d = V * 4.4 * s, V * 0.8 * s
+        a, b = -w / 2 + w * 0.42, -w / 2 + w * 0.58
+        c = rounded((-w / 2, 0, rt), (a, 0, 0), (b, d, 0), (w / 2, d, rt), (w / 2, d + H, rt), (b, d + H, 0),
+                    (a, H, 0), (-w / 2, H, rt))
+        return [c], d + H
+    if kind == "cedilla":  # a small hook hanging below the baseline from y = 0, like the j's tail
+        h, xl = H * 3.0, -V * 1.7
+        c = rounded((xl, -h + H, rt), (xl, -h, rt), (V / 2, -h, p.ro * 0.4), (V / 2, 0, rt), (-V / 2, 0, rt),
+                    (-V / 2, -h + H, p.ri * 0.4))
+        return [c], 0
+    raise ValueError(kind)
+
+
+ACCENTS = {  # base: [(char, mark), ...]
+    "a": [("à", "grave"), ("á", "acute"), ("â", "circumflex"), ("ã", "tilde"), ("ä", "dieresis"), ("å", "ring")],
+    "e": [("è", "grave"), ("é", "acute"), ("ê", "circumflex"), ("ë", "dieresis")],
+    "dotlessi": [("ì", "grave"), ("í", "acute"), ("î", "circumflex"), ("ï", "dieresis")],
+    "o": [("ò", "grave"), ("ó", "acute"), ("ô", "circumflex"), ("õ", "tilde"), ("ö", "dieresis")],
+    "u": [("ù", "grave"), ("ú", "acute"), ("û", "circumflex"), ("ü", "dieresis")],
+    "n": [("ñ", "tilde")], "y": [("ý", "acute"), ("ÿ", "dieresis")], "c": [("ç", "cedilla")],
+    "A": [("À", "grave"), ("Á", "acute"), ("Â", "circumflex"), ("Ã", "tilde"), ("Ä", "dieresis"), ("Å", "ring")],
+    "E": [("È", "grave"), ("É", "acute"), ("Ê", "circumflex"), ("Ë", "dieresis")],
+    "I": [("Ì", "grave"), ("Í", "acute"), ("Î", "circumflex"), ("Ï", "dieresis")],
+    "O": [("Ò", "grave"), ("Ó", "acute"), ("Ô", "circumflex"), ("Õ", "tilde"), ("Ö", "dieresis")],
+    "U": [("Ù", "grave"), ("Ú", "acute"), ("Û", "circumflex"), ("Ü", "dieresis")],
+    "N": [("Ñ", "tilde")], "Y": [("Ý", "acute")], "C": [("Ç", "cedilla")],
+}
+BASE = {}  # accented glyph name -> base glyph name, for kerning
+
+
+def accented(base, kind):
+    cap = base[0].isupper()
+
+    def fn(p):
+        contours, W, sides = GLYPHS[base][1](p)
+        m, h = mark(p, kind, cap)
+        if kind == "cedilla":
+            y = 0
+        else:
+            y = (CH + CH * 0.06) if cap else (XH + XH * 0.13)
+        cx = W / 2
+        if base == "y":  # over the y's arms, not its tail
+            cx = W / 2
+        return contours + translate(m, cx, y), W, sides
+    return fn
+
+
+for _base, _marks in ACCENTS.items():
+    for _char, _kind in _marks:
+        _name = f"uni{ord(_char):04X}"
+        GLYPHS[_name] = (_char, accented(_base, _kind))
+        BASE[_name] = _base
 
 set_style(os.environ.get("HYPHER_STYLE", DEFAULT_STYLE))
