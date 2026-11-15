@@ -322,21 +322,38 @@ def _fit(samples, ts, t0, t1):
     return [s0, (s0[0] + a * t0[0], s0[1] + a * t0[1]), (s1[0] - b * t1[0], s1[1] - b * t1[1]), s1]
 
 
-def _cut(curve, end, direction, cut):
-    """Slide one end of a fitted side curve along `direction` onto a cut line."""
+def _cut(curve, end, outward, cut):
+    """Bring one end of a fitted side curve onto a cut line ("line", point,
+    direction). A side that falls short is extended along its tangent; a side
+    that overshoots is trimmed where the curve itself crosses the line."""
     if cut[0] == "p":
         return curve
-    axis = 1 if cut[0] == "h" else 0
+    _, P, u = cut
+    cross = lambda a, b: a[0] * b[1] - a[1] * b[0]
     i, j = (0, 1) if end == 0 else (3, 2)
-    pt = curve[i]
-    if abs(direction[axis]) < 1e-6:
+    E = curve[i]
+    den = cross(outward, u)
+    if abs(den) < 1e-9:
         return curve
-    s = (cut[1] - pt[axis]) / direction[axis]
-    dx, dy = direction[0] * s, direction[1] * s
-    curve = list(curve)
-    curve[i] = (pt[0] + dx, pt[1] + dy)
-    curve[j] = (curve[j][0] + dx, curve[j][1] + dy)
-    return curve
+    s = cross((P[0] - E[0], P[1] - E[1]), u) / den
+    if s >= 0:
+        dx, dy = outward[0] * s, outward[1] * s
+        curve = list(curve)
+        curve[i] = (E[0] + dx, E[1] + dy)
+        curve[j] = (curve[j][0] + dx, curve[j][1] + dy)
+        return curve
+    c = tuple(tuple(q) for q in curve)
+    f = lambda t: cross((_pt(c, t)[0] - P[0], _pt(c, t)[1] - P[1]), u)
+    a, b = (1.0, 0.0) if end == 1 else (0.0, 1.0)
+    fa = f(a)
+    for _ in range(50):
+        m = (a + b) / 2
+        if (f(m) > 0) == (fa > 0):
+            a, fa = m, f(m)
+        else:
+            b = m
+    t = (a + b) / 2
+    return list(splitCubicAtT(*c, t)[0] if end == 1 else splitCubicAtT(*c, t)[1])
 
 
 def pen(skeleton, V, H, cap0=("p",), cap1=("p",), n=16):
@@ -364,8 +381,56 @@ def pen(skeleton, V, H, cap0=("p",), cap1=("p",), n=16):
         right.append(_fit(rs, ts, ta, tb))
     t_start = _tangent_at(skeleton[0], 0.0)
     t_end = _tangent_at(skeleton[-1], 1.0)
-    left[0] = _cut(left[0], 0, t_start, cap0)
-    right[0] = _cut(right[0], 0, t_start, cap0)
+
+    def line(cap, pt, tang):
+        """Turn a cap into a cut line through the skeleton's end.
+        ("h", y) / ("v", x): level / upright through that coordinate.
+        ("H", tilt) / ("V", tilt): level / upright through the end, turned
+        `tilt` of the way toward square to the stroke (0 = exactly level)."""
+        kind = cap[0]
+        if kind == "p":
+            return cap
+        if kind == "h":
+            return ("line", (pt[0], cap[1]), (1.0, 0.0))
+        if kind == "v":
+            return ("line", (cap[1], pt[1]), (0.0, 1.0))
+        tilt = cap[1] if len(cap) > 1 else 0.0
+        base = 0.0 if kind == "H" else math.pi / 2
+        square = math.atan2(tang[1], tang[0]) + math.pi / 2
+        diff = math.atan2(math.sin(square - base), math.cos(square - base))
+        if abs(diff) > math.pi / 2:  # a line has no direction: take the nearer turn
+            diff -= math.copysign(math.pi, diff)
+        ang = base + diff * tilt
+        return ("line", pt, (math.cos(ang), math.sin(ang)))
+
+    def trim_only(cap, a, b, outward):
+        """Move a terminal's cut back to the side that ends first, so the other
+        side is trimmed along its own curve and neither is extended (a straight
+        extension reads as a spur)."""
+        if cap[0] != "line":
+            return cap
+        _, P, u = cap
+        proj = lambda q: (q[0] - P[0]) * outward[0] + (q[1] - P[1]) * outward[1]
+        # where along the stroke each side meets the line
+        cross = lambda p, q: p[0] * q[1] - p[1] * q[0]
+        den = cross(outward, u)
+        if abs(den) < 1e-9:
+            return cap
+        s_a = cross((P[0] - a[0], P[1] - a[1]), u) / den
+        s_b = cross((P[0] - b[0], P[1] - b[1]), u) / den
+        shift = min(0.0, -max(s_a, s_b))  # pull the line back until neither side must grow
+        return ("line", (P[0] + outward[0] * shift, P[1] + outward[1] * shift), u)
+
+    back = (-t_start[0], -t_start[1])
+    terminal0, terminal1 = cap0[0] in ("H", "V"), cap1[0] in ("H", "V")
+    cap0 = line(cap0, skeleton[0][0], t_start)
+    cap1 = line(cap1, skeleton[-1][3], t_end)
+    if terminal0 and cap0[0] == "line" and abs(cap0[2][1]) < 0.9:  # level-ish terminal cuts only
+        cap0 = trim_only(cap0, left[0][0], right[0][0], back)
+    if terminal1 and cap1[0] == "line" and abs(cap1[2][1]) < 0.9:
+        cap1 = trim_only(cap1, left[-1][3], right[-1][3], t_end)
+    left[0] = _cut(left[0], 0, back, cap0)
+    right[0] = _cut(right[0], 0, back, cap0)
     left[-1] = _cut(left[-1], 1, t_end, cap1)
     right[-1] = _cut(right[-1], 1, t_end, cap1)
     con = [tuple(left[0][0])]

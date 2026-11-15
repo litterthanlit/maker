@@ -9,10 +9,14 @@ on uprights and H on horizontals, a skeleton box inset by V/2 at the sides
 and H/2 at top and bottom puts the ink exactly on the glyph's edges.
 """
 
+import json
 import math
+import os
 
 import glyphs as G
 from glyphs import ASC, CH, DSC, O, XH, dot_size, fig_sb, fig_strokes, fig_width, glyph, math_sb, math_width
+from fontTools.misc.bezierTools import splitCubicAtT
+
 from geometry import _d, _pt, flip_y, mirror_x, pen, rect, rotate180, seg, translate
 
 
@@ -26,6 +30,56 @@ def _box(w, bottom, top, V, H):
     xl, xr = V / 2, w - V / 2
     yb, yt = bottom + H / 2, top - H / 2
     return xl, xr, yb, yt, xr - xl, yt - yb, (xl + xr) / 2
+
+
+# --- shapes from research ------------------------------------------------------
+# data/consensus.json holds the centre lines of 6, 9, s and S averaged across
+# curved-Swiss grotesques (Helvetica via TeX Gyre Heros, Inter, Public Sans,
+# Archivo and others), aligned at their structural landmarks and fitted with
+# one cubic per span: see proof/research.py. Being an average of several, it
+# is the genre's shared shape rather than any one font's drawing. Litt maps
+# it into its own widths and strokes.
+
+with open(os.path.join(os.path.dirname(__file__), "data", "consensus.json")) as _f:
+    CONSENSUS = json.load(_f)
+
+
+# fraction of the first / last span removed at a terminal
+SHORTEN = {"six": (0.18, 0), "nine": (0.18, 0), "s": (0.18, 0.18), "S": (0.18, 0.18)}
+
+
+def consensus_skeleton(name, w, bottom, top, V, H):
+    data = CONSENSUS[name]
+    xl, xr, yb, yt, sw, sh, xm = _box(w, bottom, top, V, H)
+    aspect = data["aspect"]
+
+    def m(p):
+        return (xl + p[0] / aspect * sw, yb + p[1] * sh)
+
+    sk = [tuple(m(p) for p in c) for c in data["cubics"]]
+    # Stop the terminals a little early, nearer Helvetica's stopping point: the
+    # averaged arcs curl further round, which closes the aperture. The ends are
+    # then cut square to the stroke, which stays blunt and crisp at UI sizes.
+    short = SHORTEN.get(name, (0, 0))
+    if short[0]:
+        sk[0] = tuple(splitCubicAtT(*sk[0], short[0])[1])
+    if short[1]:
+        sk[-1] = tuple(splitCubicAtT(*sk[-1], 1 - short[1])[0])
+    if name in ("six", "nine"):
+        # the bowl closes on the side it leaves from: end on that side's centre line
+        side = xl if name == "six" else xr
+        p0, c1, c2, p3 = sk[-1]
+        dx = side - p3[0]
+        sk[-1] = (p0, c1, (c2[0] + dx, c2[1]), (side, p3[1]))
+    return sk
+
+
+def from_consensus(name, w, bottom, top, V, H, cap0, cap1):
+    """Caps ("p",) cut the terminals level, tilting toward square as
+    the weight grows; ("V",) closes a bowl upright on its side."""
+    sk = consensus_skeleton(name, w, bottom, top, V, H)
+    c0, c1 = cap0, cap1
+    return pen(sk, V, H, c0, c1)
 
 
 # --- S and s -------------------------------------------------------------------
@@ -61,14 +115,14 @@ def s_form(w, bottom, top, V, H, top_term=0.77, bot_term=0.22, spine=24, upper=0
 @glyph("s", "s")
 def g_s(p):
     w = p.c(272 * G.LCW, 0.35) + 2 * p.VR * 0.92
-    return [s_form(w, -O, XH + O, p.VR * 0.96, p.HR * 1.02)], w, (p.SBR * 1.1, p.SBR * 1.1)
+    return [from_consensus("s", w, -O, XH + O, p.VR * 0.96, p.HR * 1.02, ("p",), ("p",))], w, (p.SBR * 1.1, p.SBR * 1.1)
 
 
 @glyph("S", "S")
 def g_S(p):
     v = p.VC * 1.02
     w = p.c(392, 0.45) + 2 * v
-    return [s_form(w, -O, CH + O, v, p.HC * 1.0, 0.78, 0.21)], w, (p.SBCR * 1.15, p.SBCR * 1.15)
+    return [from_consensus("S", w, -O, CH + O, v, p.HC * 1.0, ("p",), ("p",))], w, (p.SBCR * 1.15, p.SBCR * 1.15)
 
 
 # --- l ---------------------------------------------------------------------------
@@ -102,7 +156,7 @@ def g_2(p):
         seg(T, (0.31 * sw, 0), R, (0, -0.14 * sh)),
         seg(R, (0, -0.20 * sh), Dn, (-dd[0] * 0.42 * L, -dd[1] * 0.42 * L)),
     ]
-    return [pen(sk, v, h, ("h", P0[1]), ("h", hb * 0.9)), rect(0, 0, W, hb)], W, (fig_sb(p, W),) * 2
+    return [pen(sk, v, h, ("p",), ("h", hb * 0.9)), rect(0, 0, W, hb)], W, (fig_sb(p, W),) * 2
 
 
 @glyph("three", "3")
@@ -127,7 +181,7 @@ def g_3(p):
         seg(R2, (0, -0.15 * sh), B, (-0.32 * sw, 0)),
         seg(B, (-0.32 * sw, 0), P5, (0, 0.14 * sh)),
     ]
-    return [pen(upper, v, h, ("h", P0[1])), pen(lower, v, h, ("p",), ("h", P5[1]))], W, (fig_sb(p, W),) * 2
+    return [pen(upper, v, h, ("p",)), pen(lower, v, h, ("p",), ("p",))], W, (fig_sb(p, W),) * 2
 
 
 @glyph("five", "5")
@@ -147,39 +201,20 @@ def g_5(p):
         seg(R, (0, -0.15 * sh), B, (-0.32 * sw, 0)),
         seg(B, (-0.32 * sw, 0), P5, (0, 0.14 * sh)),
     ]
-    bowl = pen(sk, v, h, ("p",), ("h", P5[1]))
+    bowl = pen(sk, v, h, ("p",), ("p",))
     return [bowl, rect(x0, P0[1] - 0.04 * sh, x0 + V, CH), rect(x0, CH - p.HC, W * 0.93, CH)], W, (fig_sb(p, W),) * 2
 
 
 @glyph("six", "6")
 def g_6(p):
     v, h, W = _fig(p)
-    xl, xr, yb, yt, sw, sh, xm = _box(W, -O, CH + O, v, h)
-    P0 = (xr - 0.05 * sw, yb + 0.80 * sh)
-    T = (xm + 0.04 * sw, yt)
-    L = (xl, yb + 0.42 * sh)
-    B = (xm, yb)
-    R = (xr, yb + 0.29 * sh)
-    Tb = (xm + 0.01 * sw, yb + 0.58 * sh)
-    down = seg(L, (0, -0.21 * sh), B, (0.32 * sw, 0))
-    tj = 0.12
-    Lj = _pt(down, tj)
-    dj = _u(*_d(down, tj))
-    sk = [
-        seg(P0, (-0.05 * sw, 0.11 * sh), T, (-0.29 * sw, 0)),
-        seg(T, (-0.30 * sw, 0), L, (0, -0.24 * sh)),
-        down,
-        seg(B, (0.32 * sw, 0), R, (0, 0.15 * sh)),
-        seg(R, (0, 0.15 * sh), Tb, (-0.31 * sw, 0)),
-        seg(Tb, (-0.30 * sw, 0), Lj, (dj[0] * 0.14 * sh, dj[1] * 0.14 * sh)),
-    ]
-    return [pen(sk, v, h, ("h", P0[1]))], W, (fig_sb(p, W),) * 2
+    return [from_consensus("six", W, -O, CH + O, v, h, ("p",), ("V",))], W, (fig_sb(p, W),) * 2
 
 
 @glyph("nine", "9")
 def g_9(p):
-    c, w, sb = g_6(p)
-    return rotate180(c, w / 2, CH / 2), w, sb
+    v, h, W = _fig(p)
+    return [from_consensus("nine", W, -O, CH + O, v, h, ("p",), ("V",))], W, (fig_sb(p, W),) * 2
 
 
 # --- punctuation and symbols -------------------------------------------------------
@@ -269,7 +304,7 @@ def g_question(p):
     ]
     V = p.VC
     stem = rect(S[0] - V / 2, y_stem, S[0] + V / 2, S[1] + 2)
-    c = [pen(sk, v, h, ("h", P0[1]), ("h", S[1])), stem, rect(S[0] - d / 2, 0, S[0] + d / 2, d)]
+    c = [pen(sk, v, h, ("p",), ("h", S[1])), stem, rect(S[0] - d / 2, 0, S[0] + d / 2, d)]
     return c, W, (p.SBR, p.SBR)
 
 
