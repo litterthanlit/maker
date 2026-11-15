@@ -1,0 +1,61 @@
+"""Fail if any glyph's outline runs backwards over itself, at any master.
+
+    HYPHER_STYLE=Wordmark python3 families/hypher-display/proof/check_outlines.py
+
+A clean glyph's signed area is at least the area of its outline with overlaps
+removed: overlapping parts (a stem laid over a bowl) cover ink twice. Less
+area means a loop runs backwards, which renders as a notch or a stray tick.
+"""
+
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(HERE.parent.parent / "src"))
+sys.path.insert(0, str(HERE))
+
+import pathops  # noqa: E402
+
+import build  # noqa: E402
+import glyphs as G  # noqa: E402
+
+
+def to_path(contours):
+    p = pathops.Path()
+    pen = p.getPen()
+    for c in contours:
+        pen.moveTo(c[0])
+        for seg in c[1:]:
+            if seg[0] == "l":
+                pen.lineTo(seg[1])
+            else:
+                pen.curveTo(*seg[1:])
+        pen.closePath()
+    return p
+
+
+def signed(contours):
+    total = 0
+    for c in contours:
+        p = to_path([c])
+        total += p.area if not p.clockwise else -p.area
+    return total
+
+
+bad = []
+for w, stem in build.MASTERS.items():
+    params = G.P(w, stem)
+    for name, (char, fn) in G.GLYPHS.items():
+        contours = fn(params)[0]
+        if not contours:
+            continue
+        clean = to_path(contours)
+        clean.simplify(fix_winding=True)
+        if abs(abs(signed(contours)) - clean.area) > 1:
+            bad.append((w, name, round(abs(signed(contours)) - clean.area)))
+
+fail = [b for b in bad if b[2] < 0]
+for w, name, delta in fail:
+    print(f"{w} {name}: reversed loop, {abs(delta)} units²")
+print(f"{len(fail)} reversed loops in {len(G.GLYPHS) * len(build.MASTERS)} glyph-masters")
+sys.exit(1 if fail else 0)
