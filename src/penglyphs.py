@@ -390,3 +390,25 @@ def g_percent(p):
     from geometry import stroke
     sl = stroke((rw * 0.55, -6), (W - rw * 0.55, CH + 6), p.D * 0.95, ("h", 0), ("h", CH))
     return r1 + r2 + [sl], W, (p.SBR, p.SBR)
+
+
+# --- s and S from an open-licence base (make-font skill) -----------------------
+# The s and S are Archivo's (OFL), fitted to Litt's stem, x-height and cap
+# height by src/borrowed.py: Archivo's weight axis is solved per master so its
+# stem matches Litt's, and the outline is scaled, never traced or redrawn.
+# data/base holds a subset with only s, S and n (n is measured for the stem),
+# with its licence. LITT_BORROW_S can point at another variable OFL font to try it.
+_BORROW = os.environ.get("LITT_BORROW_S") or os.path.join(
+    os.path.dirname(__file__), "data", "base", "Archivo-sSn[wdth,wght].ttf")
+if _BORROW:
+    import borrowed
+
+    @glyph("s", "s")
+    def g_s_borrowed(p):
+        c, ink, sb, _ = borrowed.take(_BORROW, "s", p.V, XH + 0, "x")
+        return c, ink, sb
+
+    @glyph("S", "S")
+    def g_S_borrowed(p):
+        c, ink, sb, _ = borrowed.take(_BORROW, "S", p.V * 1.04, CH, "cap")
+        return c, ink, sb
