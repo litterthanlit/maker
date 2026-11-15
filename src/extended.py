@@ -1063,3 +1063,8 @@ import penglyphs  # noqa: E402
 
 penglyphs.register_late()
 penglyphs.register_all_preview()
+
+# Open-join letters (the 4 as a motif), registered last: see openjoin.py.
+import openjoin  # noqa: E402
+
+openjoin.register()

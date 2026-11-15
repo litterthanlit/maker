@@ -27,6 +27,8 @@ type face for litt.md. It is released under the SIL Open Font License 1.1
 
 ## Changelog
 
+- 0.99: the open join: Archivo's 4 as a motif in Litt's own N and k, drawn by
+  Litt from the 4's measured proportions (src/openjoin.py), not copied.
 - 0.98: o b d p q, þ and đ from Archivo.
 - 0.97: c e f g j t y, G K R, & (classic alternate), @, ȷ ŧ œ from Archivo; the
   straight letters stay Litt's own.

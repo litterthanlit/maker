@@ -17,6 +17,10 @@ Less, but better. Every part of the font has to make reading or using it easier.
 - **Open at small sizes.** Wide enough, spaced enough and open enough to read at 13px, measured against Inter and Geist.
 - **Thorough to the last detail.** & @ { } and the figures are drawn as carefully as the letters; strokes meet along their own curves, without corners.
 
+## The open join
+
+Litt's signature detail, taken from the open 4: a stroke that stops short of meeting another, its tip bevelled toward the gap. Measured from the 4 (the short upright stops at 87% of the height, the gap is about 1.1 stroke widths) and drawn by Litt in its own N and k (`src/openjoin.py`). Z and A were tried and read as broken at UI sizes, so they are options only (`LITT_OPEN_JOIN=NkZA`).
+
 ## On litt.md
 
 Every litt world reads `--font-choice` first, so Litt Grotesk takes over Press and Flat with one line and no change to litt. It needs no `ss` or `cv` features, as litt's type rules ask.
