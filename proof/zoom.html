@@ -1,0 +1,7 @@
+<!doctype html><meta charset=utf-8>
+<style>@font-face{font-family:K;src:url(../fonts/variable/KantonGrotesk[wght].woff2) format("woff2");font-weight:300 700}
+body{margin:20px;font-family:K;font-size:150px;line-height:1.1}span{outline:1px solid #f0a}</style>
+<div id=r></div><script>
+const q=new URLSearchParams(location.search);const t=q.get("t")||"kKQ@{`~";
+let h="";for(const w of (q.get("w")||"400,700").split(","))h+=`<div style="font-weight:${w}">${[...t].map(c=>`<span>${c.replace("<","&lt;")}</span>`).join("")}</div>`;
+document.getElementById("r").innerHTML=h;</script>

@@ -1,0 +1,2 @@
+fonttools[woff,unicode]>=4.60
+skia-pathops>=0.8
