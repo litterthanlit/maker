@@ -10,7 +10,7 @@ type face for litt.md. It is released under the SIL Open Font License 1.1
 
 - **Drawn for Litt:** every glyph except those below, generated from code in `src/`
   (`glyphs.py`, `extended.py`, `penglyphs.py`). No outline of any measured font is used.
-- **From Archivo (OFL):** the outlines of **s**, **S** and **all ten figures 0–9**, and so of the glyphs built on them (ś ŝ ş š Ś Ŝ Ş Š, $, the tabular
+- **From Archivo (OFL):** the outlines of **a**, **æ**, **s**, **S** and **all ten figures 0–9**, and so of the glyphs built on them (à á â ã ä å ā ă ą ª, ś ŝ ş š Ś Ŝ Ş Š, $, the tabular
   figures, the slashed zero, superscripts ² ³ ¹ and the fractions ¼ ½ ¾). Archivo is by Omnibus-Type, Copyright 2020 The
   Archivo Project Authors (https://github.com/Omnibus-Type/Archivo). Litt takes them
   from Archivo's variable font (`src/data/base`, subset to those glyphs and n) following the
@@ -25,6 +25,9 @@ type face for litt.md. It is released under the SIL Open Font License 1.1
 
 ## Changelog
 
+- 1.02: e closes like the c and s (lower terminal at about 34% of the x-height, as the c; was about 21%).
+  a and æ from Archivo, fitted like the s: Litt's flat-footed a was set aside after
+  a side-by-side with a tailed version of it.
 - 1.01: a and c adjusted to sit with the s: c terminals at about 66% and 34% of
   the x-height (were 79/23), c 3% wider; a 8% wider, bowl lowered to about 59%,
   hook ending at 72%. Proportions measured from Archivo; Litt's own drawing.

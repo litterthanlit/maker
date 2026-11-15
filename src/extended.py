@@ -442,7 +442,11 @@ def merged(p, left, right, overlap, keep_left=None):
 
 
 def g_ae(p):
-    return merged(p, "a", "e", p.V * 0.95 + 4, keep_left=[1, 2, 3])
+    # Archivo's æ, fitted like the a: one drawn shape, not an a and an e stitched together
+    import borrowed
+    from penglyphs import _BORROW
+    c, ink, sb, _ = borrowed.take(_BORROW, "ae", p.V, XH, "x")
+    return c, ink, sb
 
 
 def g_oe(p):

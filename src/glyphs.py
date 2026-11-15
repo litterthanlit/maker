@@ -240,29 +240,12 @@ def g_e(p):
     inner = Ellipse(p.VR, -O + p.HR, w - p.VR, XH + O - p.HR, KI)
     bar_b = XH * 0.46
     bar_t = bar_b + p.H
-    yb = outer.cy - 0.55 * outer.ry
+    yb = outer.cy - 0.30 * outer.ry  # closes like the c and s
     body = band(outer, inner, outer.at_y(3, bar_b), outer.at_y(7, yb),
                 inner.at_y(3, bar_b), inner.at_y(7, yb))
     xr = min(outer.x_at(bar_b), outer.x_at(bar_t))
     bar = rect(p.VR * 0.5, bar_b, xr, bar_t)
     return [body, bar], w, (p.SBR, p.SBR * 0.85)
-
-
-@glyph("a", "a")
-def g_a(p):
-    V, H = p.V, p.H
-    w = p.c(283 * LCW, 1.22) + V + p.VR  # 8% wider, nearer Archivo's proportion
-    cyh = XH * 0.60
-    # top hook, from the stem over the top to a horizontal cut at the left
-    ho = Ellipse(V * 0.35, 2 * cyh - (XH + O), w, XH + O, K)
-    hi = Ellipse(V * 0.35 + p.VR * 0.98, 2 * cyh - (XH + O - p.HR), w - V, XH + O - p.HR, KI)
-    yt = XH * 0.72 - p.dV * 0.12  # the hook closes a little, as the s does
-    hook = band(ho, hi, (0, 0.0), ho.at_y(1, yt), (0, 0.0), hi.at_y(1, yt))
-    # bowl
-    top = XH * 0.52 + H * 0.5  # a lower bowl gives the hook room; the a no longer sits heavy
-    bo = Ellipse(0, -O, w - V * 0.4, top, (0.62, 0.66, 0.62, 0.60))
-    bi = Ellipse(p.VR, -O + p.HR, w - V * 0.9, top - H, (0.64, 0.68, 0.64, 0.62))
-    return [rect(w - V, 0, w, cyh), hook] + ring(bo, bi), w, (p.SBR * 1.1, p.SB * 0.96)
 
 
 def b_parts(p, stem_bottom, stem_top):

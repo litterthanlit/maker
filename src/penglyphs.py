@@ -403,6 +403,11 @@ _BORROW = os.environ.get("LITT_BORROW_S") or os.path.join(
 if _BORROW:
     import borrowed
 
+    @glyph("a", "a")
+    def g_a_borrowed(p):
+        c, ink, sb, _ = borrowed.take(_BORROW, "a", p.V, XH, "x")
+        return c, ink, sb
+
     @glyph("s", "s")
     def g_s_borrowed(p):
         c, ink, sb, _ = borrowed.take(_BORROW, "s", p.V, XH + 0, "x")
