@@ -6,18 +6,35 @@ The display face for the Hypher wordmark, drawn in code after the Hypher mark: w
 - **Characters:** h y p e r n o and space (prototype)
 - **Metrics:** 1000 UPM · x-height 560 · ascender 740 (1.32 x-heights) · descender −185 (0.33)
 
+## Versions
+
+Each version is a named set of numbers in `STYLES` (`glyphs.py`) and builds as its own family. Plain **Hypher** is Finish.
+
+| Version | Family | What changes |
+| --- | --- | --- |
+| Mill | Hypher Mill | Crisp: radius 0.20 x-heights, circular corners, sharp cut ends (was 0.200) |
+| Fillet | Hypher Fillet | Bigger corners, radius 0.235 |
+| Polish | Hypher Polish | Corners eased into the sides instead of joined as circles |
+| Bore | Hypher Bore | Rounder counters |
+| Deburr | Hypher Deburr | Cut ends rounded, as every corner of the mark is |
+| **Finish** | **Hypher** | A little of each: radius 0.215, eased 0.6, rounder counters, soft ends |
+| Wordmark | Hypher Wordmark | The current wordmark's letters (Michroma) redrawn in this system: its widths, spacing, square stem tops and hooked y, with corners fitted to its outlines (85–93% overlap per letter, the y 71%) |
+
 ## How it is drawn
 
-Every letter is a few polygons from `rounded()` in `src/core/geometry.py`: corners with a radius each, sides straight. Everything derives from the stem, one number per master (`MASTERS` in `build.py`: 60, 92, 150).
+Every letter is a few polygons from `rounded()` in `src/core/geometry.py`: corners with a radius each, sides straight. Everything derives from the stem, one number per master (`MASTERS` in `build.py`: 60, 92, 150), and from the version's numbers:
 
-- **Corners:** outer radius 0.215 x-heights, eased into the sides (`smooth` 0.6) rather than joined as a circle; counters follow it, 0.55 of a stroke inside; cut ends (stem feet, terminals, the r's arm) get a 0.02 radius, as every corner of the mark does. The mark's own 0.043 read as pixel type at letter size and 0.26 drifted back to a squircle. `HYPHER_RADIUS`, `HYPHER_SMOOTH`, `HYPHER_INNER` and `HYPHER_TERM` override each for a comparison proof.
-- **Horizontals** are 0.86 of the stem, so they look equal to it.
-- **Width** grows by twice the stem's gain, so Bold's counters stay open.
-- **y** is a symmetric V that meets on the baseline, its right arm running on into the descender; a u-shaped y read as a g and broke the word's rhythm.
+- **radius:** the outer corner, in x-heights. The mark's own 0.043 read as pixel type at letter size and 0.26 drifted back to a squircle.
+- **smooth:** 0 joins a corner to its sides as a circle; higher starts the curve further back and eases it in.
+- **inner:** how far inside the outer corner a counter's corner sits, in stems; smaller reads rounder.
+- **term:** the radius on cut ends (stem feet, terminals, the r's arm).
+- **Horizontals** are 0.86 of the stem, so they look equal to it, and **width** grows by twice the stem's gain, so Bold's counters stay open.
+- **y** is a symmetric V that meets on the baseline, its right arm running on into the descender; a u-shaped y read as a g.
 
 ## Build and check
 
 ```bash
-python3 families/hypher/build.py
-python3 families/hypher/proof/check_outlines.py   # fails on any outline that runs backwards over itself
+python3 families/hypher/build.py              # Hypher (Finish)
+python3 families/hypher/build.py --versions   # and every named version, into fonts/versions/
+HYPHER_STYLE=Wordmark python3 families/hypher/proof/check_outlines.py   # fails on any outline that runs backwards over itself
 ```

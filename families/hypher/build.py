@@ -1,10 +1,11 @@
 """Build Hypher: the variable font, static instances and web fonts.
 
-    python3 families/hypher/build.py
+    python3 families/hypher/build.py              # Hypher, the default version (Finish)
+    python3 families/hypher/build.py --versions   # also every named version
 
 Writes to families/hypher/fonts/:
-    variable/Hypher[wght].ttf + .woff2
-    static/Hypher-<Style>.ttf + .woff2
+    variable/Hypher[wght].ttf + .woff2, static/Hypher-<Style>.ttf + .woff2
+    versions/<Name>/variable/Hypher<Name>[wght].ttf + .woff2, and statics
 """
 
 import sys
@@ -20,34 +21,40 @@ import glyphs as G  # noqa: E402
 # weight -> lowercase stem width; everything else derives from it.
 MASTERS = {300: 60, 400: 92, 700: 150}
 
-KERN_PAIRS = []  # (left, right, value at every weight)
-
 
 def features(wght):
     lines = ["languagesystem DFLT dflt;", "languagesystem latn dflt;", "feature kern {"]
-    lines += [f"  pos {l} {r} {v};" for l, r, v in KERN_PAIRS]
+    lines += [f"  pos {l} {r} {v};" for l, r, v in G.STYLE["kern"]]
     lines.append("} kern;")
     return "\n".join(lines)
 
 
-HYPHER = Family(
-    name="Hypher",
-    file="Hypher",
-    version="0.210",
-    copyright="Copyright 2026 The Hypher Project Authors",
-    glyphs=G.GLYPHS,
-    params=lambda w: G.P(w, MASTERS[w]),
-    masters=list(MASTERS),
-    default=400,
-    instances={300: "Light", 400: "Regular", 500: "Medium", 600: "SemiBold", 700: "Bold"},
-    ascent=1000,
-    descent=-260,
-    x_height=G.XH,
-    cap_height=G.CH,
-    features=features,
-    out=HERE / "fonts",
-    hint=None,  # a display face: set large, where hinting does nothing
-)
+def family(style):
+    """The Family for one version; the default version is plain Hypher."""
+    G.set_style(style)
+    default = style == G.DEFAULT_STYLE
+    return Family(
+        name="Hypher" if default else f"Hypher {style}",
+        file="Hypher" if default else f"Hypher{style}",
+        version="0.220",
+        copyright="Copyright 2026 The Hypher Project Authors",
+        glyphs=G.GLYPHS,
+        params=lambda w: G.P(w, MASTERS[w]),
+        masters=list(MASTERS),
+        default=400,
+        instances={300: "Light", 400: "Regular", 500: "Medium", 600: "SemiBold", 700: "Bold"},
+        ascent=1000,
+        descent=-260,
+        x_height=G.XH,
+        cap_height=G.CH,
+        features=features,
+        out=HERE / "fonts" if default else HERE / "fonts" / "versions" / style,
+        hint=None,  # a display face: set large, where hinting does nothing
+    )
+
 
 if __name__ == "__main__":
-    build(HYPHER, HERE.parent.parent / "build")
+    tmp = HERE.parent.parent / "build"
+    styles = list(G.STYLES) if "--versions" in sys.argv else [G.DEFAULT_STYLE]
+    for style in sorted(styles, key=lambda s: s == G.DEFAULT_STYLE):  # the default last
+        build(family(style), tmp)
