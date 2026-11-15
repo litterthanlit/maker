@@ -690,22 +690,36 @@ def g_Z(p):
     return [rect(0, 0, w, h), rect(10, CH - h, w, CH), d], w, (p.SBD + 18, p.SBD + 18)
 
 
-# --- figures (tabular) ----------------------------------------------------
+# --- figures ----------------------------------------------------------------
+# Lining figures at cap height on one shared width, so the tabular forms (`tnum`)
+# centre cleanly; extended.py makes the default figures proportional. Round
+# figures take the round letters' strokes, so numbers sit in text at its weight.
 
 def fig_width(p):
-    return 492 + p.dV * 0.9
+    return 524 + p.dV * 0.9
 
 
 def fig_sb(p, ink):
     return ((fig_width(p) + 2 * p.SBR) - ink) / 2
 
 
+def fig_strokes(p):
+    return p.VR * 1.02, p.HR
+
+
+def _tangent(e, pos, eps=1e-3):
+    i, t = pos
+    a = e.point((i, max(0.0, t - eps)))
+    b = e.point((i, min(1.0, t + eps)))
+    return math.atan2(b[1] - a[1], b[0] - a[0])
+
+
 @glyph("zero", "0")
 def g_0(p):
-    v, h = p.VR, p.HR
-    w = fig_width(p) - 20
-    outer = Ellipse(0, -O, w, CH + O, 0.62)
-    inner = Ellipse(v, -O + h, w - v, CH + O - h, 0.64)
+    v, h = fig_strokes(p)
+    w = fig_width(p) - 8
+    outer = Ellipse(0, -O, w, CH + O, 0.64)
+    inner = Ellipse(v, -O + h, w - v, CH + O - h, 0.66)
     return ring(outer, inner), w, (fig_sb(p, w),) * 2
 
 
@@ -713,12 +727,14 @@ def g_0(p):
 def g_1(p):
     V = p.VC
     W = fig_width(p)
-    xs = W * 0.50
-    fl = 150 + p.dV * 0.4  # flag length
-    fd = 112  # flag drop
-    tv = p.H * 1.15
-    flag = poly((xs - fl + xs * 0, CH - fd - tv), (xs + V * 0.5, CH - tv * 2.2),
-                (xs + V, CH), (xs - fl, CH - fd))
+    xs = W * 0.58 - V / 2  # stem's left edge
+    t = p.H * 1.08  # flag thickness, square to the stroke
+    reach, drop = 176 + p.dV * 0.55, 128
+    tv = t * math.hypot(reach, drop) / reach  # its vertical thickness
+    xe = xs - reach
+    # an even stroke leaving the stem's top-left corner, its end cut vertically
+    flag = poly((xs + V * 0.5, CH), (xs, CH), (xe, CH - drop), (xe, CH - drop - tv),
+                (xs, CH - tv), (xs + V * 0.5, CH - tv))
     c = [rect(xs, 0, xs + V, CH), flag]
     x0 = bounds(c)[0]
     ink = xs + V - x0
@@ -727,106 +743,124 @@ def g_1(p):
 
 @glyph("two", "2")
 def g_2(p):
-    v, h = p.VR, p.HC
+    v, h = fig_strokes(p)
     W = fig_width(p)
-    ry = CH * 0.27
-    outer = Ellipse(0, CH + O - 2 * ry, W, CH + O, 0.62)
-    inner = Ellipse(v, CH + O - 2 * ry + h, W - v, CH + O - h, 0.64)
-    yt = outer.cy - 0.32 * ry
-    arc = band(outer, inner, (3, 0.55), outer.at_y(1, yt), (3, 0.55), inner.at_y(1, yt))
-    arc = band(outer, inner, outer.at_y(3, outer.cy - ry * 0.35), outer.at_y(5, yt),
-               inner.at_y(3, outer.cy - ry * 0.35), inner.at_y(5, yt))
-    # diagonal from the arc to the baseline
-    a = outer.point(outer.at_y(3, outer.cy - ry * 0.35))
-    ai = inner.point(inner.at_y(3, outer.cy - ry * 0.35))
-    diag_c = poly((0, h - 2), (p.D * 1.25, h - 2), a, ai)
-    diag_c = poly((0, h - 1), (p.D * 1.35, h - 1), a, ai)
-    return [arc, diag_c, rect(0, 0, W, h)], W, (p.SBR, p.SBR)
+    hb = p.HC
+    D = p.D * 1.08
+    ry = CH * 0.30
+    o = Ellipse(0, CH + O - 2 * ry, W, CH + O, 0.62)
+    i = Ellipse(v, CH + O - 2 * ry + h, W - v, CH + O - h, 0.64)
+    # the diagonal leaves the bowl where the bowl is already heading its way,
+    # so the outer edge runs on without a kink
+    best = None
+    for k in range(4, 60):
+        t0 = k / 80
+        po = o.point((3, t0))
+        hw = D
+        for _ in range(4):
+            hw = diag_hw(po[0] - hw, po[1] - hb, D)
+        ang = math.atan2(po[1] - hb, po[0] - hw)
+        err = abs(_tangent(o, (3, t0)) - ang)
+        if best is None or err < best[0]:
+            best = (err, t0, hw)
+    _, t0, hw = best
+    po, pi = o.point((3, t0)), i.point((3, t0))
+    yt = o.cy + 0.10 * ry
+    so, si = o.at_y(1, yt), i.at_y(1, yt)
+    arc = band(o, i, (3, t0), (so[0] + 4, so[1]), (3, t0), (si[0] + 4, si[1]))
+    diag_c = poly(po, pi, (0, hb - 1), (hw, hb - 1))
+    return [arc, diag_c, rect(0, 0, W, hb)], W, (fig_sb(p, W),) * 2
 
 
 @glyph("three", "3")
 def g_3(p):
-    v, h = p.VR, p.HR
+    v, h = fig_strokes(p)
     W = fig_width(p)
     ym = CH * 0.56
     lo_o = Ellipse(0, -O, W, ym + h * 0.5, 0.62)
     lo_i = Ellipse(v, -O + h, W - v, ym - h * 0.5, 0.64)
-    up_o = Ellipse(W * 0.06, ym - h * 0.5, W * 0.95, CH + O, 0.62)
-    up_i = Ellipse(W * 0.06 + v, ym + h * 0.5, W * 0.95 - v * 0.96, CH + O - h, 0.64)
-    yl = lo_o.cy - 0.48 * lo_o.ry
-    yu = up_o.cy + 0.48 * up_o.ry
+    up_o = Ellipse(W * 0.07, ym - h * 0.5, W * 0.95, CH + O, 0.62)
+    up_i = Ellipse(W * 0.07 + v * 0.96, ym + h * 0.5, W * 0.95 - v * 0.96, CH + O - h, 0.64)
+    yl = lo_o.cy - 0.46 * lo_o.ry
+    yu = up_o.cy + 0.46 * up_o.ry
     lower = band(lo_o, lo_i, lo_o.at_y(2, yl), (4, 1.0), lo_i.at_y(2, yl), (4, 1.0))
     upper = band(up_o, up_i, (3, 0.0), up_o.at_y(1, yu), (3, 0.0), up_i.at_y(1, yu))
-    bar = rect(W * 0.34, ym - h * 0.5, up_o.cx + 2, ym + h * 0.5)
-    return [lower, upper, bar], W, (p.SBR, p.SBR)
+    bar = rect(W * 0.40, ym - h * 0.5, up_o.cx + 2, ym + h * 0.5)
+    return [lower, upper, bar], W, (fig_sb(p, W),) * 2
 
 
 @glyph("four", "4")
 def g_4(p):
-    V, h, D = p.VC, p.HC, p.D
-    W = fig_width(p) + 20
-    xs = W * 0.66
-    yb = CH * 0.24
-    hw = diag_hw(xs - 0, CH - yb, D)
-    diag_c = poly((0, yb + h * 0.5), (hw * 1.1, yb + h * 0.5), (xs + V, CH), (xs + V - hw, CH))
-    return [rect(xs, 0, xs + V, CH), rect(0, yb, W, yb + h), diag_c], W, (p.SBR - 10, p.SBR - 10)
+    V, h = p.VC, p.HC
+    D = p.D * 1.10
+    W = fig_width(p) + 16
+    xs = W * 0.64
+    yb = CH * 0.25
+    hw = diag_hw(xs + V, CH - yb, D)
+    for _ in range(3):
+        hw = diag_hw(xs + V - hw, CH - yb, D)
+    diag_c = poly((0, yb), (hw, yb), (xs + V, CH), (xs + V - hw, CH))
+    return [rect(xs, 0, xs + V, CH), rect(0, yb, W, yb + h), diag_c], W, (fig_sb(p, W),) * 2
 
 
 @glyph("five", "5")
 def g_5(p):
-    v, h, V = p.VR, p.HR, p.VC
+    v, h = fig_strokes(p)
+    V = p.VC
     W = fig_width(p)
-    top = CH * 0.60
+    top = CH * 0.62
     bo = Ellipse(0, -O, W, top + O, 0.62)
     bi = Ellipse(v, -O + h, W - v, top + O - h, 0.64)
     yl = bo.cy - 0.48 * bo.ry
-    ysh = bo.cy + 0.35 * bo.ry
-    arc = band(bo, bi, bo.at_y(2, yl), bo.at_y(5, ysh), bi.at_y(2, yl), bi.at_y(5, ysh))
-    xl = W * 0.08
-    stem = poly((xl + 6, ysh - 10), (xl + V + 6, ysh - 10), (xl + V + 6 + 8, CH - h), (xl + 14, CH))
-    stem = poly((xl, top * 0.80), (xl + V, top * 0.80), (xl + V + 18, CH - h), (xl + 18, CH))
-    return [arc, stem, rect(xl + 18, CH - h, W * 0.94, CH)], W, (p.SBR, p.SBR)
+    x0 = W * 0.06  # the stem's left edge
+    xc = x0 + V  # the bowl springs from the stem's right edge
+    a, ai = bo.at_x(1, xc), bi.at_x(1, xc)
+    arc = band(bo, bi, bo.at_y(2, yl), (a[0] + 4, a[1]), bi.at_y(2, yl), (ai[0] + 4, ai[1]))
+    foot = bi.point(ai)[1]
+    return [arc, rect(x0, foot, xc, CH), rect(x0, CH - p.HC, W * 0.92, CH)], W, (fig_sb(p, W),) * 2
 
 
 @glyph("six", "6")
 def g_6(p):
-    v, h = p.VR, p.HR
+    v, h = fig_strokes(p)
     W = fig_width(p)
     top = CH * 0.62
-    bo = Ellipse(0, -O, W, top, 0.62)
-    bi = Ellipse(v, -O + h, W - v, top - h, 0.64)
-    tall_o = Ellipse(0, -O, W, CH + O, 0.60)
-    tall_i = Ellipse(v, -O + h, W - v, CH + O - h, 0.62)
-    # nudge the arc's counter so it meets the bowl's counter without a step
-    d = tall_i.x_at(bo.cy, "left") - v
-    tall_i = Ellipse(v - d, -O + h, W - v, CH + O - h, 0.62)
-    yt = tall_o.cy + 0.56 * tall_o.ry
-    end_o = tall_o.at_y(2, bo.cy)
-    end_i = tall_i.at_y(2, bo.cy)
-    arc = band(tall_o, tall_i, tall_o.at_y(0, yt), end_o, tall_i.at_y(0, yt), end_i)
-    return ring(bo, bi) + [arc], W, (p.SBR, p.SBR)
+    bo = Ellipse(0, -O, W, top + O, 0.62)
+    bi = Ellipse(v, -O + h, W - v, top + O - h, 0.64)
+    # The top arc is the upper quadrant of an ellipse centred on the bowl's
+    # middle, so it reaches its widest at the bowl's widest: both run straight
+    # up at the join and the left side reads as one curve.
+    tw = W * 0.96
+    ao = Ellipse(0, 2 * bo.cy - (CH + O), tw, CH + O, 0.58)
+    ai = Ellipse(v, 2 * bi.cy - (CH + O - h), tw - v, CH + O - h, 0.60)
+    yt = CH * 0.80
+    arc = band(ao, ai, ao.at_y(0, yt), (1, 1.0), ai.at_y(0, yt), (1, 1.0))
+    return ring(bo, bi) + [arc], W, (fig_sb(p, W),) * 2
 
 
 @glyph("seven", "7")
 def g_7(p):
-    h, D = p.HC, p.D * 1.05
+    h = p.HC
+    D = p.D * 1.12
     W = fig_width(p)
-    xb = W * 0.22
-    hw = diag_hw(W - xb, CH - h, D)
+    xb = W * 0.20
+    hw = D
+    for _ in range(4):
+        hw = diag_hw(W - hw - xb, CH - h, D)
     d = poly((xb, 0), (xb + hw, 0), (W, CH - h), (W - hw, CH - h))
-    return [rect(0, CH - h, W, CH), d], W, (p.SBR, p.SBR)
+    return [rect(0, CH - h, W, CH), d], W, (fig_sb(p, W),) * 2
 
 
 @glyph("eight", "8")
 def g_8(p):
-    v, h = p.VR, p.HR
+    v, h = fig_strokes(p)
     W = fig_width(p)
-    ym = CH * 0.54
+    ym = CH * 0.545
     lo_o = Ellipse(0, -O, W, ym + h * 0.5, 0.62)
     lo_i = Ellipse(v, -O + h, W - v, ym - h * 0.5, 0.64)
-    up_o = Ellipse(W * 0.06, ym - h * 0.5, W * 0.94, CH + O, 0.62)
-    up_i = Ellipse(W * 0.06 + v * 0.96, ym + h * 0.5, W * 0.94 - v * 0.96, CH + O - h, 0.64)
-    return ring(lo_o, lo_i) + ring(up_o, up_i), W, (p.SBR, p.SBR)
+    up_o = Ellipse(W * 0.07, ym - h * 0.5, W * 0.93, CH + O, 0.62)
+    up_i = Ellipse(W * 0.07 + v * 0.95, ym + h * 0.5, W * 0.93 - v * 0.95, CH + O - h, 0.64)
+    return ring(lo_o, lo_i) + ring(up_o, up_i), W, (fig_sb(p, W),) * 2
 
 
 @glyph("nine", "9")

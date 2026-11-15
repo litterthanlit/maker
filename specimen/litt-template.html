@@ -117,6 +117,18 @@ tr.us td { color: var(--fg); font-weight: 500; }
 .row .txt b { color: var(--fg); font-weight: 500; }
 @media (max-width: 520px) { .row { grid-template-columns: 1fr; gap: 4px; } }
 
+/* overlay */
+.overlay { display: grid; gap: 8px; }
+.overlay { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.ov { position: relative; display: grid; place-items: center; aspect-ratio: 4 / 5; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: clamp(40px, 8vw, 104px); line-height: 1; font-weight: 500; }
+.ov span { grid-area: 1 / 1; }
+.ov .g { font-family: "Geist Ref"; color: var(--accent); opacity: .5; }
+.ov .l { font-family: "Litt Grotesk"; color: var(--fg); opacity: .55; }
+.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.sw { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; }
+.sw-l { background: var(--fg); opacity: .55; }
+.sw-g { background: var(--accent); opacity: .45; }
+
 /* scale */
 .scale { display: grid; }
 .step { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; padding-block: 12px; border-bottom: 1px solid var(--line); align-items: baseline; }
@@ -124,6 +136,7 @@ tr.us td { color: var(--fg); font-weight: 500; }
 @media (max-width: 520px) { .step { grid-template-columns: 1fr; gap: 4px; } }
 
 /* figures */
+.figrow { color: var(--fg); font-size: clamp(44px, 8vw, 96px); line-height: 1.1; font-weight: 500; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
 .card { background: var(--surface-2); border-radius: var(--radius-surface); padding: 16px; display: grid; gap: 8px; min-width: 0; }
 .card .big { color: var(--fg); font-size: 24px; line-height: 32px; font-weight: 500; }
@@ -205,6 +218,15 @@ footer { border-top: 1px solid var(--line); padding-top: 24px; font-size: 13px; 
     </div>
   </section>
 
+  <section aria-labelledby="o-h">
+    <div class="head"><span class="caption">Its own face</span><h2 id="o-h">Laid over Geist</h2></div>
+    <div class="body">
+      <p class="lede">Geist was a yardstick for overall width and spacing, never a source: every outline is drawn by Litt's own code. Laid over Geist at the same size, the shared shape is just what any grotesque shares. The details part ways: horizontal cuts, squarer rounds, a flat-footed a, a straight-legged R and y, square dots, and figures with their own flag, stem and tail.</p>
+      <div class="overlay" id="overlay" aria-hidden="true"></div>
+      <p class="small legend"><span class="sw sw-l"></span>Litt Grotesk <span class="sw sw-g"></span>Geist, each pair centred in its cell</p>
+    </div>
+  </section>
+
   <section aria-labelledby="s-h">
     <div class="head"><span class="caption">The scale</span><h2 id="s-h">litt's type steps</h2></div>
     <div class="body">
@@ -222,6 +244,7 @@ footer { border-top: 1px solid var(--line); padding-top: 24px; font-size: 13px; 
     <div class="head"><span class="caption">Figures</span><h2 id="f-h">Proportional in words, tabular in values</h2></div>
     <div class="body">
       <p class="lede">Figures are proportional by default, so a 1 inside a hash or a region name sets tight. litt sets <code>tabular-nums</code> on values and counts, and the font answers with figures of one width.</p>
+      <div class="figrow" aria-label="Figures 0 to 9">0123456789</div>
       <div class="figs">
         <div class="card"><span class="caption">Default</span><span class="big">fra1 · 4f9c2e1 · v11.1</span></div>
         <div class="card"><span class="caption">tabular-nums</span><span class="col">1,111.10<br>9,480.25<br>12,307.00</span></div>
@@ -284,6 +307,13 @@ footer { border-top: 1px solid var(--line); padding-top: 24px; font-size: 13px; 
   bindSeg("[data-world]", "world", v => world = v);
   bindSeg("[data-shot]", "shot", v => shot = v);
   show();
+
+  const ov = document.getElementById("overlay");
+  for (const ch of "aRGyce1257") {
+    const d = document.createElement("div"); d.className = "ov";
+    d.innerHTML = `<span class="g">${ch}</span><span class="l">${ch}</span>`;
+    ov.appendChild(d);
+  }
 
   const rows = document.getElementById("rows");
   const TXT = '<b>Billing settings</b> Your plan renews on 14 March. Invoices go to jürgen.müller@firma.ch and are kept for 7 years. <span class="small">Last synced 3 minutes ago · 1,284 rows · ace scene, cease</span>';
