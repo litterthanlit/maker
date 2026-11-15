@@ -1,0 +1,117 @@
+<title>Litt Grotesk In-Between Set</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: litt's tokens; two columns, before left and after right, so every row compares like with like. */
+@font-face { font-family: "Before"; src: url("__BEFORE__") format("woff2"); font-weight: 300 700; font-display: block; }
+@font-face { font-family: "After"; src: url("__AFTER__") format("woff2"); font-weight: 300 700; font-display: block; }
+:root {
+  --canvas: #ffffff; --surface-2: #f7f5f3; --line: #e8e4e1; --fg: #110f0d; --fg-muted: #6d6661; --accent: #0957fd;
+  --mark: rgba(9, 87, 253, .10);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --canvas: #0a0908; --surface-2: #191715; --line: #282421; --fg: #f9f8f7; --fg-muted: #cec4bd; --accent: #6579fd; --mark: rgba(101, 121, 253, .16); color-scheme: dark; }
+}
+:root[data-theme="dark"] { --canvas: #0a0908; --surface-2: #191715; --line: #282421; --fg: #f9f8f7; --fg-muted: #cec4bd; --accent: #6579fd; --mark: rgba(101, 121, 253, .16); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--canvas); color: var(--fg-muted); font-family: "After", "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 22px; }
+.page { max-width: 1180px; margin: 0 auto; padding-block: 32px 80px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+h1, h2 { color: var(--fg); font-weight: 500; margin: 0; text-wrap: balance; }
+h1 { font-size: 18px; line-height: 28px; }
+h2 { font-size: 14px; line-height: 22px; }
+p { margin: 0; }
+.caption { font-size: 12px; line-height: 16px; font-weight: 600; }
+.lede { max-width: 64ch; margin-top: 8px; }
+section { border-top: 1px solid var(--line); padding-block: 32px; display: grid; gap: 16px; }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+@media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+.col { min-width: 0; display: grid; gap: 8px; }
+.before { font-family: "Before", sans-serif; }
+.after { font-family: "After", sans-serif; }
+.big { color: var(--fg); font-size: clamp(40px, 6.4vw, 72px); line-height: 1.05; font-weight: 500; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.alpha { color: var(--fg); font-size: clamp(20px, 2.6vw, 28px); line-height: 1.3; overflow-wrap: anywhere; }
+.alpha .c { background: var(--mark); border-radius: 3px; }
+.ui { display: grid; gap: 4px; }
+.ui b { color: var(--fg); font-weight: 500; }
+.glyphs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+@media (max-width: 720px) { .glyphs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.g { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 10px 8px 6px; display: grid; justify-items: center; gap: 2px; }
+.g .pair { display: flex; gap: 10px; align-items: baseline; color: var(--fg); font-size: clamp(36px, 5vw, 56px); line-height: 1.15; font-weight: 500; }
+.g .pair span:first-child { color: var(--fg-muted); opacity: .75; }
+.verdict { background: var(--surface-2); border-radius: 8px; padding: 20px; display: grid; gap: 10px; max-width: 72ch; }
+.verdict p { color: var(--fg); }
+.verdict ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.seg { display: inline-flex; gap: 2px; padding: 2px; border-radius: 6px; background: var(--surface-2); }
+.seg button { font: inherit; font-weight: 500; font-size: 13px; height: 28px; padding: 0 12px; border: 0; border-radius: 4px; background: transparent; color: var(--fg-muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--canvas); color: var(--fg); box-shadow: 0 0.5px 1px rgba(0,0,0,.2); }
+:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <span class="caption">Litt Grotesk · before and after</span>
+  <h1 style="margin-top:4px">The in-between set from Archivo</h1>
+  <p class="lede">Before: Litt 0.96, with Archivo's a, s, S, %, € and figures. After: also Archivo's c e g j t f y, G R K, &amp; and @, fitted to Litt's stem and heights. Straight letters stay Litt's own. Changed letters are tinted in the alphabet.</p>
+
+  <section aria-labelledby="w1">
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
+      <h2 id="w1">Headline</h2>
+      <div class="seg" role="group" aria-label="Weight">
+        <button type="button" data-w="400" aria-pressed="false">400</button>
+        <button type="button" data-w="500" aria-pressed="true">500</button>
+        <button type="button" data-w="600" aria-pressed="false">600</button>
+      </div>
+    </div>
+    <div class="cols">
+      <div class="col"><span class="caption">Before</span><p class="big before" data-weighted>Graphic Kerning &amp; Gift Jetty @ 4</p></div>
+      <div class="col"><span class="caption">After</span><p class="big after" data-weighted>Graphic Kerning &amp; Gift Jetty @ 4</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="w2">
+    <h2 id="w2">The changed letters</h2>
+    <div class="glyphs" id="glyphs" aria-label="Each changed letter, before in grey, after in ink"></div>
+  </section>
+
+  <section aria-labelledby="w3">
+    <h2 id="w3">Alphabet</h2>
+    <div class="cols">
+      <div class="col"><span class="caption">Before</span><p class="alpha before" id="a1"></p></div>
+      <div class="col"><span class="caption">After</span><p class="alpha after" id="a2"></p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="w4">
+    <h2 id="w4">In the interface, at litt's sizes</h2>
+    <div class="cols">
+      <div class="col ui before"><span class="caption">Before</span><p><b>Billing settings</b> Your plan renews on 14 March. Invoices go to greta.keller@firma.ch and are kept for 7 years.</p><p style="font-size:13px;line-height:20px">Last synced 3 minutes ago · Get started · Reject · Key fingerprint · 1,284 entries &amp; tags</p><p class="caption">Region · fra1 · Building</p></div>
+      <div class="col ui after"><span class="caption">After</span><p><b>Billing settings</b> Your plan renews on 14 March. Invoices go to greta.keller@firma.ch and are kept for 7 years.</p><p style="font-size:13px;line-height:20px">Last synced 3 minutes ago · Get started · Reject · Key fingerprint · 1,284 entries &amp; tags</p><p class="caption">Region · fra1 · Building</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="w5">
+    <h2 id="w5">My opinion</h2>
+    <div class="verdict">
+      __VERDICT__
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const CHANGED = "cegjtfyGRK&@";
+  const glyphs = document.getElementById("glyphs");
+  for (const ch of CHANGED) {
+    const d = document.createElement("div"); d.className = "g";
+    d.innerHTML = `<div class="pair"><span class="before">${ch.replace("&","&amp;")}</span><span class="after">${ch.replace("&","&amp;")}</span></div>`;
+    glyphs.appendChild(d);
+  }
+  const AL = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ &@";
+  const mark = s => [...s].map(c => CHANGED.includes(c) ? `<span class="c">${c.replace("&","&amp;")}</span>` : c.replace("&","&amp;")).join("");
+  document.getElementById("a1").innerHTML = mark(AL);
+  document.getElementById("a2").innerHTML = mark(AL);
+  const bs = [...document.querySelectorAll("[data-w]")];
+  bs.forEach(b => b.addEventListener("click", () => {
+    bs.forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    document.querySelectorAll("[data-weighted]").forEach(el => el.style.fontWeight = b.dataset.w);
+  }));
+})();
+</script>

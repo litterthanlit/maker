@@ -393,7 +393,7 @@ def g_percent(p):
 
 
 # --- s and S from an open-licence base (make-font skill) -----------------------
-# The s, S and all ten figures are Archivo's (OFL), fitted to Litt's stem, x-height and cap
+# The borrowed glyphs below are Archivo's (OFL), fitted to Litt's stem, x-height and cap
 # height by src/borrowed.py: Archivo's weight axis is solved per master so its
 # stem matches Litt's, and the outline is scaled, never traced or redrawn.
 # data/base holds a subset with only those glyphs and n (n is measured for the stem),
@@ -434,6 +434,14 @@ if _BORROW:
 
     glyph("a", "a")(_borrowed_letter("a"))
     glyph("percent", "%")(_borrowed_letter("percent", "cap", 1.06))
+    # the curved and complex letters, where drawing by hand shows most; the
+    # straight letters (n h m i l H E F T L ...) stay Litt's own
+    for _ch in "cegyjtf":
+        glyph(_ch, _ch)(_borrowed_letter(_ch))
+    for _ch in "GRK":
+        glyph(_ch, _ch)(_borrowed_letter(_ch, "cap", 1.06))
+    glyph("ampersand", "&")(_borrowed_letter("ampersand.alt", "cap", 1.06))  # the classic form: the Et form reads as E at UI sizes
+    glyph("at", "@")(_borrowed_letter("at", "cap", 1.0))
 
 
 def register_late():
@@ -442,6 +450,10 @@ def register_late():
         return
     glyph("ae", "æ")(_borrowed_letter("ae"))
     glyph("Euro", "€")(_borrowed_letter("Euro", "cap", 1.06))
+    # built from borrowed letters in extended.py, so take Archivo's own
+    glyph("uni0237", "\u0237")(_borrowed_letter("uni0237"))
+    glyph("tbar", "ŧ")(_borrowed_letter("tbar"))
+    glyph("oe", "œ")(_borrowed_letter("oe"))
 
 
 def register_all_preview():
