@@ -178,6 +178,42 @@ STYLES["Billet"] = {
     "lm": {k: _mix(v, _MICH_LM[k]) for k, v in _OWN_LM.items()},
     "kern_scale": 0.95,
 }
+# Datum: none of the wordmark font. Every width, sidebearing and landmark is
+# Hypher's own rule; the remaining placements (the K's arm, the 4's stem, the
+# colon's dots, the bars of E and F, punctuation widths) are Hypher's too, and
+# kerning is measured from Datum's own outlines (autokern.py).
+_OWN_SYM_W = {
+    "question": 1.12 * _X, "hyphen": 0.62 * _X, "endash": 0.80 * _X, "emdash": 1.40 * _X,
+    "parenleft": 0.40 * _X, "parenright": 0.40 * _X, "bracketleft": 0.45 * _X, "bracketright": 0.45 * _X,
+    "slash": 0.72 * _X, "plus": 0.90 * _X, "equal": 0.90 * _X, "asterisk": 0.90 * _X, "underscore": 1.00 * _X,
+    "numbersign": 1.15 * _X, "ampersand": 1.70 * _X, "at": 1.65 * _X, "percent": 1.55 * _X,
+}
+_SYM_TYPES = {
+    **dict.fromkeys(["period", "comma", "colon", "semicolon", "exclam", "quotesingle", "quotedbl", "quoteleft",
+                     "quoteright", "quotedblleft", "quotedblright"], "SS"),
+    **dict.fromkeys(["hyphen", "endash", "emdash", "underscore", "plus", "equal", "asterisk", "numbersign"], "FF"),
+    "question": "TR", "parenleft": "RT", "parenright": "TR", "bracketleft": "ST", "bracketright": "TS",
+    "slash": "DD", "ampersand": "RD", "at": "RR", "percent": "RR",
+}
+STYLES["Datum"] = {
+    **STYLES["Finish"],
+    "y_tail": "straight", "stem_tops": "round", "e_bar": 0.43, "e_term": 0.30,
+    "widths": {**WM_WIDTHS, **_OWN_W, **_OWN_SYM_W},
+    "sides": {**WM_SIDES, **{c: (round(_SIDE[t[0]] * (1.15 if c[0].isupper() else 1)),
+                                 round(_SIDE[t[1]] * (1.15 if c[0].isupper() else 1)))
+                             for c, t in {**_TYPES, **_SYM_TYPES}.items()}},
+    "lm": {
+        **_OWN_LM, "g_tip": 0.15, "g_xt": 0.0, "k_xt": 0.70, "k_xb": 0.74, "t_bar": 1.0, "f_x0": 0.25,
+        "one_xs": 0.42, "one_drop": 0.12, "three_xm": 0.35, "four_xs": 0.70, "seven_xb": 0.25, "eight_mid": 0.50,
+        "colon_lo": 0.25, "colon_hi": 0.75, "q_xs": 0.40, "q_bar": 0.45, "q_t": 0.70, "dash": 0.50, "plus": 0.50,
+        "equal": 0.50, "equal_gap": 0.25, "B_upper": 0.95, "E_top": 1.0, "E_mid": 0.88, "F_mid": 0.88,
+        "K_xj": 0.22, "K_xa": 0.78, "K_xl": 0.80, "R_x0": 0.62, "R_x1": 1.0, "Z_l": 0.0, "Z_r": 1.0,
+        "G_xb": 0.55, "at_b": -0.16, "at_t": 1.16,
+    },
+    "kerning": "auto",
+    "types": {**_TYPES, **_SYM_TYPES},
+}
+
 # Billet Compact: Billet at 90% width, out of the wordmark font's wide stance.
 STYLES["BilletCompact"] = {**STYLES["Billet"], "widths": {c: round(w * 0.90) for c, w in STYLES["Billet"]["widths"].items()},
                            "kern_scale": 0.86}
@@ -426,7 +462,7 @@ def g_f(p):
     """The r's arm raised above the ascender, with a crossbar at the x-height."""
     W = p.w("f")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    x0, top = W * 0.208, XH * lm("f_top", 1.40)
+    x0, top = W * lm("f_x0", 0.208), XH * lm("f_top", 1.40)
     c = rounded(
         (x0, 0, rt), (x0 + V, 0, rt), (x0 + V, top - H, ri), (W, top - H, rt), (W, top, rt), (x0, top, ro),
     )
@@ -439,8 +475,8 @@ def g_g(p):
     """A bowl with a stem that runs down into a tail ending in an upturned terminal."""
     W = p.w("g")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    deep, xt = lm("g_deep", -213), W * 0.037  # the g's tail goes below the other descenders
-    tip = min(deep + H + XH * 0.12, -30)  # the terminal stands 0.12 x-heights above the tail, clear of the bowl
+    deep, xt = lm("g_deep", -213), W * lm("g_xt", 0.037)  # the g's tail goes below the other descenders
+    tip = min(deep + H + XH * lm("g_tip", 0.12), -30)  # the terminal stands 0.12 x-heights above the tail, clear of the bowl
     tail = rounded(
         (xt, tip, rt), (xt, deep, ro), (W, deep, ro), (W, XH, square(p, ro)), (W - V, XH, rt),
         (W - V, deep + H, ri), (xt + V, deep + H, ri), (xt + V, tip, rt),
@@ -476,7 +512,7 @@ def g_k(p):
     V, rt = p.V, p.rt
     t = V * 0.98  # diagonals look heavier than stems at the same thickness
     ya, yl = XH * lm("k_ya", 0.563), XH * lm("k_yl", 0.513)  # where the arm's upper and the leg's lower edge leave the stem
-    xt, xb = W * 0.748, W * 0.777  # the arm's top-left and the leg's bottom-left
+    xt, xb = W * lm("k_xt", 0.748), W * lm("k_xb", 0.777)  # the arm's top-left and the leg's bottom-left
     ha = diag_hw(xt - V, XH - ya, t)
     hl = diag_hw(xb - V, yl, t)
 
@@ -545,7 +581,7 @@ def g_t(p):
         (0, top, rt), (0, 0, ro), (W, 0, ro), (W, foot, rt), (W - V, foot, rt), (W - V, H, ri),
         (V, H, ri), (V, top, rt),
     )
-    bar = box(0, XH - H, W * 0.932, XH, rt, rt, rt, rt)
+    bar = box(0, XH - H, W * lm("t_bar", 0.932), XH, rt, rt, rt, rt)
     return [c, bar], W, p.sides("t")
 
 
@@ -632,8 +668,8 @@ def g_one(p):
     """A stem on a full-width base, with a flag falling to the left."""
     W = p.w("one")
     V, H, rt = p.V, p.H, p.rt
-    xs = W * 0.465 - (V - REGULAR_STEM) / 2  # the stem stays centred on the same line as it thickens
-    drop = FH * 0.10  # how far the flag falls across its length
+    xs = W * lm("one_xs", 0.465) - (V - REGULAR_STEM) / 2  # the stem stays centred on the same line as it thickens
+    drop = FH * lm("one_drop", 0.10)  # how far the flag falls across its length
     flag = rpoly((xs + 2, FH, 0), (0, FH - drop, rt), (0, FH - drop - H * 1.05, rt), (xs + 2, FH - H * 1.05, 0))
     stem = box(xs, 0, xs + V, FH, 0, 0, rt, square(p, p.ro))
     base = box(0, 0, W, H, rt, rt, rt, rt)
@@ -660,7 +696,7 @@ def g_three(p):
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
     tb, tt = FH * lm("three_tb", 0.29), FH * lm("three_tt", 0.736)  # terminal heights
     m0 = FH * lm("three_mid", 0.518) - H / 2
-    m1, xm = m0 + H, W * 0.405  # the middle bar starts here
+    m1, xm = m0 + H, W * lm("three_xm", 0.405)  # the middle bar starts here
     c = rounded(
         (0, tb, rt), (0, 0, ro), (W, 0, ro), (W, FH, ro), (0, FH, ro), (0, tt, rt), (V, tt, rt),
         (V, FH - H, ri), (W - V, FH - H, ri), (W - V, m1, ri), (xm, m1, rt), (xm, m0, rt),
@@ -673,7 +709,7 @@ def g_three(p):
 def g_four(p):
     W = p.w("four")
     V, H, rt = p.V, p.H, p.rt
-    xs = W * 0.751  # the stem's left edge
+    xs = W * lm("four_xs", 0.751)  # the stem's left edge
     b0 = FH * lm("four_bar", 0.209)  # bottom of the crossbar
     hw = diag_hw(xs, FH - b0, V * 0.98)
     diagonal = rpoly((0, b0, 0), (hw, b0, 0), (xs + V / 2, FH, rt), (xs + V / 2 - hw, FH, rt))
@@ -711,7 +747,7 @@ def g_six(p):
 def g_seven(p):
     W = p.w("seven")
     V, H, rt = p.V, p.H, p.rt
-    xb = W * 0.186  # where the diagonal lands
+    xb = W * lm("seven_xb", 0.186)  # where the diagonal lands
     hw = diag_hw(W - xb, FH - H, V * 0.98)
     diagonal = rpoly((xb, 0, rt), (xb + hw, 0, rt), (W, FH - H / 2, 0), (W - hw, FH - H / 2, 0))
     bar = box(0, FH - H, W, FH, rt, rt, rt, rt)
@@ -722,7 +758,7 @@ def g_seven(p):
 def g_eight(p):
     W = p.w("eight")
     V, H, ro, ri = p.V, p.H, p.ro, p.ri
-    m0 = FH * 0.518 - H / 2
+    m0 = FH * lm("eight_mid", 0.518) - H / 2
     outer = box(0, 0, W, FH, ro, ro, ro, ro)
     return [outer, hole(V, H, W - V, m0, ri), hole(V, m0 + H, W - V, FH - H, ri)], W, p.sides("eight")
 
@@ -762,13 +798,13 @@ def g_comma(p):
 def g_colon(p):
     """Two dots floating on the x-height, centred at a quarter and three quarters."""
     V = p.V
-    return [dot_at(p, 0, XH * 0.249 - V / 2), dot_at(p, 0, XH * 0.75 - V / 2)], V, p.sides("colon")
+    return [dot_at(p, 0, XH * lm("colon_lo", 0.249) - V / 2), dot_at(p, 0, XH * lm("colon_hi", 0.75) - V / 2)], V, p.sides("colon")
 
 
 @glyph("semicolon", ";")
 def g_semicolon(p):
     V = p.V
-    return [comma_at(p, 0, V * 0.67), dot_at(p, V / 3, XH * 0.75 - V / 2)], V * 4 / 3, p.sides("semicolon")
+    return [comma_at(p, 0, V * 0.67), dot_at(p, V / 3, XH * lm("colon_hi", 0.75) - V / 2)], V * 4 / 3, p.sides("semicolon")
 
 
 @glyph("exclam", "!")
@@ -782,8 +818,8 @@ def g_question(p):
     """The two's hook, whose middle bar drops into a short stem over a dot."""
     W = p.w("question")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    xs = W * 0.323 - (V - REGULAR_STEM) / 2
-    m0, t = FH * 0.479, FH * 0.73  # bar bottom, terminal
+    xs = W * lm("q_xs", 0.323) - (V - REGULAR_STEM) / 2
+    m0, t = FH * lm("q_bar", 0.479), FH * lm("q_t", 0.73)  # bar bottom, terminal
     sb = V * 1.68  # the stem stops 0.68 of a stroke above the dot, at any weight
     m1 = m0 + H
     c = rounded(
@@ -795,7 +831,7 @@ def g_question(p):
 
 def dash(p, name, width=None):
     W = width if width is not None else p.w(name)
-    c = XH * 0.514  # the dashes sit on the middle of the x-height
+    c = XH * lm("dash", 0.514)  # the dashes sit on the middle of the x-height
     return [box(0, c - p.H / 2, W, c + p.H / 2, p.rt, p.rt, p.rt, p.rt)], W, p.sides(name)
 
 
@@ -913,7 +949,7 @@ def g_slash(p):
 def g_plus(p):
     W = p.w("plus")
     V, H, rt = p.V, p.H, p.rt
-    c = XH * 0.62  # centred a little above the middle of the x-height, as the wordmark's font has it
+    c = XH * lm("plus", 0.62)  # centred a little above the middle of the x-height, as the wordmark's font has it
     return [box(W / 2 - V / 2, c - W / 2, W / 2 + V / 2, c + W / 2, rt, rt, rt, rt),
             box(0, c - H / 2, W, c + H / 2, rt, rt, rt, rt)], W, p.sides("plus")
 
@@ -922,7 +958,7 @@ def g_plus(p):
 def g_equal(p):
     W = p.w("equal")
     H, rt = p.H, p.rt
-    c, gap = XH * 0.657, XH * 0.236  # centre, and the space between the bars
+    c, gap = XH * lm("equal", 0.657), XH * lm("equal_gap", 0.236)  # centre, and the space between the bars
     return [box(0, c - gap / 2 - H, W, c - gap / 2, rt, rt, rt, rt),
             box(0, c + gap / 2, W, c + gap / 2 + H, rt, rt, rt, rt)], W, p.sides("equal")
 
@@ -995,7 +1031,7 @@ def g_A(p):
 def g_B(p):
     W = p.w("B")
     m0 = CH * lm("B_mid", 0.532) - p.H / 2  # bottom of the middle bar
-    return [stem(p, 0)] + capbowl(p, 0, W, 0, m0 + p.H, "square") + capbowl(p, 0, W * 0.965, m0, CH, "square"), W, p.sides("B")
+    return [stem(p, 0)] + capbowl(p, 0, W, 0, m0 + p.H, "square") + capbowl(p, 0, W * lm("B_upper", 0.965), m0, CH, "square"), W, p.sides("B")
 
 
 def c_shape(p, W, h, t0, t1):
@@ -1022,14 +1058,14 @@ def g_D(p):
 def g_E(p):
     W = p.w("E")
     m0 = CH * lm("EFH_mid", 0.510) - p.H / 2
-    return [stem(p, 0), bar(p, 0, W * 0.981, CH - p.H), bar(p, 0, W * 0.945, m0), bar(p, 0, W, 0)], W, p.sides("E")
+    return [stem(p, 0), bar(p, 0, W * lm("E_top", 0.981), CH - p.H), bar(p, 0, W * lm("E_mid", 0.945), m0), bar(p, 0, W, 0)], W, p.sides("E")
 
 
 @glyph("F", "F")
 def g_F(p):
     W = p.w("F")
     m0 = CH * lm("EFH_mid", 0.510) - p.H / 2
-    return [stem(p, 0), bar(p, 0, W, CH - p.H), bar(p, 0, W * 0.96, m0)], W, p.sides("F")
+    return [stem(p, 0), bar(p, 0, W, CH - p.H), bar(p, 0, W * lm("F_mid", 0.96), m0)], W, p.sides("F")
 
 
 @glyph("G", "G")
@@ -1037,7 +1073,7 @@ def g_G(p):
     """The C, whose lower terminal turns into a bar reaching back into the counter."""
     W = p.w("G")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    gt, xb, t1 = CH * lm("G_bar", 0.526), W * 0.508, CH * lm("G_t1", 0.70)
+    gt, xb, t1 = CH * lm("G_bar", 0.526), W * lm("G_xb", 0.508), CH * lm("G_t1", 0.70)
     c = rounded(
         (0, 0, ro), (W, 0, ro), (W, gt, rt), (xb, gt, rt), (xb, gt - H, rt), (W - V, gt - H, ri),
         (W - V, H, ri), (V, H, ri), (V, CH - H, ri), (W - V, CH - H, ri), (W - V, t1, rt), (W, t1, rt),
@@ -1074,8 +1110,8 @@ def g_K(p):
     V, H, rt = p.V, p.H, p.rt
     t = V * 0.98
     m0 = CH * lm("EFH_mid", 0.510) - H / 2  # the stub, level with the H's bar
-    m1, xj = m0 + H, W * 0.253  # its top; where it ends
-    xa, xl = W * 0.818, W * 0.836  # the arm's top-left, the leg's bottom-left
+    m1, xj = m0 + H, W * lm("K_xj", 0.253)  # its top; where it ends
+    xa, xl = W * lm("K_xa", 0.818), W * lm("K_xl", 0.836)  # the arm's top-left, the leg's bottom-left
     ha = diag_hw(xa - xj, CH - m1, t)
     hl = diag_hw(xl - xj, m0, t)
 
@@ -1141,7 +1177,7 @@ def g_Q(p):
 def g_R(p):
     W = p.w("R")
     pb = CH * lm("R_bowl", 0.404)  # bottom of the bowl
-    x0, x1 = W * 0.672, W * 0.975  # the leg leaves the bowl here and lands here
+    x0, x1 = W * lm("R_x0", 0.672), W * lm("R_x1", 0.975)  # the leg leaves the bowl here and lands here
     hw = diag_hw(x1 - x0, pb, p.V * 0.98)
     leg = rpoly((x0, pb + p.H / 2, 0), (x0 + hw, pb + p.H / 2, 0), (x1, 0, p.rt), (x1 - hw, 0, p.rt))
     return [stem(p, 0)] + capbowl(p, 0, W, pb, CH, "square") + [leg], W, p.sides("R")
@@ -1215,7 +1251,7 @@ def g_Z(p):
     H = p.H
     hw = diag_hw(W, CH - 2 * H, p.V * 0.98)
     diagonal = rpoly((W - hw, CH - H, 0), (W, CH - H, 0), (hw, H, 0), (0, H, 0))
-    return [bar(p, W * 0.036, W * 0.983, CH - H), bar(p, 0, W, 0), diagonal], W, p.sides("Z")
+    return [bar(p, W * lm("Z_l", 0.036), W * lm("Z_r", 0.983), CH - H), bar(p, 0, W, 0), diagonal], W, p.sides("Z")
 
 
 # --- & @ % ----------------------------------------------------------------
@@ -1241,7 +1277,7 @@ def g_at(p):
     """A small a inside a larger bowl that opens at the lower right."""
     W = p.w("at")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    b, t = -XH * 0.195, XH * 1.195  # the outer bowl reaches below the baseline, as the wordmark's font has it
+    b, t = XH * lm("at_b", -0.195), XH * lm("at_t", 1.195)  # the outer bowl reaches below the baseline, as the wordmark's font has it
     xi0, xi1 = W * 0.26, W * 0.74  # the inner a
     yi0, yi1 = b + H + (t - b) * 0.12, t - H - (t - b) * 0.12
     outer = rounded(

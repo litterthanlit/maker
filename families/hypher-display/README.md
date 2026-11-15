@@ -38,8 +38,9 @@ Each version is a named set of numbers in `STYLES` (`glyphs.py`) and builds as i
 | Lathe Narrow | Hypher Display Lathe Narrow | The same, 5% narrower |
 | Billet | Hypher Display Billet | Hypher's own proportion system (widths by shape family, sidebearings by side shape, terminals at 0.30 and 0.70, bars centred, f at the ascender, g at the descender), blended 80/20 with the wordmark font's measurements; Hypher's corners, straight y and round stem tops |
 | Billet Compact | Hypher Display Billet Compact | Billet at 90% width: about as close to Michroma as any font of the genre |
+| Datum | Hypher Display Datum | None of the wordmark font: every width, sidebearing, landmark and placement is Hypher's own rule, and kerning is measured from Datum's own outlines (`autokern.py`) |
 
-**How close each is to Michroma** (share of letter area both cover, lowercase a–z, at the same x-height): Wordmark 88%, Lathe Wide and Lathe Narrow 75%, Billet 73%, Mill and Finish 67%, Billet Compact 55%. Unrelated wide or futuristic fonts land at 41–54% (Krona One 54%, Orbitron 52%, Audiowide 44%). Corners barely move the number; width moves it most.
+**How close each is to Michroma** (share of letter area both cover, lowercase a–z, at the same x-height): Wordmark 88%, Lathe Wide and Lathe Narrow 75%, Billet 73%, Datum 70%, Mill and Finish 67%, Billet Compact 55%. Unrelated wide or futuristic fonts land at 41–54% (Krona One 54%, Orbitron 52%, Audiowide 44%). Corners barely move the number; width moves it most. Datum shows the number measures resemblance, not borrowing: it takes nothing from Michroma, yet its own rules are wide too, and wide letters resemble each other.
 
 To try a mix without editing, set `HYPHER_STYLE` to a version and any of `HYPHER_RADIUS`, `HYPHER_SMOOTH`, `HYPHER_INNER` or `HYPHER_TERM` to override its numbers, then build.
 
@@ -66,6 +67,7 @@ Every glyph is a few polygons from `rounded()` in `src/core/geometry.py`: corner
 | --- | --- |
 | `glyphs.py` | Every glyph as a function of the weight, plus the versions in `STYLES` |
 | `kerning.py` | The kerning pairs, after Michroma |
+| `autokern.py` | Kerning measured from a version's own outlines (Datum) |
 | `build.py` | Family names, masters, kerning; `--versions` builds every version |
 | `proof/check_outlines.py` | Fails if any glyph's outline runs backwards over itself, at any master |
 | `proof/lockup.html` | The mark beside the word at each weight, with today's lockup for reference |

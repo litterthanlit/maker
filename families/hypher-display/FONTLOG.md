@@ -9,6 +9,7 @@ Drawn in code for Hypher Display; no outlines are taken from another font.
 
 ## Changelog
 
+- **0.430 (2026-11-15):** Datum: no number from the wordmark font. Its own widths, sidebearings, landmarks and placements, and kerning measured from its own outlines by a new auto-kerner. 70% lowercase overlap with Michroma, by resemblance alone.
 - **0.420 (2026-11-15):** Billet and Billet Compact: Hypher's own proportion system with a fifth of the wordmark font blended in; Billet Compact sits at 55% overlap with Michroma, the genre's own level. Landmark heights are now named values (`lm()`) a version can set.
 - **0.410 (2026-11-15):** Lathe Wide and Lathe Narrow: Wordmark's proportions with Hypher's own corners, y and width, at about 75% overlap with Michroma (Wordmark is 88%).
 - **0.400 (2026-11-15):** capitals A–Z, `& @ %`, the accented letters of Western European languages, and kerning (592 pairs, after Michroma's). The font's copyright notice credits Michroma.
