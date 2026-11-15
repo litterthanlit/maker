@@ -168,13 +168,17 @@ def band(outer, inner, a, b, ai=None, bi=None):
     return contour
 
 
-def rounded(*corners):
+def rounded(*corners, smooth=0.0):
     """A polygon whose corners are rounded: rounded((x, y, r), (x, y, r), ...).
 
     Points run counter-clockwise for an outline, clockwise for a counter.
     Each corner with r > 0 becomes a circular arc tangent to both edges; r = 0
     stays sharp. A corner's kind (sharp or round) must not change between
     masters, so give a round corner a small radius rather than 0.
+
+    smooth (0 to 1) starts each curve further back along the sides, with
+    longer handles, so the curve eases out of the straight edge instead of
+    joining it as a circle does: a softer corner at the same radius.
     """
     n = len(corners)
     pts = [(c[0], c[1]) for c in corners]
@@ -187,10 +191,10 @@ def rounded(*corners):
         ua = _unit((a[0] - x, a[1] - y))
         ub = _unit((b[0] - x, b[1] - y))
         theta = math.acos(max(-1.0, min(1.0, ua[0] * ub[0] + ua[1] * ub[1])))  # interior angle
-        t = r / math.tan(theta / 2)
+        t = r / math.tan(theta / 2) * (1 + 0.6 * smooth)
         t = min(t, 0.5 * math.dist(a, (x, y)), 0.5 * math.dist(b, (x, y)))
-        r = t * math.tan(theta / 2)
-        h = 4 / 3 * math.tan((math.pi - theta) / 4) * r
+        r = t * math.tan(theta / 2) / (1 + 0.6 * smooth)
+        h = 4 / 3 * math.tan((math.pi - theta) / 4) * r * (1 + 0.6 * smooth) * (1 + 0.22 * smooth)
         t1 = (x + ua[0] * t, y + ua[1] * t)
         t2 = (x + ub[0] * t, y + ub[1] * t)
         c1 = (t1[0] - ua[0] * h, t1[1] - ua[1] * h)

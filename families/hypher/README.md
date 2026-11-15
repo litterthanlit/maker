@@ -10,7 +10,7 @@ The display face for the Hypher wordmark, drawn in code after the Hypher mark: w
 
 Every letter is a few polygons from `rounded()` in `src/core/geometry.py`: corners with a radius each, sides straight. Everything derives from the stem, one number per master (`MASTERS` in `build.py`: 60, 92, 150).
 
-- **Corners:** outer radius 0.20 x-heights; counters follow it one stroke inside. The mark's own 0.043 read as pixel type at letter size and 0.26 drifted back to a squircle (`HYPHER_RADIUS` overrides it for a comparison proof).
+- **Corners:** outer radius 0.215 x-heights, eased into the sides (`smooth` 0.6) rather than joined as a circle; counters follow it, 0.55 of a stroke inside; cut ends (stem feet, terminals, the r's arm) get a 0.02 radius, as every corner of the mark does. The mark's own 0.043 read as pixel type at letter size and 0.26 drifted back to a squircle. `HYPHER_RADIUS`, `HYPHER_SMOOTH`, `HYPHER_INNER` and `HYPHER_TERM` override each for a comparison proof.
 - **Horizontals** are 0.86 of the stem, so they look equal to it.
 - **Width** grows by twice the stem's gain, so Bold's counters stay open.
 - **y** is a symmetric V that meets on the baseline, its right arm running on into the descender; a u-shaped y read as a g and broke the word's rhythm.

@@ -33,7 +33,7 @@ def features(wght):
 HYPHER = Family(
     name="Hypher",
     file="Hypher",
-    version="0.200",
+    version="0.210",
     copyright="Copyright 2026 The Hypher Project Authors",
     glyphs=G.GLYPHS,
     params=lambda w: G.P(w, MASTERS[w]),
