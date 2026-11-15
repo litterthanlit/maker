@@ -1063,8 +1063,7 @@ G_NAME = {ch: nm for nm, (ch, _) in GLYPHS.items() if ch and len(ch) == 1 and or
 
 
 # --- symbols from Archivo ------------------------------------------------------------
-# Litt's own quotes, commas and primes were slanted wedges, and its guillemets, ¶ ° * ¤ ™
-# ran small and heavy. These come from Archivo instead, fitted like the s: its weight
+# Every symbol comes from Archivo, fitted like the s: its weight
 # axis is solved so its stem matches Litt's, then it is scaled to Litt's x-height
 # ("x") or cap height ("cap"). Glyphs built on them (ș ț, the .case forms) follow.
 ARCHIVO_SYMBOLS = {
@@ -1077,17 +1076,33 @@ ARCHIVO_SYMBOLS = {
 }
 
 
-def archivo_symbol(name, use):
+# The rest of the symbols, by character: (height they're scaled to, stem they match).
+# Punctuation matches the lowercase stem; currency, %, # and maths match the figures.
+# Litt keeps its own spacing accents (` ´ ¨ ¯ ˘ ˙ ˚ ˛ ˜ ˝ ^) so they match its accented letters.
+ARCHIVO_BY_CHAR = [
+    (".:…·•-–—_~", "x", "letter"),
+    ("!?¡¿&@()[]{}/\\|¦§†‡©®⁄", "cap", "letter"),
+    ("#$%¢£¥€+−±×÷=≠<>≤≥≈¬←↑→↓", "cap", "figure"),
+]
+NAME_OF = {ch: nm for nm, (ch, _) in GLYPHS.items() if ch}
+for chars, use, stem in ARCHIVO_BY_CHAR:
+    for ch in chars:
+        ARCHIVO_SYMBOLS[NAME_OF[ch]] = (use, stem)
+
+
+def archivo_symbol(name, use, stem="letter"):
     char = GLYPHS[name][0]
 
     def g(p):
         import borrowed
         from penglyphs import _BORROW
         src = borrowed.glyph_for(_BORROW, char)
-        c, ink, sb, _ = borrowed.take(_BORROW, src, p.V, XH if use == "x" else CH, use)
+        v = p.V if stem == "letter" else p.VR * 1.02
+        c, ink, sb, _ = borrowed.take(_BORROW, src, v, XH if use == "x" else CH, use)
         return c, ink, sb
     return g
 
 
-for nm, use in ARCHIVO_SYMBOLS.items():
-    add(nm, GLYPHS[nm][0], archivo_symbol(nm, use))
+for nm, spec in ARCHIVO_SYMBOLS.items():
+    use, stem = spec if isinstance(spec, tuple) else (spec, "letter")
+    add(nm, GLYPHS[nm][0], archivo_symbol(nm, use, stem))
