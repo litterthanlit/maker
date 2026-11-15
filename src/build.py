@@ -28,7 +28,7 @@ from geometry import reverse, translate  # noqa: E402
 
 FAMILY = "Litt Grotesk"
 FILE = "LittGrotesk"
-VERSION = "0.300"
+VERSION = "0.400"
 UPM = 1000
 
 # Vertical metrics, chosen for UI: one set shared by every platform, no line
@@ -135,8 +135,6 @@ def gsub_fea():
     lines.append("} ccmp;")
     for tag, pairs in X.ALT.items():
         lines.append(f"feature {tag} {{")
-        if tag == "ss01":
-            lines.append('  featureNames { name "Disambiguation (Il1 0)"; };')
         for a, b in pairs:
             lines.append(f"  sub {a} by {b};")
         lines.append(f"}} {tag};")

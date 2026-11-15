@@ -158,7 +158,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .ui-tag { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; font-feature-settings: "case"; padding: 3px 9px; border-radius: 99px; background: var(--accent); color: var(--paper); }
 .ui-field { display: grid; gap: 6px; max-width: 360px; }
 .ui-field span { font-size: 12px; font-weight: 500; color: var(--muted); }
-.ui-field input { font: inherit; height: 36px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink); font-feature-settings: "ss01"; min-width: 0; }
+.ui-field input { font: inherit; height: 36px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink); min-width: 0; }
 .ui-table { border-collapse: collapse; width: 100%; max-width: 520px; font-size: 13px; }
 .ui-table th { font-weight: 600; text-align: left; color: var(--muted); font-size: 12px; }
 .ui-table th, .ui-table td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--rule); }
@@ -332,7 +332,7 @@ footer { border-top: 1px solid var(--rule); padding-block: 28px 48px; }
           </table>
         </div>
         <div class="features">
-          <div class="feature"><span class="label">ss01 · Disambiguation</span><p><span>Il1 O0</span><span class="on" style="font-feature-settings:'ss01'">Il1 O0</span></p><small>Tailed l, serifed I and slashed zero, for passwords, codes and IDs.</small></div>
+          <div class="feature"><span class="label">Default · No feature needed</span><p><span>Il1| O0</span></p><small>A tailed l and a flagged 1, so I, l, 1 and | are four different shapes in passwords, codes and IDs.</small></div>
           <div class="feature"><span class="label">case · Capital forms</span><p><span>(BETA) – [NEW]</span><span class="on" style="font-feature-settings:'case'">(BETA) – [NEW]</span></p><small>Lifts brackets and dashes to the capitals. Turn it on with uppercase labels.</small></div>
         </div>
       </div>
@@ -358,8 +358,7 @@ body { font-family: "Litt Grotesk", "Helvetica Neue", Arial, sans-serif; }
 .small, .caption   { letter-spacing: 0.01em; }
 h1, .display       { font-weight: 650; letter-spacing: -0.02em; }
 .label-caps        { text-transform: uppercase; letter-spacing: 0.06em;
-                     font-feature-settings: "case"; }
-input, code, .id   { font-feature-settings: "ss01"; }  /* Il1 O0 */</pre>
+                     font-feature-settings: "case"; }</pre>
         <button class="chip copy" id="copy">Copy CSS</button>
         <ul class="files">
           <li>fonts/variable/LittGrotesk[wght].woff2</li>

@@ -7,6 +7,15 @@ It keeps the traits of the genre and changes the details, so it isn't a copy of 
 - **Character set:** 370 characters: Basic Latin, Latin-1 and Latin Extended-A (names in 40+ languages), plus typographic quotes and dashes, € £ ¥ ¢, arrows, math signs, © ® ™, superscripts and fractions
 - **Metrics:** 1000 UPM · cap height 720 · x-height 528 · ascender 748 · descender −212
 
+## Principles
+
+Less, but better. Every part of the font has to make reading or using it easier.
+
+- **Unambiguous by default.** The l has a small tail and the 1 a flag, so I, l, 1 and | never look alike, with no feature to turn on. Braces curve, so `{}` never reads as `[]`.
+- **No stylistic sets.** If an alternate is better, it becomes the default; if it isn't, it doesn't ship. The features that remain do one job each: `kern`, `ccmp`, `case`, `tnum`, `zero`.
+- **Open at small sizes.** Wide enough, spaced enough and open enough to read at 13px, measured against Inter and Geist.
+- **Thorough to the last detail.** & @ { } and the figures are drawn as carefully as the letters; strokes meet along their own curves, without corners.
+
 ## On litt.md
 
 Every litt world reads `--font-choice` first, so Litt Grotesk takes over Press and Flat with one line and no change to litt. It needs no `ss` or `cv` features, as litt's type rules ask.
@@ -40,7 +49,6 @@ Legibility at 400, per 1000 units (v0.3 changes: lowercase ×1.05, sidebearings 
 - **OpenType features**
   | Feature | What it does | When to use |
   | --- | --- | --- |
-  | `ss01` | Tailed l, serifed I, slashed zero | Inputs, passwords, codes, IDs |
   | `case` | Raises ( ) [ ] { } – — « » · to cap height | Uppercase labels and buttons |
   | `tnum` | Tabular figures, one width | Values, counts, table columns |
 | `zero` | Slashed zero only | Data tables |
@@ -52,7 +60,6 @@ Legibility at 400, per 1000 units (v0.3 changes: lowercase ×1.05, sidebearings 
   .small   { letter-spacing: 0.01em; }        /* below 15px */
   h1       { letter-spacing: -0.02em; }       /* headlines */
   .caps    { text-transform: uppercase; letter-spacing: 0.06em; font-feature-settings: "case"; }
-  input    { font-feature-settings: "ss01"; }
   ```
 
 ## Build

@@ -179,7 +179,15 @@ def g_r(p):
 
 @glyph("l", "l")
 def g_l(p):
-    return [rect(0, 0, p.V, ASC)], p.V, (p.SB, p.SB)
+    """A stem with a short tail at the foot, so l is never mistaken for I, 1 or |."""
+    V = p.V
+    rx = 92 + V * 0.5
+    ry = 92 + V * 0.4
+    o = Ellipse(0, -O, 2 * rx, -O + 2 * ry, 0.6)
+    i = Ellipse(V, -O + p.H * 0.95, 2 * rx - V, -O + 2 * ry - p.H * 0.95, 0.62)
+    w = rx + V * 0.6 + 30
+    tail = band(o, i, (2, 0.0), o.at_x(3, w), (2, 0.0), i.at_x(3, w))
+    return [rect(0, o.cy, V, ASC), tail], w, (p.SB, p.SBD + 10)
 
 
 def dot(x, w, top):
@@ -1012,22 +1020,27 @@ def g_bracketright(p):
 
 @glyph("braceleft", "{")
 def g_braceleft(p):
-    V, h = p.V * 0.86, p.H * 0.9
-    w = 250 + p.dV * 0.6
+    """Each half is an arm curving into the stem and the stem curving into a
+    flat middle point; the lower half mirrors the upper."""
+    V, h = p.V * 0.9, p.H * 0.92
     top, bot = ASC + 20, DSC + 30
     mid = (top + bot) / 2
-    x = w * 0.40
-    gap = 64
-    th = h * 0.9
-    c = [
-        rect(x, mid + gap, x + V, top),
-        rect(x, bot, x + V, mid - gap),
-        rect(x + V / 2, top - h, w, top),
-        rect(x + V / 2, bot, w, bot + h),
-        poly((0, mid + th / 2), (0, mid - th / 2), (x, mid - gap), (x + V, mid - gap),
-             (x + V, mid + gap), (x, mid + gap)),
-    ]
-    return c, w, (p.SB * 0.8, p.SBD + 10)
+    R = 92 + p.dV * 0.35  # corner radius, across
+    Rv = R * 1.15  # and down
+    nub = 80 + p.dV * 0.2  # how far the middle point reaches past the curve
+    xs = nub + R - V  # the stem's left edge
+    # top arm into the stem
+    ao = Ellipse(xs, top - 2 * Rv, xs + 2 * R, top, 0.6)
+    ai = Ellipse(xs + V, top - 2 * Rv + h, xs + 2 * R, top - h, 0.62)
+    arm_end = ao.cx + R * 0.55
+    arm = band(ao, ai, (1, 0.0), (1, 1.0))
+    # the stem into the middle point
+    no = Ellipse(xs + V - 2 * R, mid - h / 2, xs + V, mid - h / 2 + 2 * Rv, 0.6)
+    ni = Ellipse(no.l + V, mid + h / 2, xs, no.t - h, 0.62)
+    turn = band(no, ni, (3, 0.0), (3, 1.0))
+    upper = [rect(ao.cx - 1, top - h, arm_end, top), arm, rect(xs, no.cy, xs + V, ao.cy), turn]
+    c = upper + flip_y(upper, mid) + [rect(0, mid - h / 2, no.cx + 1, mid + h / 2)]
+    return c, arm_end, (p.SB * 0.7, p.SBD + 18)
 
 
 @glyph("braceright", "}")
@@ -1173,46 +1186,84 @@ def g_dollar(p):
     return c + [rect(w / 2 - V / 2, -90, w / 2 + V / 2, CH + 90)], w, sb
 
 
+def _mid(e1, e2, pos):
+    a, b = e1.point(pos), e2.point(pos)
+    return ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+
+
+def _leave(e_o, e_i, seg, target, flip=False):
+    """Where a straight stroke heading for `target` should leave a curved
+    stroke: the point on quadrant `seg` whose direction best matches it."""
+    best = None
+    for k in range(2, 99):
+        t = k / 100
+        a, b = e_o.point((seg, t - 0.01)), e_o.point((seg, t + 0.01))
+        tang = math.atan2(b[1] - a[1], b[0] - a[0])
+        if flip:
+            tang += math.pi
+        m = _mid(e_o, e_i, (seg, t))
+        aim = math.atan2(target[1] - m[1], target[0] - m[0])
+        err = abs(math.atan2(math.sin(tang - aim), math.cos(tang - aim)))
+        if best is None or err < best[0]:
+            best = (err, t, m)
+    return best[1], best[2]
+
+
 @glyph("ampersand", "&")
 def g_ampersand(p):
-    v, h, D = p.VR, p.HR, p.D
-    w = 600 + p.dV * 1.0
-    # upper loop
-    lw = 250 + p.dV * 0.7
-    lx = 70 + p.dV * 0.2
-    up_o = Ellipse(lx, CH * 0.57, lx + lw, CH + O, 0.6)
-    up_i = Ellipse(lx + v * 0.95, CH * 0.57 + h, lx + lw - v * 0.95, CH + O - h, 0.62)
-    # lower bowl, open on the right, ending in a horizontal arm terminal
-    lo_o = Ellipse(0, -O, w * 0.80, CH * 0.60, 0.6)
-    lo_i = Ellipse(v, -O + h, w * 0.80 - v, CH * 0.60 - h, 0.62)
-    ys = lo_o.cy + 0.55 * lo_o.ry
-    s_o, s_i = lo_o.at_y(1, ys), lo_i.at_y(1, ys)
-    y_arm = CH * 0.36
-    bowl_c = band(lo_o, lo_i, s_o, lo_o.at_y(4, y_arm), s_i, lo_i.at_y(4, y_arm))
-    # connector from the loop's right side down into the bowl
-    yr = up_o.cy - 0.45 * up_o.ry
-    R, Ri = up_o.point(up_o.at_y(3, yr)), up_i.point(up_i.at_y(3, yr))
-    link = poly(lo_o.point(s_o), lo_i.point(s_i), R, Ri)
-    # leg from the loop's left side to the foot at the bottom right
-    leg = diag(w, 0, lx + v, up_o.cy - 0.2 * up_o.ry, D * 1.02, "right")
-    return ring(up_o, up_i) + [bowl_c, link, leg], w, (p.SBR, p.SBD)
+    """A small loop on top, two strokes crossing under it (one down into the
+    bowl, one out to the foot), and an open bowl ending in a level arm. Both
+    strokes leave the loop along its own curve, so the joins are clean."""
+    v, h = p.VR * 0.96, p.HR
+    D = p.D * 0.98
+    W = 610 + p.dV * 0.9
+    lx, lw = W * 0.15, 236 + p.dV * 1.3
+    lo = Ellipse(lx, CH * 0.58, lx + lw, CH + O, 0.6)
+    li = Ellipse(lx + v, CH * 0.58 + h, lx + lw - v, CH + O - h, 0.62)
+    bo = Ellipse(0, -O, W * 0.80, CH * 0.60, 0.6)
+    bi = Ellipse(v, -O + h, W * 0.80 - v, CH * 0.60 - h, 0.62)
+    # The cross-stroke runs from the loop's right side down into the bowl's
+    # upper left. Pick the bowl's start so the bowl is already heading the
+    # stroke's way there, as the loop is at the other end: no corners.
+    best = None
+    for k in range(20, 95):
+        tb = k / 100
+        pb = _mid(bo, bi, (1, tb))
+        _, pl = _leave(lo, li, 3, pb, flip=True)
+        a, b = bo.point((1, tb - 0.01)), bo.point((1, tb + 0.01))
+        tang = math.atan2(b[1] - a[1], b[0] - a[0])
+        aim = math.atan2(pb[1] - pl[1], pb[0] - pl[0])
+        err = abs(math.atan2(math.sin(tang - aim), math.cos(tang - aim)))
+        if best is None or err < best[0]:
+            best = (err, tb, pb, pl)
+    _, tb, pb, pl = best
+    start = (1, tb)
+    y_arm = CH * 0.40
+    bowl = band(bo, bi, start, bo.at_y(4, y_arm), start, bi.at_y(4, y_arm))
+    link = stroke(pl, pb, D)
+    # from the loop's left side out to the foot (quadrant 2 runs down-right)
+    hw = diag_hw(W * 0.5, CH * 0.6, D)
+    foot = (W - hw / 2, 0)
+    _, pf = _leave(lo, li, 2, foot)
+    leg = stroke(pf, foot, D * 1.02, ("p",), ("h", 0))
+    return ring(lo, li) + [bowl, link, leg], W, (p.SBR, p.SBD)
 
 
 @glyph("at", "@")
 def g_at(p):
-    v, h = p.V * 0.86, p.H * 0.86
-    w = 820 + p.dV * 0.8
+    v, h = p.V * 0.80, p.H * 0.80
+    w = 830 + p.dV * 0.8
     outer = Ellipse(0, -150, w, CH + 10, 0.6)
     inner = Ellipse(v, -150 + h, w - v, CH + 10 - h, 0.62)
     big = band(outer, inner, (0, 0.0), (3, 0.45))
-    # small bowl and stem
-    bw = 140 + 2 * v + p.dV * 0.2
-    bx = w / 2 - bw / 2 - 40
-    yb, yt = 90, 500
+    # a single-storey a in the middle: a bowl and a stem flush with its top
+    yb, yt = 96, 492
+    bw = 236 + p.dV * 0.9
+    bx = w / 2 - bw / 2 - 34
     bo = Ellipse(bx, yb, bx + bw, yt, 0.62)
     bi = Ellipse(bx + v, yb + h, bx + bw - v, yt - h, 0.64)
-    xs = bx + bw - v * 0.4
-    stem = rect(xs - v, yb + 20, xs, yt)
+    xs = bx + bw - v * 0.35  # the stem's right edge
+    stem = rect(xs - v, yb + h * 0.5, xs, yt)
     # the stem's foot curves out and up into the ring's right side
     fo = Ellipse(xs - v - (w - xs + v), yb, w, 2 * outer.cy - yb, 0.6)
     fi = Ellipse(fo.l + v, yb + h, w - v, fo.t - h, 0.62)

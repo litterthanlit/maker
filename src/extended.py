@@ -5,8 +5,9 @@
 - Letters that can't be composed (ß Æ Ø Ł Ð Þ ı ...).
 - UI punctuation and symbols: typographic quotes and dashes, currency,
   arrows, math, ©®™, superscripts and fractions.
-- Alternates for OpenType features: case-sensitive forms (`case`),
-  disambiguation (`ss01`), slashed zero (`zero`), proportional one (`pnum`).
+- Alternates for OpenType features: case-sensitive forms (`case`), tabular
+  figures (`tnum`) and a slashed zero (`zero`). No stylistic sets: the defaults
+  are meant to be right.
 
 Importing this module registers everything into glyphs.GLYPHS.
 """
@@ -267,10 +268,10 @@ def compose(base, marks, uc):
                 top = CH if base == "L" else ASC
                 if base == "t":
                     top = XH + 150
-                xs = {"d": ink + 50, "l": ink + 50, "t": ink * 0.78, "L": p.VC + 70}[base]
+                xs = {"d": ink + 50, "l": p.V + 60, "t": ink * 0.78, "L": p.VC + 70}[base]
                 a = translate(a, xs + aw / 2, top)
                 out += a
-                rsb = rsb + (aw + 40 if base in ("d", "l") else (0 if base == "t" else -40))
+                rsb = rsb + (aw + 40 if base == "d" else max(0.0, xs + aw - ink) + 20 if base == "l" else (0 if base == "t" else -40))
                 continue
             if base == "g" and cp == 0x0327:
                 a, aw = acc_commaturned(p, h)
@@ -348,7 +349,8 @@ def bar_through(p, x0, x1, y, uc=False):
 def g_lslash(p):
     c, ink, (lsb, rsb) = fn_of("l")(p)
     w = 240 + p.dV * 0.5
-    s = stroke((ink / 2 - w / 2, XH * 0.42), (ink / 2 + w / 2, XH * 0.42 + w * 0.55), p.H * 0.95)
+    xc = p.V / 2  # cross the stem, not the tail
+    s = stroke((xc - w / 2, XH * 0.46), (xc + w / 2, XH * 0.46 + w * 0.55), p.H * 0.95)
     c = c + [s]
     x0, _, x1, _ = bounds(c)
     return translate(c, -x0), x1 - x0, (p.SBD + 18, p.SBD + 18)
@@ -534,7 +536,7 @@ def g_IJ(p):
 def g_ldot(p, base="l"):
     c, ink, (lsb, rsb) = fn_of(base)(p)
     d = dot_size(p)
-    x = ink + 60 + p.dV * 0.2 if base == "l" else p.VC + 70
+    x = p.V + 70 + p.dV * 0.2 if base == "l" else p.VC + 70
     y = XH * 0.45 if base == "l" else CH * 0.45
     c = c + [rect(x, y - d / 2, x + d, y + d / 2)]
     return c, max(ink, x + d), (lsb, rsb if base == "L" else p.SB * 0.8)
@@ -949,24 +951,6 @@ def shifted(name, dy):
     return g
 
 
-def g_l_tail(p):  # ss01: l with a tail, so it can't be confused with I or 1
-    V = p.V
-    rx = 92 + V * 0.5
-    ry = 92 + V * 0.4
-    o = Ellipse(0, -O, 2 * rx, -O + 2 * ry, 0.6)
-    i = Ellipse(V, -O + p.H * 0.95, 2 * rx - V, -O + 2 * ry - p.H * 0.95, 0.62)
-    w = rx + V * 0.6 + 30
-    hook = band(o, i, (2, 0.0), o.at_x(3, w), (2, 0.0), i.at_x(3, w))
-    return [rect(0, o.cy, V, ASC), hook], w, (p.SB, p.SBD + 10)
-
-
-def g_I_serif(p):  # ss01: I with crossbars
-    V, h = p.VC, p.HC
-    w = 280 + p.dV * 0.6
-    x = w / 2 - V / 2
-    return [rect(x, 0, x + V, CH), rect(0, 0, w, h), rect(0, CH - h, w, CH)], w, (p.SBC * 0.8, p.SBC * 0.8)
-
-
 def g_zero_slash(p, base="zero"):
     c, w, sb = fn_of(base)(p)
     s = stroke((w * 0.24, CH * 0.20), (w * 0.76, CH * 0.80), p.D * 0.85, ("p",), ("p",))
@@ -1027,10 +1011,7 @@ for nm, dy in CASE.items():
     add(nm + ".case", None, shifted(nm, dy))
 ALT["case"] = [(nm, nm + ".case") for nm in CASE]
 
-add("l.ss01", None, g_l_tail)
-add("I.ss01", None, g_I_serif)
 add("zero.zero", None, g_zero_slash)
-ALT["ss01"] = [("l", "l.ss01"), ("I", "I.ss01"), ("zero", "zero.zero")]
 ALT["zero"] = [("zero", "zero.zero")]
 
 # Figures: proportional by default, so a 1 inside "fra1" or a hash doesn't leave a gap,
@@ -1051,10 +1032,9 @@ for d in DIGITS:
     add(d + ".tf", None, fn)
     GLYPHS[d] = (ch, proportional(fn, d))
 add("zero.zero.tf", None, lambda p: g_zero_slash(p, "zero.tf"))
-# every order of tnum, zero and ss01 lands on the right zero
+# either order of tnum and zero lands on the right zero
 ALT["tnum"] = [(d, d + ".tf") for d in DIGITS] + [("zero.zero", "zero.zero.tf")]
 ALT["zero"] = [("zero", "zero.zero"), ("zero.tf", "zero.zero.tf")]
-ALT["ss01"] = ALT["ss01"] + [("zero.tf", "zero.zero.tf")]
 
 
 def ccmp_pairs():
