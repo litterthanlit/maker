@@ -1181,7 +1181,7 @@ def g_percent(p):
 
 @glyph("dollar", "$")
 def g_dollar(p):
-    c, w, sb = g_S(p)
+    c, w, sb = GLYPHS["S"][1](p)
     V = p.V * 0.82
     return c + [rect(w / 2 - V / 2, -90, w / 2 + V / 2, CH + 90)], w, sb
 
@@ -1269,3 +1269,7 @@ def g_at(p):
     fi = Ellipse(fo.l + v, yb + h, w - v, fo.t - h, 0.62)
     foot = band(fo, fi, (3, 0.0), (3, 1.0))
     return [big, stem, foot] + ring(bo, bi), w, (p.SBR, p.SBR)
+
+
+# Shapes drawn as pen strokes replace the constructions above.
+import penglyphs  # noqa: E402,F401

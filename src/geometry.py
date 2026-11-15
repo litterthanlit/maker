@@ -259,3 +259,120 @@ def stroke(p0, p1, w, cut0=("p",), cut1=("p",)):
     a0, b0 = end(p0, cut0)
     a1, b1 = end(p1, cut1)
     return poly(a0, b0, b1, a1)
+
+
+# --- pen strokes ---------------------------------------------------------------
+# Letters that are one movement of the pen (S, 2, 3, 5, 6, 9, &, braces, ~) are
+# drawn as a skeleton of cubics expanded by an elliptical pen: the stroke is V
+# thick where it travels vertically and H where it travels horizontally, and
+# varies smoothly between. Each skeleton cubic yields exactly one cubic per
+# side, so every weight has the same point structure.
+
+def seg(p0, h0, p1, h1):
+    """A skeleton cubic from p0 to p1: h0 is the handle leaving p0, h1 the
+    handle arriving at p1 (so the second control point is p1 - h1)."""
+    return (p0, (p0[0] + h0[0], p0[1] + h0[1]), (p1[0] - h1[0], p1[1] - h1[1]), p1)
+
+
+def _d(c, t):
+    mt = 1 - t
+    return tuple(3 * mt * mt * (c[1][j] - c[0][j]) + 6 * mt * t * (c[2][j] - c[1][j]) + 3 * t * t * (c[3][j] - c[2][j])
+                 for j in (0, 1))
+
+
+def _unit(v):
+    l = math.hypot(*v)
+    return (v[0] / l, v[1] / l)
+
+
+def _tangent_at(c, t):
+    d = _d(c, t)
+    if math.hypot(*d) < 1e-9:  # a handle sits on its point: look a little inward
+        d = _d(c, min(max(t, 0.02), 0.98))
+    return _unit(d)
+
+
+def _fit(samples, ts, t0, t1):
+    """Least-squares cubic through samples with fixed ends and end directions."""
+    s0, s1 = samples[0], samples[-1]
+    m = [[0.0, 0.0], [0.0, 0.0]]
+    r = [0.0, 0.0]
+    for s, t in zip(samples, ts):
+        mt = 1 - t
+        b0, b1, b2, b3 = mt ** 3, 3 * mt * mt * t, 3 * mt * t * t, t ** 3
+        base = [(b0 + b1) * s0[j] + (b2 + b3) * s1[j] for j in (0, 1)]
+        res = [s[j] - base[j] for j in (0, 1)]
+        u = [b1 * t0[j] for j in (0, 1)]
+        v = [-b2 * t1[j] for j in (0, 1)]
+        m[0][0] += u[0] * u[0] + u[1] * u[1]
+        m[0][1] += u[0] * v[0] + u[1] * v[1]
+        m[1][1] += v[0] * v[0] + v[1] * v[1]
+        r[0] += u[0] * res[0] + u[1] * res[1]
+        r[1] += v[0] * res[0] + v[1] * res[1]
+    m[1][0] = m[0][1]
+    det = m[0][0] * m[1][1] - m[0][1] * m[1][0]
+    chord = math.hypot(s1[0] - s0[0], s1[1] - s0[1])
+    if abs(det) < 1e-9:
+        a = b = chord / 3
+    else:
+        a = (r[0] * m[1][1] - r[1] * m[0][1]) / det
+        b = (m[0][0] * r[1] - m[1][0] * r[0]) / det
+    floor = chord * 0.05
+    a, b = max(a, floor), max(b, floor)
+    return [s0, (s0[0] + a * t0[0], s0[1] + a * t0[1]), (s1[0] - b * t1[0], s1[1] - b * t1[1]), s1]
+
+
+def _cut(curve, end, direction, cut):
+    """Slide one end of a fitted side curve along `direction` onto a cut line."""
+    if cut[0] == "p":
+        return curve
+    axis = 1 if cut[0] == "h" else 0
+    i, j = (0, 1) if end == 0 else (3, 2)
+    pt = curve[i]
+    if abs(direction[axis]) < 1e-6:
+        return curve
+    s = (cut[1] - pt[axis]) / direction[axis]
+    dx, dy = direction[0] * s, direction[1] * s
+    curve = list(curve)
+    curve[i] = (pt[0] + dx, pt[1] + dy)
+    curve[j] = (curve[j][0] + dx, curve[j][1] + dy)
+    return curve
+
+
+def pen(skeleton, V, H, cap0=("p",), cap1=("p",), n=16):
+    """Expand a skeleton (a list of joined cubics) into one closed contour.
+
+    Ends are cut square to the stroke ("p",), level ("h", y) or upright ("v", x).
+    """
+    left, right = [], []
+    for c in skeleton:
+        ts = [k / n for k in range(n + 1)]
+        ls, rs = [], []
+        for t in ts:
+            p = _pt(c, t)
+            tx, ty = _tangent_at(c, t)
+            # full stem weight once the stroke climbs past ~30 deg; thin only
+            # where it runs close to level, as type designers weight spines
+            s = min(1.0, abs(ty) / 0.5)
+            s = s * s * (3 - 2 * s)
+            half = 0.5 * (H + (V - H) * s)
+            nx, ny = -ty * half, tx * half
+            ls.append((p[0] + nx, p[1] + ny))
+            rs.append((p[0] - nx, p[1] - ny))
+        ta, tb = _tangent_at(c, 0.0), _tangent_at(c, 1.0)
+        left.append(_fit(ls, ts, ta, tb))
+        right.append(_fit(rs, ts, ta, tb))
+    t_start = _tangent_at(skeleton[0], 0.0)
+    t_end = _tangent_at(skeleton[-1], 1.0)
+    left[0] = _cut(left[0], 0, t_start, cap0)
+    right[0] = _cut(right[0], 0, t_start, cap0)
+    left[-1] = _cut(left[-1], 1, t_end, cap1)
+    right[-1] = _cut(right[-1], 1, t_end, cap1)
+    con = [tuple(left[0][0])]
+    for c in left:
+        con.append(("c", tuple(c[1]), tuple(c[2]), tuple(c[3])))
+    con.append(("l", tuple(right[-1][3])))
+    for c in reversed(right):
+        con.append(("c", tuple(c[2]), tuple(c[1]), tuple(c[0])))
+    # travelling along the left side and back along the right runs clockwise
+    return reverse(con)

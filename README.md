@@ -11,7 +11,8 @@ It keeps the traits of the genre and changes the details, so it isn't a copy of 
 
 Less, but better. Every part of the font has to make reading or using it easier.
 
-- **Unambiguous by default.** The l has a small tail and the 1 a flag, so I, l, 1 and | never look alike, with no feature to turn on. Braces curve, so `{}` never reads as `[]`.
+- **Clear by default.** The 1 has a flag and the l rises above the capitals; braces curve to a point, so `{}` never reads as `[]`. Nothing needs a feature turned on.
+- **Drawn as strokes.** S, s, 2, 3, 5, 6, 9, & @ ? ~ ( ) { } are pen paths (`src/penglyphs.py`): a skeleton expanded by an elliptical pen, as a type designer draws them. The S spine follows proportions measured from Helvetica-class and UI grotesques (shoulders at 73% and 27%, spine at about 24°).
 - **No stylistic sets.** If an alternate is better, it becomes the default; if it isn't, it doesn't ship. The features that remain do one job each: `kern`, `ccmp`, `case`, `tnum`, `zero`.
 - **Open at small sizes.** Wide enough, spaced enough and open enough to read at 13px, measured against Inter and Geist.
 - **Thorough to the last detail.** & @ { } and the figures are drawn as carefully as the letters; strokes meet along their own curves, without corners.
