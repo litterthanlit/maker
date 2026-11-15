@@ -104,7 +104,16 @@ STYLES = {
         kern=[("e", "r", -18)],  # e-r reads loose in the lockup: both letters open to the right
     ),
 }
+# Lathe: the Wordmark's landmarks, spacing and kerning with Hypher's own details
+# (machined corners, the straight y) and its own width. Corners alone barely move
+# a design away from Michroma (88% -> 86% overlap); width does, so each Lathe
+# sits about 75% from Michroma: related to the logo, but its own.
+_LATHE = {**STYLES["Wordmark"], "radius": 0.215, "smooth": 0.6, "inner_smooth": 0.6, "inner": 0.55, "term": 0.02,
+          "y_tail": "straight"}
+STYLES["LatheWide"] = {**_LATHE, "widths": {c: round(w * 1.06) for c, w in WM_WIDTHS.items()}, "kern_scale": 1.06}
+STYLES["LatheNarrow"] = {**_LATHE, "widths": {c: round(w * 0.95) for c, w in WM_WIDTHS.items()}, "kern_scale": 0.95}
 DEFAULT_STYLE = "Wordmark"
+LABELS = {"LatheWide": "Lathe Wide", "LatheNarrow": "Lathe Narrow"}  # family-name spelling, where it differs from the key
 
 
 

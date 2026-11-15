@@ -25,7 +25,7 @@ MASTERS = {300: 60, 400: 92, 700: 150}
 
 def kern_pairs():
     """Every kerning pair for the current version, accented letters kerning like their base."""
-    scale = 1.0 if G.STYLE["name"] == "Wordmark" else 0.92
+    scale = G.STYLE.get("kern_scale", 1.0 if G.STYLE["name"] == "Wordmark" else 0.92)
     pairs = {k: round(v * scale) for k, v in K.PAIRS.items()}
     pairs.update({(l, r): v for l, r, v in G.STYLE["kern"]})
     family = {}  # base glyph -> itself and its accented forms
@@ -51,9 +51,9 @@ def family(style):
     G.set_style(style)
     default = style == G.DEFAULT_STYLE
     return Family(
-        name="Hypher Display" if default else f"Hypher Display {style}",
+        name="Hypher Display" if default else f"Hypher Display {G.LABELS.get(style, style)}",
         file="HypherDisplay" if default else f"HypherDisplay{style}",
-        version="0.400",
+        version="0.410",
         copyright="Copyright 2026 The Hypher Project Authors; proportions and kerning after Michroma, Copyright 2011 The Michroma Project Authors",
         glyphs=G.GLYPHS,
         params=lambda w: G.P(w, MASTERS[w]),

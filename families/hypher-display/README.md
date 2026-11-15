@@ -34,6 +34,10 @@ Each version is a named set of numbers in `STYLES` (`glyphs.py`) and builds as i
 | Bore | Hypher Display Bore | Rounder counters |
 | Deburr | Hypher Display Deburr | Cut ends rounded, as every corner of the mark is |
 | Finish | Hypher Display Finish | A little of each: radius 0.215, eased 0.6, rounder counters, soft ends |
+| Lathe Wide | Hypher Display Lathe Wide | Wordmark's landmarks, spacing and kerning with Hypher's own machined corners and straight y, 6% wider |
+| Lathe Narrow | Hypher Display Lathe Narrow | The same, 5% narrower |
+
+**How close each is to Michroma** (share of letter area both cover, lowercase a–z, at the same x-height): Wordmark 88%, Lathe Wide and Lathe Narrow 75%, Mill and Finish 67%. Unrelated wide or futuristic fonts land at 41–54% (Krona One 54%, Orbitron 52%, Audiowide 44%). Corners barely move the number; width moves it most.
 
 To try a mix without editing, set `HYPHER_STYLE` to a version and any of `HYPHER_RADIUS`, `HYPHER_SMOOTH`, `HYPHER_INNER` or `HYPHER_TERM` to override its numbers, then build.
 

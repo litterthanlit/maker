@@ -9,6 +9,7 @@ Drawn in code for Hypher Display; no outlines are taken from another font.
 
 ## Changelog
 
+- **0.410 (2026-11-15):** Lathe Wide and Lathe Narrow: Wordmark's proportions with Hypher's own corners, y and width, at about 75% overlap with Michroma (Wordmark is 88%).
 - **0.400 (2026-11-15):** capitals A–Z, `& @ %`, the accented letters of Western European languages, and kerning (592 pairs, after Michroma's). The font's copyright notice credits Michroma.
 - **0.320 (2026-11-15):** figures 0–9 and punctuation: `. , : ; ! ? - – — ' " ‘ ’ “ ” ( ) [ ] / + = * _ #`, in every version, at 300–700.
 - **0.310 (2026-11-15):** renamed Hypher Display (files `HypherDisplay`, folder `families/hypher-display/`), so the font and the product are not one word; the alternates are Hypher Display Mill, Fillet, Polish, Bore, Deburr and Finish.
