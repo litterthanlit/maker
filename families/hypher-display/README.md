@@ -41,6 +41,7 @@ Each version is a named set of numbers in `STYLES` (`glyphs.py`) and builds as i
 | Datum | Hypher Display Datum | None of the wordmark font: every width, sidebearing, landmark and placement is Hypher's own rule, and kerning is measured from Datum's own outlines (`autokern.py`) |
 | Chamfer | Hypher Display Chamfer | As unlike the wordmark font as Hypher goes: Datum's rules and kerning, every corner cut with a straight chamfer instead of a curve, letters at 86% of Datum's width |
 | Datum 20 | Hypher Display Datum 20 | Datum at 93% width: 20% resemblance to Michroma above the genre's baseline (see below), with Datum's soft corners and its own kerning |
+| Weld | Hypher Display Weld | Datum's corners, proportions and own kerning with the wordmark's construction: the y's hooked tail, and square stem tops in r, n, m, p and u |
 
 **How close each is to Michroma** (share of letter area both cover, lowercase a–z, at the same x-height): Wordmark 88%, Lathe Wide and Lathe Narrow 75%, Billet 73%, Datum 70%, Mill and Finish 67%, Billet Compact 55%, Chamfer 50%. Unrelated wide or futuristic fonts land at 41–54% (Krona One 54%, Orbitron 52%, Audiowide 44%). Corners barely move the number; width moves it most. Datum shows the number measures resemblance, not borrowing: it takes nothing from Michroma, yet its own rules are wide too, and wide letters resemble each other.
 
@@ -71,11 +72,19 @@ Every glyph is a few polygons from `rounded()` in `src/core/geometry.py`: corner
 | --- | --- |
 | `glyphs.py` | Every glyph as a function of the weight, plus the versions in `STYLES` |
 | `kerning.py` | The kerning pairs, after Michroma |
-| `autokern.py` | Kerning measured from a version's own outlines (Datum) |
+| `autokern.py` | Kerning measured from a version's own outlines (Datum and its relatives) |
+| `lockup.py` | The logo, optically set, exported as outlined SVG to `lockup/` |
 | `build.py` | Family names, masters, kerning; `--versions` builds every version |
 | `proof/check_outlines.py` | Fails if any glyph's outline runs backwards over itself, at any master |
 | `proof/lockup.html` | The mark beside the word at each weight, with today's lockup for reference |
 | `fonts/` | Built fonts; `fonts/versions/<Name>/` holds the alternates |
+
+## The logo
+
+`lockup.py` sets the mark beside "hypher" and writes outlined SVGs to `lockup/` (Weld, Wordmark and Datum at 300, 400, 500 and 700). Nothing is placed by eye:
+
+- **Inside the word,** each pair's white space is measured through the x-height, counting only 0.18 x-heights into open space (the eye does not read a deep counter or the y's open triangles at full value), and moved 75% of the way toward the font's own rhythm, the space between two straight stems. At Regular this closes h–y and y–p; the other pairs are already even.
+- **Mark to word,** the mark is centred on the x-height, the gap is 0.85 x-heights from the midpoint of the mark's slanted edge, and gap and mark grow a little with weight.
 
 ## Build and check
 

@@ -227,6 +227,11 @@ STYLES["Chamfer"] = {**STYLES["Datum"], "chamfer": True, "smooth": 0.0, "inner_s
 # measured above that floor, this one resembles it by 20%.
 STYLES["Datum20"] = {**STYLES["Datum"], "widths": {c: round(w * 0.93) for c, w in STYLES["Datum"]["widths"].items()}}
 
+# Weld: Datum's corners, proportions and own kerning, with the wordmark's
+# construction: the y's tail hooking into a flat foot, and stems that rise
+# square to the x-height in r, n, m, p and u.
+STYLES["Weld"] = {**STYLES["Datum"], "y_tail": "hook", "y_tail_end": 0.19, "stem_tops": "square"}
+
 # Billet Compact: Billet at 90% width, out of the wordmark font's wide stance.
 STYLES["BilletCompact"] = {**STYLES["Billet"], "widths": {c: round(w * 0.90) for c, w in STYLES["Billet"]["widths"].items()},
                            "kern_scale": 0.86}
