@@ -36,7 +36,7 @@ def family(style):
     return Family(
         name="Hypher" if default else f"Hypher {style}",
         file="Hypher" if default else f"Hypher{style}",
-        version="0.220",
+        version="0.300",
         copyright="Copyright 2026 The Hypher Project Authors",
         glyphs=G.GLYPHS,
         params=lambda w: G.P(w, MASTERS[w]),
