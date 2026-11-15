@@ -1,0 +1,304 @@
+<title>Litt Grotesk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400&display=swap">
+<style>
+/* Layout: litt's asymmetric page — a narrow label column left, content right, 8px grid, hairlines; light from above on raised parts. */
+@font-face { font-family: "Litt Grotesk"; src: url("__LITT__") format("woff2"); font-weight: 300 700; font-display: block; }
+@font-face { font-family: "Inter Ref"; src: url("__INTER__") format("woff2"); font-weight: 100 900; font-display: block; }
+@font-face { font-family: "Geist Ref"; src: url("__GEIST__") format("woff2"); font-weight: 100 900; font-display: block; }
+@font-face { font-family: "Kanton Ref"; src: url("__KANTON__") format("woff2"); font-weight: 300 700; font-display: block; }
+:root {
+  /* litt.md v0.5 tokens (tokens.css), light */
+  --canvas: #ffffff; --surface-2: #f7f5f3; --surface-3: #efecea;
+  --line: #e8e4e1; --line-strong: #d7d1cc;
+  --fg: #110f0d; --fg-muted: #6d6661;
+  --accent: #0957fd; --accent-text: #104dfd; --accent-fg: #ffffff;
+  --tray: #ece9e6; --block: #ffffff;
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --tray-shade: inset 0 0 0 1px rgba(17, 15, 13, 0.18), inset 0 1px 2px rgba(17, 15, 13, 0.2);
+  --block-lift: 0 0.5px 1px rgba(17, 15, 13, 0.22), 0 0.5px 3px rgba(17, 15, 13, 0.16);
+  --plate-lift: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 0 0 1px rgba(17, 15, 13, 0.07), 0 1px 1px rgba(17, 15, 13, 0.08), 0 3px 6px -2px rgba(17, 15, 13, 0.16);
+  --radius-control: 4px; --radius-surface: 8px;
+  --sans: "Litt Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+  --measure: 65ch;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas: #0a0908; --surface-2: #191715; --surface-3: #201d1b;
+    --line: #282421; --line-strong: #38332f; --fg: #f9f8f7; --fg-muted: #cec4bd;
+    --accent-text: #6579fd; --tray: #070606; --block: #2a2725;
+    --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --tray-shade: inset 0 0 0 1px rgba(255, 255, 255, 0.07), inset 0 1px 2px rgba(0, 0, 0, 0.8);
+    --block-lift: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0.5px 1px rgba(0, 0, 0, 0.7), 0 0.5px 3px rgba(0, 0, 0, 0.55);
+    --plate-lift: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 1px 1px rgba(0, 0, 0, 0.5), 0 3px 6px -2px rgba(0, 0, 0, 0.7);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --canvas: #0a0908; --surface-2: #191715; --surface-3: #201d1b;
+  --line: #282421; --line-strong: #38332f; --fg: #f9f8f7; --fg-muted: #cec4bd;
+  --accent-text: #6579fd; --tray: #070606; --block: #2a2725;
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --tray-shade: inset 0 0 0 1px rgba(255, 255, 255, 0.07), inset 0 1px 2px rgba(0, 0, 0, 0.8);
+  --block-lift: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0.5px 1px rgba(0, 0, 0, 0.7), 0 0.5px 3px rgba(0, 0, 0, 0.55);
+  --plate-lift: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 1px 1px rgba(0, 0, 0, 0.5), 0 3px 6px -2px rgba(0, 0, 0, 0.7);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--canvas); color: var(--fg-muted); font-family: var(--sans);
+  font-size: 14px; line-height: 22px; font-weight: 400; -webkit-font-smoothing: antialiased;
+}
+.page {
+  max-width: 1120px; margin: 0 auto; padding-block: 32px 96px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px));
+}
+@media (max-width: 600px) { .page { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); } }
+h1, h2, h3 { color: var(--fg); font-weight: 500; margin: 0; text-wrap: balance; }
+h1 { font-size: 18px; line-height: 28px; }
+h2, h3 { font-size: 14px; line-height: 22px; }
+p { margin: 0; }
+.caption { font-size: 12px; line-height: 16px; font-weight: 600; color: var(--fg-muted); }
+.small { font-size: 13px; line-height: 20px; }
+code, .mono { font-family: var(--mono); font-weight: 400; font-size: 13px; }
+a { color: var(--accent-text); }
+:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 64px; }
+.mark { display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: var(--radius-control); background: var(--block); box-shadow: var(--plate-lift); color: var(--fg); font-weight: 500; }
+
+/* section layout: label column + content */
+section { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 16px 32px; padding-block: 48px; border-top: 1px solid var(--line); }
+section > .head { display: grid; gap: 4px; align-content: start; }
+section > .body { min-width: 0; display: grid; gap: 16px; }
+@media (max-width: 760px) { section { grid-template-columns: 1fr; } }
+.lede { max-width: var(--measure); }
+
+/* hero */
+.hero { display: grid; gap: 16px; margin-bottom: 48px; }
+.hero .lede { max-width: 56ch; }
+.plate { background: var(--block); border-radius: var(--radius-surface); box-shadow: var(--plate-lift); padding: clamp(24px, 4vw, 48px); display: grid; gap: 24px; }
+.sample { color: var(--fg); font-size: clamp(48px, 9vw, 112px); line-height: 1; letter-spacing: -0.03em; font-variation-settings: "wght" var(--w, 500); font-weight: var(--w, 500); overflow-wrap: anywhere; }
+.sample-meta { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
+
+/* Press segmented: blocks in a tray, the chosen one raised */
+.seg { display: inline-flex; padding: 2px; gap: 2px; border-radius: calc(var(--radius-control) + 2px); background: var(--tray); box-shadow: var(--tray-shade); }
+.seg button {
+  font: inherit; font-weight: 500; font-size: 13px; height: 28px; padding: 0 12px; border: 0; border-radius: var(--radius-control);
+  background: transparent; color: var(--fg-muted); cursor: pointer; transition: background-color 120ms, color 120ms;
+}
+.seg button[aria-pressed="true"] { background: var(--block); color: var(--fg); box-shadow: var(--highlight), var(--block-lift); }
+
+/* worlds */
+.controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
+figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+figure img { width: 100%; height: auto; display: block; border-radius: var(--radius-surface); border: 1px solid var(--line); background: var(--surface-2); }
+figcaption { display: flex; justify-content: space-between; gap: 8px; }
+figcaption b { color: var(--fg); font-weight: 500; }
+.note { color: var(--fg-muted); max-width: var(--measure); }
+
+/* legibility */
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; line-height: 20px; }
+th { text-align: left; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--fg-muted); }
+th, td { padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+tr.us td { color: var(--fg); font-weight: 500; }
+.rows { display: grid; }
+.row { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; padding-block: 12px; border-bottom: 1px solid var(--line); align-items: baseline; }
+.row .who { font-size: 12px; line-height: 16px; font-weight: 600; }
+.row .who.us { color: var(--fg); }
+.row .txt { min-width: 0; }
+.row .txt b { color: var(--fg); font-weight: 500; }
+@media (max-width: 520px) { .row { grid-template-columns: 1fr; gap: 4px; } }
+
+/* scale */
+.scale { display: grid; }
+.step { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; padding-block: 12px; border-bottom: 1px solid var(--line); align-items: baseline; }
+.step .spec { font-family: var(--mono); font-size: 12px; line-height: 16px; }
+@media (max-width: 520px) { .step { grid-template-columns: 1fr; gap: 4px; } }
+
+/* figures */
+.figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.card { background: var(--surface-2); border-radius: var(--radius-surface); padding: 16px; display: grid; gap: 8px; min-width: 0; }
+.card .big { color: var(--fg); font-size: 24px; line-height: 32px; font-weight: 500; }
+.card .col { color: var(--fg); font-size: 18px; line-height: 28px; font-variant-numeric: tabular-nums; text-align: right; }
+
+pre { margin: 0; padding: 16px; background: var(--surface-2); border-radius: var(--radius-surface); overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 20px; color: var(--fg); }
+.copy { justify-self: start; font: inherit; font-weight: 500; font-size: 13px; height: 32px; padding: 0 12px; border-radius: var(--radius-control); border: 3px solid var(--tray); background: var(--block); color: var(--fg); box-shadow: var(--highlight), var(--block-lift); cursor: pointer; background-clip: padding-box; }
+.copy:active { translate: 0 1px; box-shadow: var(--highlight); }
+footer { border-top: 1px solid var(--line); padding-top: 24px; font-size: 13px; line-height: 20px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } .copy:active { translate: none; } }
+</style>
+
+<div class="page">
+  <div class="top">
+    <span class="mark">litt.md</span>
+    <span class="caption">Litt Grotesk 0.3</span>
+  </div>
+
+  <div class="hero">
+    <h1>Litt Grotesk</h1>
+    <p class="lede">The face for litt.md. A Swiss grotesque drawn for 12 to 18 pixels, so Press keeps the Helvetica Neue look on every platform and reads as openly as Inter and Geist.</p>
+    <div class="plate">
+      <div class="sample" id="sample" contenteditable="true" spellcheck="false" aria-label="Editable sample">Lit from above. Objects you can hold.</div>
+      <div class="sample-meta">
+        <div class="seg" role="group" aria-label="Weight">
+          <button type="button" data-w="400" aria-pressed="false">Text 400</button>
+          <button type="button" data-w="500" aria-pressed="true">Title 500</button>
+          <button type="button" data-w="600" aria-pressed="false">Label 600</button>
+        </div>
+        <span class="small">litt's three weights. Click the sample to type.</span>
+      </div>
+    </div>
+  </div>
+
+  <section aria-labelledby="w-h">
+    <div class="head"><span class="caption">In the worlds</span><h2 id="w-h">On the real gallery</h2></div>
+    <div class="body">
+      <p class="lede">The littmd gallery running locally, with only <code>--font-choice</code> changed. Same components, same tokens.</p>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="World">
+          <button type="button" data-world="press" aria-pressed="true">Press</button>
+          <button type="button" data-world="flat" aria-pressed="false">Flat</button>
+        </div>
+        <div class="seg" role="group" aria-label="Theme of the captures">
+          <button type="button" data-shot="light" aria-pressed="true">Light</button>
+          <button type="button" data-shot="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+      <div class="pair">
+        <figure>
+          <img id="img-a" alt="">
+          <figcaption><b id="cap-a">Today</b><span class="small" id="sub-a"></span></figcaption>
+        </figure>
+        <figure>
+          <img id="img-b" alt="">
+          <figcaption><b>Litt Grotesk</b><span class="small">via --font-choice</span></figcaption>
+        </figure>
+      </div>
+      <p class="note small" id="world-note"></p>
+    </div>
+  </section>
+
+  <section aria-labelledby="l-h">
+    <div class="head"><span class="caption">Legibility</span><h2 id="l-h">Measured against Inter and Geist</h2></div>
+    <div class="body">
+      <p class="lede">At 12 to 14 pixels, width, spacing and open apertures do most of the work. v0.2 was set like a display Haas: narrow, tight and closed. v0.3 widens the lowercase, opens the spacing and cuts the terminals of c, e, s and a earlier.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Per 1000 units, at 400</th><th class="n">Lowercase width</th><th class="n">n sidebearing</th><th class="n">x-height / cap</th></tr></thead>
+          <tbody>
+            <tr><td>v0.2 (Kanton)</td><td class="n">474</td><td class="n">60</td><td class="n">0.733</td></tr>
+            <tr class="us"><td>Litt Grotesk 0.3</td><td class="n">__LCW__</td><td class="n">__NSB__</td><td class="n">0.750</td></tr>
+            <tr><td>Inter</td><td class="n">536</td><td class="n">77</td><td class="n">0.750</td></tr>
+            <tr><td>Geist</td><td class="n">534</td><td class="n">80</td><td class="n">0.746</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="rows" id="rows"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-h">
+    <div class="head"><span class="caption">The scale</span><h2 id="s-h">litt's type steps</h2></div>
+    <div class="body">
+      <div class="scale">
+        <div class="step"><span class="spec">display 18/28 500</span><p style="font-size:18px;line-height:28px;font-weight:500;color:var(--fg)">Ship the release on Thursday</p></div>
+        <div class="step"><span class="spec">h2 14/22 500</span><p style="font-weight:500;color:var(--fg)">Notifications</p></div>
+        <div class="step"><span class="spec">body 14/22 400</span><p>Choose what we email you about. You can change this at any time from your account.</p></div>
+        <div class="step"><span class="spec">small 13/20 400</span><p class="small">Last synced 3 minutes ago by Jürgen Müller-Łęcki</p></div>
+        <div class="step"><span class="spec">caption 12/16 600</span><p class="caption">Region · fra1 · Building</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="f-h">
+    <div class="head"><span class="caption">Figures</span><h2 id="f-h">Proportional in words, tabular in values</h2></div>
+    <div class="body">
+      <p class="lede">Figures are proportional by default, so a 1 inside a hash or a region name sets tight. litt sets <code>tabular-nums</code> on values and counts, and the font answers with figures of one width.</p>
+      <div class="figs">
+        <div class="card"><span class="caption">Default</span><span class="big">fra1 · 4f9c2e1 · v11.1</span></div>
+        <div class="card"><span class="caption">tabular-nums</span><span class="col">1,111.10<br>9,480.25<br>12,307.00</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="i-h">
+    <div class="head"><span class="caption">Use it</span><h2 id="i-h">One line in a project</h2></div>
+    <div class="body">
+      <p class="lede">Every world reads <code>--font-choice</code> first, so this takes over Press and Flat with no change to litt. It needs no <code>ss</code> or <code>cv</code> features, as litt asks. Device keeps Geist Mono.</p>
+      <pre id="snippet">@font-face {
+  font-family: "Litt Grotesk";
+  src: url("/fonts/LittGrotesk[wght].woff2") format("woff2");
+  font-weight: 400 600;
+  font-display: swap;
+}
+
+:root { --font-choice: "Litt Grotesk"; }
+[data-material="device"] { --font-choice: initial; }</pre>
+      <button class="copy" type="button" id="copy">Copy CSS</button>
+    </div>
+  </section>
+
+  <footer>370 characters: Latin-1 and Latin Extended-A, UI punctuation, currency, arrows and math. Variable 300 to 700, 30 KB as WOFF2. Comparisons render live in your browser with Inter and Geist embedded.</footer>
+</div>
+
+<script>
+(() => {
+  const SHOTS = __SHOTS__;
+  const sample = document.getElementById("sample");
+  const group = sel => [...document.querySelectorAll(sel)];
+
+  const weights = group("[data-w]");
+  weights.forEach(b => b.addEventListener("click", () => {
+    weights.forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    sample.style.setProperty("--w", b.dataset.w);
+  }));
+
+  let world = "press", shot = "light";
+  const NOTES = {
+    press: ["Arial", "What Press shows off Apple today", "Press asks for Helvetica Neue, which only Apple systems have. On Windows, Android and Linux it falls back to Arial. Litt Grotesk keeps the Haas look everywhere, and reads more openly than either."],
+    flat: ["Geist", "Flat's face", "Flat's layout holds: Litt Grotesk sets within a few percent of Geist's width, with Geist's openness and a Swiss accent."],
+  };
+  function show() {
+    const [face, sub, note] = NOTES[world];
+    const a = document.getElementById("img-a"), b = document.getElementById("img-b");
+    a.src = SHOTS[`${world}-${world === "press" ? "arial" : "geist"}-${shot}`];
+    b.src = SHOTS[`${world}-litt-${shot}`];
+    a.alt = `The ${world} demo in ${face}, ${shot} theme`;
+    b.alt = `The ${world} demo in Litt Grotesk, ${shot} theme`;
+    document.getElementById("cap-a").textContent = face;
+    document.getElementById("sub-a").textContent = sub;
+    document.getElementById("world-note").textContent = note;
+  }
+  const bindSeg = (sel, key, set) => {
+    const bs = group(sel);
+    bs.forEach(b => b.addEventListener("click", () => { bs.forEach(x => x.setAttribute("aria-pressed", String(x === b))); set(b.dataset[key]); show(); }));
+  };
+  bindSeg("[data-world]", "world", v => world = v);
+  bindSeg("[data-shot]", "shot", v => shot = v);
+  show();
+
+  const rows = document.getElementById("rows");
+  const TXT = '<b>Billing settings</b> Your plan renews on 14 March. Invoices go to jürgen.müller@firma.ch and are kept for 7 years. <span class="small">Last synced 3 minutes ago · 1,284 rows · ace scene, cease</span>';
+  [["v0.2", "Kanton Ref", ""], ["Litt Grotesk", "Litt Grotesk", "us"], ["Inter", "Inter Ref", ""], ["Geist", "Geist Ref", ""]].forEach(([n, f, us]) => {
+    const r = document.createElement("div"); r.className = "row";
+    r.innerHTML = `<span class="who ${us}">${n}</span><p class="txt" style="font-family:'${f}'">${TXT}</p>`;
+    rows.appendChild(r);
+  });
+
+  const copy = document.getElementById("copy");
+  copy.addEventListener("click", async () => {
+    const pre = document.getElementById("snippet");
+    try { await navigator.clipboard.writeText(pre.textContent); copy.textContent = "Copied"; }
+    catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); copy.textContent = "Selected, press ⌘C"; }
+    setTimeout(() => copy.textContent = "Copy CSS", 1600);
+  });
+})();
+</script>

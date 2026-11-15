@@ -1,22 +1,49 @@
-# Kanton Grotesk
+# Litt Grotesk
 
-A variable Swiss grotesque inspired by Neue Haas Grotesk, drawn entirely in code.
+The type face for [litt.md](https://github.com/litterthanlit/litt.md): a variable Swiss grotesque inspired by Neue Haas Grotesk, drawn entirely in code and tuned for 12–18px UI text, where it reads as openly as Inter and Geist.
 It keeps the traits of the genre and changes the details, so it isn't a copy of any existing typeface.
 
 - **Weights:** variable `wght` axis from 300 (Light) to 700 (Bold), with Light, Regular, Medium, SemiBold and Bold instances
 - **Character set:** 370 characters: Basic Latin, Latin-1 and Latin Extended-A (names in 40+ languages), plus typographic quotes and dashes, € £ ¥ ¢, arrows, math signs, © ® ™, superscripts and fractions
 - **Metrics:** 1000 UPM · cap height 720 · x-height 528 · ascender 748 · descender −212
 
+## On litt.md
+
+Every litt world reads `--font-choice` first, so Litt Grotesk takes over Press and Flat with one line and no change to litt. It needs no `ss` or `cv` features, as litt's type rules ask.
+
+```css
+@font-face {
+  font-family: "Litt Grotesk";
+  src: url("/fonts/LittGrotesk[wght].woff2") format("woff2");
+  font-weight: 400 600;
+  font-display: swap;
+}
+:root { --font-choice: "Litt Grotesk"; }
+[data-material="device"] { --font-choice: initial; }  /* Device keeps Geist Mono */
+```
+
+Press asks for Helvetica Neue, which only Apple systems have; elsewhere it falls back to Arial. Litt Grotesk keeps the Haas look on every platform. `proof/litt-card.js` captures the real gallery with any face injected, and `proof/build-litt-specimen.py` builds the brand specimen from those captures.
+
+Legibility at 400, per 1000 units (v0.3 changes: lowercase ×1.05, sidebearings 60→70, x-height 528→540, open terminals on c e s a C G S 3 5 6):
+
+| | Lowercase width | n sidebearing | x-height / cap |
+| --- | --- | --- | --- |
+| v0.2 | 474 | 60 | 0.733 |
+| **Litt Grotesk 0.3** | **504** | **70** | **0.750** |
+| Inter | 536 | 77 | 0.750 |
+| Geist | 534 | 80 | 0.746 |
+
 ## Using it in UI
 
 - **Optical centring.** Ascent 960 and descent −240 are identical on every platform (hhea, typo and win, with `USE_TYPO_METRICS` on). The line box centres on the capitals, so labels sit in the middle of buttons and inputs.
-- **Tabular figures by default,** so prices and IDs line up in tables. `pnum` gives a proportional 1.
+- **Figures are proportional by default** (a 1 in `fra1` or a hash sets tight) and **tabular under `tnum`**, which CSS `tabular-nums` turns on for values and counts.
 - **OpenType features**
   | Feature | What it does | When to use |
   | --- | --- | --- |
   | `ss01` | Tailed l, serifed I, slashed zero | Inputs, passwords, codes, IDs |
   | `case` | Raises ( ) [ ] { } – — « » · to cap height | Uppercase labels and buttons |
-  | `zero` | Slashed zero only | Data tables |
+  | `tnum` | Tabular figures, one width | Values, counts, table columns |
+| `zero` | Slashed zero only | Data tables |
   | `ccmp` | Turns decomposed text (e + ◌́) into precomposed é | Always on; fixes macOS file names |
   | `kern` | ~30 class pairs; accented letters kern like their base | Always on |
 - **Hinting.** The static fonts are autohinted with ttfautohint, for crisp text on Windows. The variable font is unhinted and carries a `gasp` table; it renders cleanly on macOS, iOS, Android and modern browsers.
@@ -39,8 +66,8 @@ Output:
 
 | Path | What |
 | --- | --- |
-| `fonts/variable/KantonGrotesk[wght].ttf` / `.woff2` | Variable font (use this on the web) |
-| `fonts/static/KantonGrotesk-<Style>.ttf` / `.woff2` | Static instances with overlaps removed (for desktop apps) |
+| `fonts/variable/LittGrotesk[wght].ttf` / `.woff2` | Variable font (use this on the web) |
+| `fonts/static/LittGrotesk-<Style>.ttf` / `.woff2` | Static instances with overlaps removed (for desktop apps) |
 | `specimen/index.html` | Type specimen; open it in a browser |
 
 ## How it works

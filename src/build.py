@@ -26,9 +26,9 @@ import glyphs as G  # noqa: E402
 import extended as X  # noqa: E402  (registers the extended character set)
 from geometry import reverse, translate  # noqa: E402
 
-FAMILY = "Kanton Grotesk"
-FILE = "KantonGrotesk"
-VERSION = "0.200"
+FAMILY = "Litt Grotesk"
+FILE = "LittGrotesk"
+VERSION = "0.300"
 UPM = 1000
 
 # Vertical metrics, chosen for UI: one set shared by every platform, no line

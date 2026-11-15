@@ -18,8 +18,9 @@ from geometry import (
     rotate, rotate180, solve_hw, transform, translate,
 )
 
-XH, CH, ASC, DSC = 528, 720, 748, -212
+XH, CH, ASC, DSC = 540, 720, 760, -212
 O = 12  # overshoot of round shapes
+LCW = 1.05  # lowercase width factor: wider letters read better at UI sizes
 K = 0.60  # superellipse squareness, outer
 KI = 0.62  # inner counters, slightly squarer
 
@@ -40,11 +41,11 @@ class P:
         self.VR = V * 1.06  # sides of round letters
         self.HR = self.H * 0.97  # tops and bottoms of round letters
         self.D = V * 0.98  # diagonals
-        self.SB = 60 + self.dV * 0.18  # lowercase straight sidebearing
-        self.SBR = self.SB * 0.62  # round sidebearing
-        self.SBC = self.SB * 1.22  # caps
+        self.SB = 70 + self.dV * 0.18  # lowercase straight sidebearing
+        self.SBR = self.SB * 0.64  # round sidebearing
+        self.SBC = self.SB * 1.12  # caps
         self.SBCR = self.SBC * 0.6
-        self.SBD = 8 + self.dV * 0.05  # diagonals
+        self.SBD = 14 + self.dV * 0.05  # diagonals
 
     def c(self, base, shrink=0.75):
         """A counter width that tightens as weight grows."""
@@ -89,7 +90,7 @@ def c_shape(w, bottom, top, v, h, t_top=0.42, t_bot=0.42, k=K, ki=KI, wi=None):
                 inner.at_y(0, yt), inner.at_y(3, yb)), outer, inner
 
 
-def s_shape(w, bottom, top, v, h, spine, t_top=0.40, t_bot=0.40, k=0.62, top_w=0.94):
+def s_shape(w, bottom, top, v, h, spine, t_top=0.50, t_bot=0.50, k=0.62, top_w=0.94):
     """S: two stacked open bowls whose inner strokes meet in a shared spine."""
     mid = (bottom + top) / 2 + (top - bottom) * 0.01
     inset = w * (1 - top_w) / 2
@@ -131,19 +132,19 @@ def n_parts(p, cn, stem_top=XH):
 
 @glyph("n", "n")
 def g_n(p):
-    c, w = n_parts(p, p.c(270, 1.2))
+    c, w = n_parts(p, p.c(270 * LCW, 1.2))
     return c, w, (p.SB, p.SB * 0.96)
 
 
 @glyph("h", "h")
 def g_h(p):
-    c, w = n_parts(p, p.c(270, 1.2), ASC)
+    c, w = n_parts(p, p.c(270 * LCW, 1.2), ASC)
     return c, w, (p.SB, p.SB * 0.96)
 
 
 @glyph("m", "m")
 def g_m(p):
-    V, cm = p.V, p.c(232, 1.22)
+    V, cm = p.V, p.c(232 * LCW, 1.22)
     w = 2 * cm + 3 * V
     cy = XH * 0.58
     x2 = V + cm
@@ -159,14 +160,14 @@ def g_m(p):
 
 @glyph("u", "u")
 def g_u(p):
-    c, w = n_parts(p, p.c(270, 1.2))
+    c, w = n_parts(p, p.c(270 * LCW, 1.2))
     return rotate180(c, w / 2, XH / 2), w, (p.SB * 0.96, p.SB)
 
 
 @glyph("r", "r")
 def g_r(p):
     V = p.V
-    cn = p.c(270, 1.2)
+    cn = p.c(270 * LCW, 1.2)
     wn = cn + 2 * V
     cy = XH * 0.58
     outer = Ellipse(0.42 * V, 2 * cy - (XH + O), wn, XH + O, K)
@@ -209,7 +210,7 @@ def g_j(p):
 
 @glyph("o", "o")
 def g_o(p):
-    w = p.c(296, 1.17) + 2 * p.VR
+    w = p.c(296 * LCW, 1.17) + 2 * p.VR
     outer = Ellipse(0, -O, w, XH + O, K)
     inner = Ellipse(p.VR, -O + p.HR, w - p.VR, XH + O - p.HR, KI)
     return ring(outer, inner), w, (p.SBR, p.SBR)
@@ -217,19 +218,19 @@ def g_o(p):
 
 @glyph("c", "c")
 def g_c(p):
-    w = p.c(280, 1.17) + 2 * p.VR
-    con, _, _ = c_shape(w, -O, XH + O, p.VR, p.HR, 0.44, 0.40)
+    w = p.c(280 * LCW, 1.17) + 2 * p.VR
+    con, _, _ = c_shape(w, -O, XH + O, p.VR, p.HR, 0.56, 0.52)
     return [con], w, (p.SBR, p.SBR * 0.7)
 
 
 @glyph("e", "e")
 def g_e(p):
-    w = p.c(290, 1.17) + 2 * p.VR
+    w = p.c(290 * LCW, 1.17) + 2 * p.VR
     outer = Ellipse(0, -O, w, XH + O, K)
     inner = Ellipse(p.VR, -O + p.HR, w - p.VR, XH + O - p.HR, KI)
     bar_b = XH * 0.46
     bar_t = bar_b + p.H
-    yb = outer.cy - 0.42 * outer.ry
+    yb = outer.cy - 0.55 * outer.ry
     body = band(outer, inner, outer.at_y(3, bar_b), outer.at_y(7, yb),
                 inner.at_y(3, bar_b), inner.at_y(7, yb))
     xr = min(outer.x_at(bar_b), outer.x_at(bar_t))
@@ -240,12 +241,12 @@ def g_e(p):
 @glyph("a", "a")
 def g_a(p):
     V, H = p.V, p.H
-    w = p.c(262, 1.22) + V + p.VR
+    w = p.c(262 * LCW, 1.22) + V + p.VR
     cyh = XH * 0.60
     # top hook, from the stem over the top to a horizontal cut at the left
     ho = Ellipse(V * 0.35, 2 * cyh - (XH + O), w, XH + O, K)
     hi = Ellipse(V * 0.35 + p.VR * 0.98, 2 * cyh - (XH + O - p.HR), w - V, XH + O - p.HR, KI)
-    yt = XH * 0.70 - p.dV * 0.15
+    yt = XH * 0.76 - p.dV * 0.12
     hook = band(ho, hi, (0, 0.0), ho.at_y(1, yt), (0, 0.0), hi.at_y(1, yt))
     # bowl
     top = XH * 0.57 + H * 0.5
@@ -256,7 +257,7 @@ def g_a(p):
 
 def b_parts(p, stem_bottom, stem_top):
     V = p.V
-    w = p.c(296, 1.17) + V + p.VR
+    w = p.c(296 * LCW, 1.17) + V + p.VR
     return [rect(0, stem_bottom, V, stem_top)] + bowl(0, w, -O, XH + O, p.VR, p.HR, V), w
 
 
@@ -287,7 +288,7 @@ def g_q(p):
 @glyph("g", "g")
 def g_g(p):
     V = p.V
-    w = p.c(296, 1.17) + V + p.VR
+    w = p.c(296 * LCW, 1.17) + V + p.VR
     bw = bowl(0, w, -O + 20, XH + O, p.VR, p.HR, V)
     bw = mirror_x(bw, w)
     # descending hook
@@ -303,8 +304,8 @@ def g_g(p):
 @glyph("t", "t")
 def g_t(p):
     V, H = p.V, p.H
-    L = 68 + p.dV * 0.2
-    R = 104 + p.dV * 0.2
+    L = 72 + p.dV * 0.2
+    R = 114 + p.dV * 0.2
     w = L + V + R
     rx = 118 + V * 0.45
     ry = 100 + V * 0.4
@@ -318,8 +319,8 @@ def g_t(p):
 @glyph("f", "f")
 def g_f(p):
     V, H = p.V, p.H
-    L = 62 + p.dV * 0.2
-    R = 130 + p.dV * 0.25
+    L = 66 + p.dV * 0.2
+    R = 138 + p.dV * 0.25
     w = L + V + R
     rx = 128 + V * 0.45
     ry = 110 + V * 0.4
@@ -333,7 +334,7 @@ def g_f(p):
 @glyph("k", "k")
 def g_k(p):
     V, D = p.V, p.D
-    w = p.c(268, 0.55) + V
+    w = p.c(268 * LCW, 0.55) + V
     hw = diag_hw(w - V, XH * 0.7, D)
     arm = stroke((V * 0.5, XH * 0.30), (w - hw / 2, XH), D, ("v", V * 0.5), ("h", XH))
     t = 0.42  # where the leg leaves the arm, along the arm
@@ -359,14 +360,14 @@ def v_shape(p, w, top, D, apex=None):
 
 @glyph("v", "v")
 def g_v(p):
-    w = p.c(420, 0.0) + p.dV * 0.75
+    w = p.c(420 * LCW, 0.0) + p.dV * 0.75
     c, _ = v_shape(p, w, XH, p.D)
     return c, w, (p.SBD, p.SBD)
 
 
 @glyph("y", "y")
 def g_y(p):
-    w = p.c(430, 0.0) + p.dV * 0.75
+    w = p.c(430 * LCW, 0.0) + p.dV * 0.75
     D = p.D
     apex = D * 0.9
     hw = solve_hw(D, XH, lambda hw: w / 2 + apex / 2 - hw)
@@ -388,7 +389,7 @@ def g_y(p):
 @glyph("w", "w")
 def g_w(p):
     D = p.D * 0.94
-    w1 = p.c(330, 0.0) + p.dV * 0.8
+    w1 = p.c(330 * LCW, 0.0) + p.dV * 0.8
     a, hw = v_shape(p, w1, XH, D, apex=D * 0.8)
     b = translate(v_shape(p, w1, XH, D, apex=D * 0.8)[0], w1 - hw * 1.05)
     w = 2 * w1 - hw * 1.05
@@ -399,7 +400,7 @@ def g_w(p):
 @glyph("x", "x")
 def g_x(p):
     D = p.D
-    w = p.c(400, 0.0) + p.dV * 0.75
+    w = p.c(400 * LCW, 0.0) + p.dV * 0.75
     hw = diag_hw(w, XH, D) * 0.98
     s1 = poly((0, 0), (hw, 0), (w, XH), (w - hw, XH))
     s2 = poly((w - hw, 0), (w, 0), (hw, XH), (0, XH))
@@ -409,7 +410,7 @@ def g_x(p):
 @glyph("z", "z")
 def g_z(p):
     H, D = p.H, p.D
-    w = p.c(360, 0.99) + p.dV * 0.5
+    w = p.c(360 * LCW, 0.99) + p.dV * 0.5
     hw = diag_hw(w, XH - 2 * H, D * 1.05)
     diag_c = poly((0, H), (hw, H), (w, XH - H), (w - hw, XH - H))
     return [rect(0, 0, w, H), rect(6, XH - H, w, XH), diag_c], w, (p.SBD + 18, p.SBD + 18)
@@ -417,7 +418,7 @@ def g_z(p):
 
 @glyph("s", "s")
 def g_s(p):
-    w = p.c(330, 1.12) + 2 * p.VR * 0.92
+    w = p.c(330 * LCW, 1.12) + 2 * p.VR * 0.92
     c = s_shape(w, -O, XH + O, p.VR * 0.94, p.HR, p.HR * 1.06)
     return c, w, (p.SBR * 1.1, p.SBR * 1.1)
 
@@ -491,7 +492,7 @@ def g_Q(p):
 def g_C(p):
     v, h = p.VC * 1.05, p.HC * 0.97
     w = p.c(470, 1.17) + 2 * v
-    con, _, _ = c_shape(w, -O, CH + O, v, h, 0.40, 0.40)
+    con, _, _ = c_shape(w, -O, CH + O, v, h, 0.50, 0.48)
     return [con], w, (p.SBCR, p.SBCR * 0.9)
 
 
@@ -501,7 +502,7 @@ def g_G(p):
     w = p.c(490, 1.17) + 2 * v
     outer = Ellipse(0, -O, w, CH + O, K)
     inner = Ellipse(v, -O + h, w - v, CH + O - h, KI)
-    yt = outer.cy + 0.40 * outer.ry
+    yt = outer.cy + 0.50 * outer.ry
     bar_t = CH * 0.46
     body = band(outer, inner, outer.at_y(0, yt), outer.at_y(3, bar_t),
                 inner.at_y(0, yt), inner.at_y(3, bar_t))
@@ -587,7 +588,7 @@ def g_J(p):
 def g_S(p):
     v = p.VC * 1.0
     w = p.c(430, 1.17) + 2 * v
-    c = s_shape(w, -O, CH + O, v, p.HC * 0.97, p.HC * 1.04, 0.42, 0.40, 0.62)
+    c = s_shape(w, -O, CH + O, v, p.HC * 0.97, p.HC * 1.04, 0.50, 0.48, 0.62)
     return c, w, (p.SBCR * 1.15, p.SBCR * 1.15)
 
 
@@ -692,7 +693,7 @@ def g_Z(p):
 # --- figures (tabular) ----------------------------------------------------
 
 def fig_width(p):
-    return 470 + p.dV * 0.9
+    return 492 + p.dV * 0.9
 
 
 def fig_sb(p, ink):
@@ -752,8 +753,8 @@ def g_3(p):
     lo_i = Ellipse(v, -O + h, W - v, ym - h * 0.5, 0.64)
     up_o = Ellipse(W * 0.06, ym - h * 0.5, W * 0.95, CH + O, 0.62)
     up_i = Ellipse(W * 0.06 + v, ym + h * 0.5, W * 0.95 - v * 0.96, CH + O - h, 0.64)
-    yl = lo_o.cy - 0.38 * lo_o.ry
-    yu = up_o.cy + 0.38 * up_o.ry
+    yl = lo_o.cy - 0.48 * lo_o.ry
+    yu = up_o.cy + 0.48 * up_o.ry
     lower = band(lo_o, lo_i, lo_o.at_y(2, yl), (4, 1.0), lo_i.at_y(2, yl), (4, 1.0))
     upper = band(up_o, up_i, (3, 0.0), up_o.at_y(1, yu), (3, 0.0), up_i.at_y(1, yu))
     bar = rect(W * 0.34, ym - h * 0.5, up_o.cx + 2, ym + h * 0.5)
@@ -778,7 +779,7 @@ def g_5(p):
     top = CH * 0.60
     bo = Ellipse(0, -O, W, top + O, 0.62)
     bi = Ellipse(v, -O + h, W - v, top + O - h, 0.64)
-    yl = bo.cy - 0.38 * bo.ry
+    yl = bo.cy - 0.48 * bo.ry
     ysh = bo.cy + 0.35 * bo.ry
     arc = band(bo, bi, bo.at_y(2, yl), bo.at_y(5, ysh), bi.at_y(2, yl), bi.at_y(5, ysh))
     xl = W * 0.08
@@ -799,7 +800,7 @@ def g_6(p):
     # nudge the arc's counter so it meets the bowl's counter without a step
     d = tall_i.x_at(bo.cy, "left") - v
     tall_i = Ellipse(v - d, -O + h, W - v, CH + O - h, 0.62)
-    yt = tall_o.cy + 0.46 * tall_o.ry
+    yt = tall_o.cy + 0.56 * tall_o.ry
     end_o = tall_o.at_y(2, bo.cy)
     end_i = tall_i.at_y(2, bo.cy)
     arc = band(tall_o, tall_i, tall_o.at_y(0, yt), end_o, tall_i.at_y(0, yt), end_i)
@@ -842,7 +843,7 @@ def dot_size(p):
 
 @glyph("space", " ")
 def g_space(p):
-    return [], 0, (125 + p.dV * 0.3, 125 + p.dV * 0.3)
+    return [], 0, (136 + p.dV * 0.3, 136 + p.dV * 0.3)
 
 
 @glyph("period", ".")

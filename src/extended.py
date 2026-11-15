@@ -711,7 +711,7 @@ def g_paragraph(p):
 def g_Euro(p):
     v, h = p.VC * 1.02, p.HC * 0.97
     w = p.c(420, 0.5) + 2 * v
-    con, _, _ = G.c_shape(w, -O, CH + O, v, h, 0.42, 0.42)
+    con, _, _ = G.c_shape(w, -O, CH + O, v, h, 0.50, 0.50)
     pad = 90 + p.dV * 0.3
     c = translate([con], pad)
     t = p.HC * 0.92
@@ -967,8 +967,8 @@ def g_I_serif(p):  # ss01: I with crossbars
     return [rect(x, 0, x + V, CH), rect(0, 0, w, h), rect(0, CH - h, w, CH)], w, (p.SBC * 0.8, p.SBC * 0.8)
 
 
-def g_zero_slash(p):
-    c, w, sb = fn_of("zero")(p)
+def g_zero_slash(p, base="zero"):
+    c, w, sb = fn_of(base)(p)
     s = stroke((w * 0.24, CH * 0.20), (w * 0.76, CH * 0.80), p.D * 0.85, ("p",), ("p",))
     return c + [s], w, sb
 
@@ -980,7 +980,7 @@ def g_one_prop(p):
 
 # --- registration --------------------------------------------------------------------
 
-SPACE = lambda p: ([], 0, (125 + p.dV * 0.3,) * 2)
+SPACE = lambda p: ([], 0, (136 + p.dV * 0.3,) * 2)
 
 for nm, ch, fn in [
     ("uni00A0", " ", SPACE), ("uni2009", " ", lambda p: ([], 0, (85, 85))),
@@ -1030,10 +1030,31 @@ ALT["case"] = [(nm, nm + ".case") for nm in CASE]
 add("l.ss01", None, g_l_tail)
 add("I.ss01", None, g_I_serif)
 add("zero.zero", None, g_zero_slash)
-add("one.pnum", None, g_one_prop)
 ALT["ss01"] = [("l", "l.ss01"), ("I", "I.ss01"), ("zero", "zero.zero")]
 ALT["zero"] = [("zero", "zero.zero")]
-ALT["pnum"] = [("one", "one.pnum")]
+
+# Figures: proportional by default, so a 1 inside "fra1" or a hash doesn't leave a gap,
+# and tabular under `tnum` (CSS tabular-nums), which litt sets for values and counts.
+DIGITS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+
+
+def proportional(fn, name):
+    def g(p):
+        c, ink, _ = fn(p)
+        sb = p.SBR * (0.9 if name in ("four", "seven") else 1.15)
+        return c, ink, (sb, sb)
+    return g
+
+
+for d in DIGITS:
+    ch, fn = GLYPHS[d]
+    add(d + ".tf", None, fn)
+    GLYPHS[d] = (ch, proportional(fn, d))
+add("zero.zero.tf", None, lambda p: g_zero_slash(p, "zero.tf"))
+# every order of tnum, zero and ss01 lands on the right zero
+ALT["tnum"] = [(d, d + ".tf") for d in DIGITS] + [("zero.zero", "zero.zero.tf")]
+ALT["zero"] = [("zero", "zero.zero"), ("zero.tf", "zero.zero.tf")]
+ALT["ss01"] = ALT["ss01"] + [("zero.tf", "zero.zero.tf")]
 
 
 def ccmp_pairs():

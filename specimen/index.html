@@ -2,17 +2,17 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kanton Grotesk</title>
+<title>Litt Grotesk</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Type specimen for Kanton Grotesk, a variable Swiss grotesque.">
+<meta name="description" content="Type specimen for Litt Grotesk, a variable Swiss grotesque.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: a 12-column Swiss grid; asymmetric — narrow meta rail left, specimen right. */
 @font-face {
-  font-family: "Kanton Grotesk";
-  src: url("../fonts/variable/KantonGrotesk%5Bwght%5D.woff2") format("woff2");
+  font-family: "Litt Grotesk";
+  src: url("../fonts/variable/LittGrotesk%5Bwght%5D.woff2") format("woff2");
   font-weight: 300 700;
   font-display: block;
 }
@@ -23,8 +23,8 @@
   --rule: #d3d6da;
   --accent: #2340ff;
   --panel: #e8eae7;
-  --display: "Kanton Grotesk", "Helvetica Neue", Arial, sans-serif;
-  --text: "Kanton Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --display: "Litt Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --text: "Litt Grotesk", "Helvetica Neue", Arial, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --gutter: max(16px, 3.2vw);
 }
@@ -185,10 +185,10 @@ footer { border-top: 1px solid var(--rule); padding-block: 28px 48px; }
 <div class="wrap">
   <header>
     <div class="top">
-      <span class="label">Type specimen · v0.2</span>
+      <span class="label">Type specimen · v0.3</span>
       <span class="label">Variable · wght 300–700</span>
     </div>
-    <h1 class="hero-name" aria-label="Kanton Grotesk"><span>Kanton</span><span class="accent">Grotesk</span></h1>
+    <h1 class="hero-name" aria-label="Litt Grotesk"><span>Litt</span><span class="accent">Grotesk</span></h1>
     <div class="facts">
       <div><span class="label">Weights</span><b>300 to 700</b></div>
       <div><span class="label">Characters</span><b>370</b></div>
@@ -350,13 +350,13 @@ footer { border-top: 1px solid var(--rule); padding-block: 28px 48px; }
         <h2 id="u-h">Load one variable file.</h2>
         <p class="lede">The variable WOFF2 covers every weight. Static TTF and WOFF2 files are in the repository too, for apps that don't support variable fonts.</p>
         <pre id="css-snippet">@font-face {
-  font-family: "Kanton Grotesk";
-  src: url("KantonGrotesk[wght].woff2") format("woff2");
+  font-family: "Litt Grotesk";
+  src: url("LittGrotesk[wght].woff2") format("woff2");
   font-weight: 300 700;
   font-display: swap;
 }
 
-body { font-family: "Kanton Grotesk", "Helvetica Neue", Arial, sans-serif; }
+body { font-family: "Litt Grotesk", "Helvetica Neue", Arial, sans-serif; }
 
 /* UI text: open up a little below 15px, tighten for headlines */
 .small, .caption   { letter-spacing: 0.01em; }
@@ -366,15 +366,15 @@ h1, .display       { font-weight: 650; letter-spacing: -0.02em; }
 input, code, .id   { font-feature-settings: "ss01"; }  /* Il1 O0 */</pre>
         <button class="chip copy" id="copy">Copy CSS</button>
         <ul class="files">
-          <li>fonts/variable/KantonGrotesk[wght].woff2</li>
-          <li>fonts/variable/KantonGrotesk[wght].ttf</li>
-          <li>fonts/static/KantonGrotesk-{Light,Regular,Medium,SemiBold,Bold}.ttf / .woff2</li>
+          <li>fonts/variable/LittGrotesk[wght].woff2</li>
+          <li>fonts/variable/LittGrotesk[wght].ttf</li>
+          <li>fonts/static/LittGrotesk-{Light,Regular,Medium,SemiBold,Bold}.ttf / .woff2</li>
         </ul>
       </div>
     </div>
   </section>
 
-  <footer class="label">Kanton Grotesk 0.1 · Built from code with fontTools · Inspired by mid-century Swiss grotesques</footer>
+  <footer class="label">Litt Grotesk 0.1 · Built from code with fontTools · Inspired by mid-century Swiss grotesques</footer>
 </div>
 
 <script>
@@ -440,7 +440,7 @@ input, code, .id   { font-feature-settings: "ss01"; }  /* Il1 O0 */</pre>
 
   // waterfall
   const fall = document.getElementById("fall");
-  const sample = "Kanton Grotesk sets clean, even text from 12 px captions to 96 px headlines.";
+  const sample = "Litt Grotesk sets clean, even text from 12 px captions to 96 px headlines.";
   [[12, 0.01], [16, 0], [21, 0], [28, -0.01], [40, -0.015], [60, -0.02], [88, -0.03]].forEach(([s, ls]) => {
     const row = document.createElement("div"); row.className = "fall-row";
     row.innerHTML = `<span class="label">${s} px</span><p style="font-size:${s}px;--ls:${ls}em">${sample}</p>`;
