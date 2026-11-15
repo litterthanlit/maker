@@ -12,7 +12,7 @@ It keeps the traits of the genre and changes the details, so it isn't a copy of 
 Less, but better. Every part of the font has to make reading or using it easier.
 
 - **Clear by default.** The 1 has a flag and the l rises above the capitals; braces curve to a point, so `{}` never reads as `[]`. Nothing needs a feature turned on.
-- **Drawn as strokes.** S, s, 2, 3, 5, 6, 9, & @ ? ~ ( ) { } are pen paths (`src/penglyphs.py`): a skeleton expanded by an elliptical pen, as a type designer draws them. The s, S, 2, 3, 4, 5, 6 and 9 are taken from Archivo (OFL) and fitted to Litt's numbers with the make-font method (`src/borrowed.py`); `docs/research` holds the earlier measurement study: the averaged, landmark-aligned centre lines of Helvetica-class grotesques ([docs/research](docs/research/README.md)).
+- **Drawn as strokes.** S, s, 2, 3, 5, 6, 9, & @ ? ~ ( ) { } are pen paths (`src/penglyphs.py`): a skeleton expanded by an elliptical pen, as a type designer draws them. The s, S and figures 0–9 are taken from Archivo (OFL) and fitted to Litt's numbers with the make-font method (`src/borrowed.py`); `docs/research` holds the earlier measurement study: the averaged, landmark-aligned centre lines of Helvetica-class grotesques ([docs/research](docs/research/README.md)).
 - **No stylistic sets.** If an alternate is better, it becomes the default; if it isn't, it doesn't ship. The features that remain do one job each: `kern`, `ccmp`, `case`, `tnum`, `zero`.
 - **Open at small sizes.** Wide enough, spaced enough and open enough to read at 13px, measured against Inter and Geist.
 - **Thorough to the last detail.** & @ { } and the figures are drawn as carefully as the letters; strokes meet along their own curves, without corners.
@@ -65,7 +65,7 @@ Legibility at 400, per 1000 units (v0.3 changes: lowercase ×1.05, sidebearings 
 
 ## Licence
 
-SIL Open Font License 1.1 (`LICENSE.txt`). The s, S and the figures 2, 3, 4, 5, 6 and 9 are Archivo's (OFL, Omnibus-Type), fitted to Litt's stem and heights; everything else is drawn for Litt. Provenance and changelog: `FONTLOG.md`.
+SIL Open Font License 1.1 (`LICENSE.txt`). The s, S and all ten figures are Archivo's (OFL, Omnibus-Type), fitted to Litt's stem and heights; everything else is drawn for Litt. Provenance and changelog: `FONTLOG.md`.
 
 ## Build
 

@@ -393,7 +393,7 @@ def g_percent(p):
 
 
 # --- s and S from an open-licence base (make-font skill) -----------------------
-# The s, S, 2, 3, 4, 5, 6 and 9 are Archivo's (OFL), fitted to Litt's stem, x-height and cap
+# The s, S and all ten figures are Archivo's (OFL), fitted to Litt's stem, x-height and cap
 # height by src/borrowed.py: Archivo's weight axis is solved per master so its
 # stem matches Litt's, and the outline is scaled, never traced or redrawn.
 # data/base holds a subset with only those glyphs and n (n is measured for the stem),
@@ -419,5 +419,6 @@ if _BORROW:
             return c, ink, (fig_sb(p, ink),) * 2  # centred in the shared figure width
         return g
 
-    for _name, _char in (("two", "2"), ("three", "3"), ("four", "4"), ("five", "5"), ("six", "6"), ("nine", "9")):
+    for _name, _char in (("zero", "0"), ("one", "1"), ("two", "2"), ("three", "3"), ("four", "4"),
+                         ("five", "5"), ("six", "6"), ("seven", "7"), ("eight", "8"), ("nine", "9")):
         glyph(_name, _char)(_borrowed_figure(_name))
