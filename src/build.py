@@ -28,7 +28,7 @@ from geometry import reverse, translate  # noqa: E402
 
 FAMILY = "Litt Grotesk"
 FILE = "LittGrotesk"
-VERSION = "1.000"
+VERSION = "1.010"
 UPM = 1000
 
 # Vertical metrics, chosen for UI: one set shared by every platform, no line

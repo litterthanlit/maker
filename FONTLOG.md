@@ -25,6 +25,9 @@ type face for litt.md. It is released under the SIL Open Font License 1.1
 
 ## Changelog
 
+- 1.01: a and c adjusted to sit with the s: c terminals at about 66% and 34% of
+  the x-height (were 79/23), c 3% wider; a 8% wider, bowl lowered to about 59%,
+  hook ending at 72%. Proportions measured from Archivo; Litt's own drawing.
 - 1.0: the chosen design. Back to 0.95: Litt's own letters with Archivo's s and S
   and all ten Archivo figures (the open 4). Versions 0.96 to 0.99 (Archivo's a,
   curved and bowl letters, % €, and an open-join N and k) were tried and set

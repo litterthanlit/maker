@@ -226,8 +226,10 @@ def g_o(p):
 
 @glyph("c", "c")
 def g_c(p):
-    w = p.c(280 * LCW, 1.17) + 2 * p.VR
-    con, _, _ = c_shape(w, -O, XH + O, p.VR, p.HR, 0.56, 0.52)
+    # terminals at about 66% and 34% of the x-height: closer to Archivo's (63/37)
+    # so the c sits with the s, a touch more open for 13px
+    w = p.c(289 * LCW, 1.17) + 2 * p.VR
+    con, _, _ = c_shape(w, -O, XH + O, p.VR, p.HR, 0.30, 0.30)
     return [con], w, (p.SBR, p.SBR * 0.7)
 
 
@@ -249,15 +251,15 @@ def g_e(p):
 @glyph("a", "a")
 def g_a(p):
     V, H = p.V, p.H
-    w = p.c(262 * LCW, 1.22) + V + p.VR
+    w = p.c(283 * LCW, 1.22) + V + p.VR  # 8% wider, nearer Archivo's proportion
     cyh = XH * 0.60
     # top hook, from the stem over the top to a horizontal cut at the left
     ho = Ellipse(V * 0.35, 2 * cyh - (XH + O), w, XH + O, K)
     hi = Ellipse(V * 0.35 + p.VR * 0.98, 2 * cyh - (XH + O - p.HR), w - V, XH + O - p.HR, KI)
-    yt = XH * 0.76 - p.dV * 0.12
+    yt = XH * 0.72 - p.dV * 0.12  # the hook closes a little, as the s does
     hook = band(ho, hi, (0, 0.0), ho.at_y(1, yt), (0, 0.0), hi.at_y(1, yt))
     # bowl
-    top = XH * 0.57 + H * 0.5
+    top = XH * 0.52 + H * 0.5  # a lower bowl gives the hook room; the a no longer sits heavy
     bo = Ellipse(0, -O, w - V * 0.4, top, (0.62, 0.66, 0.62, 0.60))
     bi = Ellipse(p.VR, -O + p.HR, w - V * 0.9, top - H, (0.64, 0.68, 0.64, 0.62))
     return [rect(w - V, 0, w, cyh), hook] + ring(bo, bi), w, (p.SBR * 1.1, p.SB * 0.96)
