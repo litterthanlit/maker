@@ -78,17 +78,10 @@ def solve_weight(path, target_stem, scale_of, lo=None, hi=None):
     return round((lo + hi) / 2, 2)
 
 
-@lru_cache(maxsize=None)
-def _weight_for(path, target_stem, target_height, use):
-    """The solved weight is the same for every glyph fitted with the same numbers."""
-    scale_of = (lambda f: target_height / _xheight(f)) if use == "x" else (lambda f: target_height / _cap(f))
-    return solve_weight(path, target_stem, scale_of)
-
-
 def take(path, glyph, target_stem, target_height, use="x"):
-    """Litt-ready contours for `glyph` from the base at path: (contours, ink, (lsb, rsb), weight)."""
+    """Litt-ready contours for `glyph` from the base at path: (contours, ink, (lsb, rsb))."""
     scale_of = (lambda f: target_height / _xheight(f)) if use == "x" else (lambda f: target_height / _cap(f))
-    w = _weight_for(path, round(target_stem, 4), round(target_height, 4), use)
+    w = solve_weight(path, target_stem, scale_of)
     f = _instance(path, w)
     k = scale_of(f)
     gs = f.getGlyphSet()

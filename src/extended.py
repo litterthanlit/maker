@@ -1056,15 +1056,3 @@ def ccmp_pairs():
 
 
 G_NAME = {ch: nm for nm, (ch, _) in GLYPHS.items() if ch and len(ch) == 1 and ord(ch) < 0x80}
-
-
-# Archivo's æ and €, registered last so they replace the drawn ones (see penglyphs).
-import penglyphs  # noqa: E402
-
-penglyphs.register_late()
-penglyphs.register_all_preview()
-
-# Open-join letters (the 4 as a motif), registered last: see openjoin.py.
-import openjoin  # noqa: E402
-
-openjoin.register()

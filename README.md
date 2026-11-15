@@ -12,14 +12,10 @@ It keeps the traits of the genre and changes the details, so it isn't a copy of 
 Less, but better. Every part of the font has to make reading or using it easier.
 
 - **Clear by default.** The 1 has a flag and the l rises above the capitals; braces curve to a point, so `{}` never reads as `[]`. Nothing needs a feature turned on.
-- **Drawn as strokes.** S, s, 2, 3, 5, 6, 9, & @ ? ~ ( ) { } are pen paths (`src/penglyphs.py`): a skeleton expanded by an elliptical pen, as a type designer draws them. The curved letters, symbols and figures are taken from Archivo (OFL) and fitted to Litt's numbers with the make-font method (`src/borrowed.py`); `docs/research` holds the earlier measurement study: the averaged, landmark-aligned centre lines of Helvetica-class grotesques ([docs/research](docs/research/README.md)).
+- **Drawn as strokes.** S, s, 2, 3, 5, 6, 9, & @ ? ~ ( ) { } are pen paths (`src/penglyphs.py`): a skeleton expanded by an elliptical pen, as a type designer draws them. The s, S and figures 0–9 are taken from Archivo (OFL) and fitted to Litt's numbers with the make-font method (`src/borrowed.py`); `docs/research` holds the earlier measurement study: the averaged, landmark-aligned centre lines of Helvetica-class grotesques ([docs/research](docs/research/README.md)).
 - **No stylistic sets.** If an alternate is better, it becomes the default; if it isn't, it doesn't ship. The features that remain do one job each: `kern`, `ccmp`, `case`, `tnum`, `zero`.
 - **Open at small sizes.** Wide enough, spaced enough and open enough to read at 13px, measured against Inter and Geist.
 - **Thorough to the last detail.** & @ { } and the figures are drawn as carefully as the letters; strokes meet along their own curves, without corners.
-
-## The open join
-
-Litt's signature detail, taken from the open 4: a stroke that stops short of meeting another, its tip bevelled toward the gap. Measured from the 4 (the short upright stops at 87% of the height, the gap is about 1.1 stroke widths) and drawn by Litt in its own N and k (`src/openjoin.py`). Z and A were tried and read as broken at UI sizes, so they are options only (`LITT_OPEN_JOIN=NkZA`).
 
 ## On litt.md
 
@@ -69,7 +65,7 @@ Legibility at 400, per 1000 units (v0.3 changes: lowercase ×1.05, sidebearings 
 
 ## Licence
 
-SIL Open Font License 1.1 (`LICENSE.txt`). The curved and complex letters (a b c d e f g j o p q s t y, G K R S, & @ % €) and all ten figures are Archivo's (OFL, Omnibus-Type); the straight letters are Litt's own, fitted to Litt's stem and heights; everything else is drawn for Litt. Provenance and changelog: `FONTLOG.md`.
+SIL Open Font License 1.1 (`LICENSE.txt`). The s, S and all ten figures are Archivo's (OFL, Omnibus-Type), fitted to Litt's stem and heights; everything else is drawn for Litt. Provenance and changelog: `FONTLOG.md`.
 
 ## Build
 

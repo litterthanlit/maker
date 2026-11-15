@@ -393,7 +393,7 @@ def g_percent(p):
 
 
 # --- s and S from an open-licence base (make-font skill) -----------------------
-# The borrowed glyphs below are Archivo's (OFL), fitted to Litt's stem, x-height and cap
+# The s, S and all ten figures are Archivo's (OFL), fitted to Litt's stem, x-height and cap
 # height by src/borrowed.py: Archivo's weight axis is solved per master so its
 # stem matches Litt's, and the outline is scaled, never traced or redrawn.
 # data/base holds a subset with only those glyphs and n (n is measured for the stem),
@@ -422,50 +422,3 @@ if _BORROW:
     for _name, _char in (("zero", "0"), ("one", "1"), ("two", "2"), ("three", "3"), ("four", "4"),
                          ("five", "5"), ("six", "6"), ("seven", "7"), ("eight", "8"), ("nine", "9")):
         glyph(_name, _char)(_borrowed_figure(_name))
-
-    global _borrowed_letter
-
-    def _borrowed_letter(name, use="x", stem=1.0):
-        def g(p):
-            height = XH if use == "x" else CH
-            c, ink, sb, _ = borrowed.take(_BORROW, name, p.V * stem, height, use)
-            return c, ink, sb
-        return g
-
-    glyph("a", "a")(_borrowed_letter("a"))
-    glyph("percent", "%")(_borrowed_letter("percent", "cap", 1.06))
-    # the curved and complex letters, where drawing by hand shows most; the
-    # straight letters (n h m i l H E F T L ...) stay Litt's own
-    for _ch in "cegyjtfobdpq":
-        glyph(_ch, _ch)(_borrowed_letter(_ch))
-    for _ch in "GRK":
-        glyph(_ch, _ch)(_borrowed_letter(_ch, "cap", 1.06))
-    glyph("ampersand", "&")(_borrowed_letter("ampersand.alt", "cap", 1.06))  # the classic form: the Et form reads as E at UI sizes
-    glyph("at", "@")(_borrowed_letter("at", "cap", 1.0))
-
-
-def register_late():
-    """Borrowed glyphs that extended.py defines too: registered after it, so these win."""
-    if not _BORROW:
-        return
-    glyph("ae", "æ")(_borrowed_letter("ae"))
-    glyph("Euro", "€")(_borrowed_letter("Euro", "cap", 1.06))
-    # built from borrowed letters in extended.py, so take Archivo's own
-    glyph("uni0237", "\u0237")(_borrowed_letter("uni0237"))
-    glyph("tbar", "ŧ")(_borrowed_letter("tbar"))
-    glyph("oe", "œ")(_borrowed_letter("oe"))
-    glyph("thorn", "þ")(_borrowed_letter("thorn"))
-    glyph("dcroat", "đ")(_borrowed_letter("dcroat"))
-
-
-def register_all_preview():
-    """LITT_BORROW_ALL: every basic letter from the base, as the full make-font
-    skill would. A preview of a Litt drawn in Archivo's hand; not the default."""
-    if not (_BORROW and os.environ.get("LITT_BORROW_ALL")):
-        return
-    for ch in "abcdefghijklmnopqrstuvwxyz":
-        glyph(ch, ch)(_borrowed_letter(ch))
-    for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-        glyph(ch, ch)(_borrowed_letter(ch, "cap", 1.06))
-    for name, ch in (("dotlessi", "\u0131"), ("uni0237", "\u0237"), ("kgreenlandic", "\u0138"), ("germandbls", "ß")):
-        glyph(name, ch)(_borrowed_letter(name))
