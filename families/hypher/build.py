@@ -17,13 +17,10 @@ sys.path.insert(0, str(HERE))
 from core.fontbuild import Family, build  # noqa: E402
 import glyphs as G  # noqa: E402
 
-# weight -> lowercase stem width, in Michroma's 2048 units. 400 is Michroma's own.
-MASTERS = {300: 128, 400: 192, 700: 300}
+# weight -> lowercase stem width; everything else derives from it.
+MASTERS = {300: 60, 400: 92, 700: 150}
 
-# (left, right, value): the lockup's tracking is even, but e-r reads loose
-# because both letters open to the right. 2.5 units at the lockup's x-height
-# of 80 (to the e's round top) is 2.5 / 80 * 1174 here.
-KERN_PAIRS = [("e", "r", -37)]
+KERN_PAIRS = []  # (left, right, value at every weight)
 
 
 def features(wght):
@@ -36,20 +33,19 @@ def features(wght):
 HYPHER = Family(
     name="Hypher",
     file="Hypher",
-    version="0.100",
-    copyright="Copyright 2026 The Hypher Project Authors; outlines from Michroma, Copyright 2011 The Michroma Project Authors",
+    version="0.200",
+    copyright="Copyright 2026 The Hypher Project Authors",
     glyphs=G.GLYPHS,
     params=lambda w: G.P(w, MASTERS[w]),
     masters=list(MASTERS),
     default=400,
     instances={300: "Light", 400: "Regular", 500: "Medium", 600: "SemiBold", 700: "Bold"},
-    ascent=2368,  # Michroma's own line box
-    descent=-544,
+    ascent=1000,
+    descent=-260,
     x_height=G.XH,
     cap_height=G.CH,
     features=features,
     out=HERE / "fonts",
-    upm=G.UPM,
     hint=None,  # a display face: set large, where hinting does nothing
 )
 

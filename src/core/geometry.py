@@ -168,6 +168,47 @@ def band(outer, inner, a, b, ai=None, bi=None):
     return contour
 
 
+def rounded(*corners):
+    """A polygon whose corners are rounded: rounded((x, y, r), (x, y, r), ...).
+
+    Points run counter-clockwise for an outline, clockwise for a counter.
+    Each corner with r > 0 becomes a circular arc tangent to both edges; r = 0
+    stays sharp. A corner's kind (sharp or round) must not change between
+    masters, so give a round corner a small radius rather than 0.
+    """
+    n = len(corners)
+    pts = [(c[0], c[1]) for c in corners]
+    pieces = []
+    for i, (x, y, r) in enumerate(corners):
+        a, b = pts[i - 1], pts[(i + 1) % n]
+        if r <= 0:
+            pieces.append(None)
+            continue
+        ua = _unit((a[0] - x, a[1] - y))
+        ub = _unit((b[0] - x, b[1] - y))
+        theta = math.acos(max(-1.0, min(1.0, ua[0] * ub[0] + ua[1] * ub[1])))  # interior angle
+        t = r / math.tan(theta / 2)
+        t = min(t, 0.5 * math.dist(a, (x, y)), 0.5 * math.dist(b, (x, y)))
+        r = t * math.tan(theta / 2)
+        h = 4 / 3 * math.tan((math.pi - theta) / 4) * r
+        t1 = (x + ua[0] * t, y + ua[1] * t)
+        t2 = (x + ub[0] * t, y + ub[1] * t)
+        c1 = (t1[0] - ua[0] * h, t1[1] - ua[1] * h)
+        c2 = (t2[0] - ub[0] * h, t2[1] - ub[1] * h)
+        pieces.append((t1, c1, c2, t2))
+    last = pieces[-1]
+    out = [last[3] if last else pts[-1]]
+    for i, pc in enumerate(pieces):
+        if pc is None:
+            out.append(("l", pts[i]))
+        else:
+            out.append(("l", pc[0]))
+            out.append(("c", pc[1], pc[2], pc[3]))
+    if out[-1][0] == "l" and out[-1][1] == out[0]:
+        out.pop()
+    return out
+
+
 def ring(outer, inner):
     return [outer.contour(), reverse(inner.contour())]
 

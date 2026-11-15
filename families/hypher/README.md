@@ -1,25 +1,23 @@
 # Hypher (prototype)
 
-The display face for the Hypher wordmark. Hypher Regular is Michroma (OFL) with the brand lockup's spacing built in, so `hypher` set in it reproduces `hypher-web/public/brand/hypher-lockup.svg` to within 0.08 units per letter. The weight axis runs 300 to 700, so the site can set the word heavier without stroking the outline.
+The display face for the Hypher wordmark, drawn in code after the Hypher mark: wide, flat-sided letters whose curves live only in their corners. It sits where the research found an open spot among futuristic faces, wide and square and light (the wide ones are round, like Michroma and Unbounded; the square ones are narrow, like Orbitron and Aldrich).
 
 - **Weights:** variable `wght` 300–700; Light, Regular, Medium, SemiBold and Bold instances
-- **Characters:** a–z, space, period, hyphen (prototype)
-- **Metrics:** Michroma's, at 2048 UPM · x-height 1152 · ascender 1536 · descender −384
-- **Spacing:** every glyph carries half of the lockup's +0.080em on each side; `kern` tightens e–r by 37 units (2.5 at the lockup's size), where both letters open to the right
+- **Characters:** h y p e r n o and space (prototype)
+- **Metrics:** 1000 UPM · x-height 560 · ascender 740 (1.32 x-heights) · descender −185 (0.33)
 
-## How the weights are made
+## How it is drawn
 
-Regular is Michroma's outline, read from `data/base`. Light and Bold move every edge in or out by the same distance (64 and 54 units on the stems, three quarters of that on the horizontals), then pull the baseline, x-height and ascender back to where they were. Points are moved, never added, so all three masters interpolate. Sharp corners get special cases in `glyphs.py`:
+Every letter is a few polygons from `rounded()` in `src/core/geometry.py`: corners with a radius each, sides straight. Everything derives from the stem, one number per master (`MASTERS` in `build.py`: 60, 92, 150).
 
-- a curve that doubles back into a stem (the a) slides with the stem rather than the bisector, which would fold it into a hook
-- straight corners take the full miter (the k's arm tips), but never move more than 0.45 of the way to the nearest other corner (the k's crotch, 58 units tall)
-- straight segments under 2 units are dropped from the source (the m's middle stem has a 1-unit step)
+- **Corners:** outer radius 0.20 x-heights; counters follow it one stroke inside. The mark's own 0.043 read as pixel type at letter size and 0.26 drifted back to a squircle (`HYPHER_RADIUS` overrides it for a comparison proof).
+- **Horizontals** are 0.86 of the stem, so they look equal to it.
+- **Width** grows by twice the stem's gain, so Bold's counters stay open.
+- **y** is two straight arms; a u-shaped y read as a g and broke the word's rhythm.
 
 ## Build and check
 
 ```bash
 python3 families/hypher/build.py
-python3 families/hypher/proof/check_outlines.py   # fails on any reversed loop the offset made
+python3 families/hypher/proof/check_outlines.py   # fails on any outline that runs backwards over itself
 ```
-
-`proof/lockup.html` shows the lockup, Hypher Regular over it, the three weights beside the mark, and the lowercase. `proof/lockup.png` is its last capture.

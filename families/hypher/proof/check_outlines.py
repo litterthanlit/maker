@@ -1,14 +1,10 @@
-"""List every glyph whose offset outline crosses itself, at each master.
+"""Fail if any glyph's outline runs backwards over itself, at any master.
 
     python3 families/hypher/proof/check_outlines.py
 
-Michroma's own contours don't overlap, so a clean glyph's signed area equals
-the area of its outline with overlaps removed. Less area means a loop runs
-backwards (a bowtie), which renders as a notch or a stray tick: that fails.
-More area means the outline covers some ink twice, as Bold's arches do where
-they run into their stems; that fills the same pixels, but a hook outside the
-letter shows up the same way, so those are listed for a look at lockup.html.
-Exit status 1 if any glyph fails.
+A clean glyph's signed area is at least the area of its outline with overlaps
+removed: overlapping parts (a stem laid over a bowl) cover ink twice. Less
+area means a loop runs backwards, which renders as a notch or a stray tick.
 """
 
 import sys
@@ -59,7 +55,7 @@ for w, stem in build.MASTERS.items():
             bad.append((w, name, round(abs(signed(contours)) - clean.area)))
 
 fail = [b for b in bad if b[2] < 0]
-for w, name, delta in bad:
-    print(f"{w} {name}: {'reversed loop' if delta < 0 else 'overlap'}, {abs(delta)} units²")
-print(f"{len(fail)} reversed loops, {len(bad) - len(fail)} overlaps in {len(G.GLYPHS) * len(build.MASTERS)} glyph-masters")
+for w, name, delta in fail:
+    print(f"{w} {name}: reversed loop, {abs(delta)} units²")
+print(f"{len(fail)} reversed loops in {len(G.GLYPHS) * len(build.MASTERS)} glyph-masters")
 sys.exit(1 if fail else 0)
