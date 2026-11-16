@@ -310,6 +310,12 @@ def hole(x0, y0, x1, y1, r, bottom=None, top=None):
                             chamfer=STYLE.get("chamfer", False))
 
 
+def waist(p):
+    """The corner radius where two stacked bowls meet (the 3's, the 8's), sized so
+    the side pinches in about as deep as Michroma's."""
+    return STYLE.get("waist", 2.0) * p.ro
+
+
 def joint(p, r):
     """A counter's corner against a crossbar: no rounder than 1.3 bars, so two corners
     back to back across a thin bar (the e's, the 8's) do not swell into a blob at Light."""
@@ -766,31 +772,45 @@ def g_two(p):
 
 @glyph("three", "3")
 def g_three(p):
-    """Two bowls open to the left, meeting at a short middle bar."""
+    """Two bowls open to the left, stacked on a short middle bar.
+
+    Each bowl rounds its own corner at the middle, so the right side pinches in
+    there, as Michroma's 3 does; one straight side read as a block."""
     W = p.w("three")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
     tb, tt = FH * lm("three_tb", 0.29), FH * lm("three_tt", 0.736)  # terminal heights
     m0 = FH * lm("three_mid", 0.518) - H / 2
     m1, xm = m0 + H, W * lm("three_xm", 0.405)  # the middle bar starts here
-    c = rounded(
-        (0, tb, rt), (0, 0, ro), (W, 0, ro), (W, FH, ro), (0, FH, ro), (0, tt, rt), (V, tt, rt),
-        (V, FH - H, ri), (W - V, FH - H, ri), (W - V, m1, ri), (xm, m1, rt), (xm, m0, rt),
-        (W - V, m0, ri), (W - V, H, ri), (V, H, ri), (V, tb, rt),
+    rw = waist(p)
+    upper = rpoly(
+        (0, FH, ro), (0, tt, rt), (V, tt, rt), (V, FH - H, ri), (W - V, FH - H, ri), (W - V, m1, joint(p, ri)),
+        (xm, m1, rt), (xm, m0, rt), (W, m0, rw), (W, FH, ro),
     )
-    return [c], W, p.sides("three")
+    lower = rpoly(
+        (0, 0, ro), (W, 0, ro), (W, m1, rw), (xm, m1, rt), (xm, m0, rt), (W - V, m0, joint(p, ri)),
+        (W - V, H, ri), (V, H, ri), (V, tb, rt), (0, tb, rt),
+    )
+    return [upper, lower], W, p.sides("three")
 
 
 @glyph("four", "4")
 def g_four(p):
+    """One outline, as Michroma's: the diagonal's outer edge runs from the crossbar's
+    top left corner to the top, where it meets the stem flush, so nothing steps out."""
     W = p.w("four")
     V, H, rt = p.V, p.H, p.rt
     xs = W * lm("four_xs", 0.751)  # the stem's left edge
     b0 = FH * lm("four_bar", 0.209)  # bottom of the crossbar
-    hw = diag_hw(xs, FH - b0, V * 0.98)
-    diagonal = rpoly((0, b0, 0), (hw, b0, 0), (xs + V / 2, FH, rt), (xs + V / 2 - hw, FH, rt))
-    stem = box(xs, 0, xs + V, FH, rt, rt, rt, 0)
-    bar = box(0, b0, W, b0 + H, rt, rt, rt, rt)
-    return [stem, bar, diagonal], W, p.sides("four")
+    b1 = b0 + H
+    ox = xs - 0.34 * V  # the diagonal's outer edge at the top
+    hw = diag_hw(ox, FH - b1, V * 0.98)  # its horizontal width
+    yin = b1 + (xs - hw) * (FH - b1) / ox  # where its inner edge meets the stem
+    outer = rpoly(
+        (xs, 0, rt), (xs + V, 0, rt), (xs + V, b0, 0), (W, b0, rt), (W, b1, rt), (xs + V, b1, 0),
+        (xs + V, FH, rt), (ox, FH, rt), (0, b1, rt), (0, b0, rt), (xs, b0, 0),
+    )
+    counter = rounded((hw, b1, 0), (xs, yin, 0), (xs, b1, 0))
+    return [outer, counter], W, p.sides("four")
 
 
 @glyph("five", "5")
@@ -820,22 +840,32 @@ def g_six(p):
 
 @glyph("seven", "7")
 def g_seven(p):
+    """One outline, as Michroma's: the diagonal's outer edge leaves the bar at its
+    lower right corner, so the bar does not stick out past it."""
     W = p.w("seven")
     V, H, rt = p.V, p.H, p.rt
     xb = W * lm("seven_xb", 0.186)  # where the diagonal lands
-    hw = diag_hw(W - xb, FH - H, V * 0.98)
-    diagonal = rpoly((xb, 0, rt), (xb + hw, 0, rt), (W, FH - H / 2, 0), (W - hw, FH - H / 2, 0))
-    bar = box(0, FH - H, W, FH, rt, rt, rt, rt)
-    return [bar, diagonal], W, p.sides("seven")
+    h = FH - H
+    hw = V * 1.2
+    for _ in range(6):
+        hw = diag_hw(W - xb - hw, h, V * 0.98)
+    xi = xb + (W - xb - hw)  # the inner edge under the bar, parallel to the outer
+    return [rpoly(
+        (0, h, rt), (xi, h, 0), (xb, 0, rt), (xb + hw, 0, rt), (W, h, 0), (W, FH, rt), (0, FH, rt),
+    )], W, p.sides("seven")
 
 
 @glyph("eight", "8")
 def g_eight(p):
+    """Two bowls stacked on the middle bar, each with its own corners, so both
+    sides pinch in at the middle, as Michroma's 8 does."""
     W = p.w("eight")
     V, H, ro, ri = p.V, p.H, p.ro, p.ri
     m0 = FH * lm("eight_mid", 0.518) - H / 2
-    outer = box(0, 0, W, FH, ro, ro, ro, ro)
-    return [outer, hole(V, H, W - V, m0, ri, top=joint(p, ri)), hole(V, m0 + H, W - V, FH - H, ri, bottom=joint(p, ri))], W, p.sides("eight")
+    rw = waist(p)
+    upper = box(0, m0, W, FH, rw, rw, ro, ro)
+    lower = box(0, 0, W, m0 + H, ro, ro, rw, rw)
+    return [upper, lower, hole(V, H, W - V, m0, ri, top=joint(p, ri)), hole(V, m0 + H, W - V, FH - H, ri, bottom=joint(p, ri))], W, p.sides("eight")
 
 
 @glyph("nine", "9")
