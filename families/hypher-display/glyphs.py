@@ -302,10 +302,18 @@ def box(x0, y0, x1, y1, bl, br, tr, tl):
     return rounded((x0, y0, bl), (x1, y0, br), (x1, y1, tr), (x0, y1, tl))
 
 
-def hole(x0, y0, x1, y1, r):
-    """A counter: a rounded rectangle running clockwise."""
-    return geometry.rounded((x0, y0, r), (x0, y1, r), (x1, y1, r), (x1, y0, r), smooth=STYLE["inner_smooth"],
+def hole(x0, y0, x1, y1, r, bottom=None, top=None):
+    """A counter: a rounded rectangle running clockwise; bottom and top override those corners' radius."""
+    b = r if bottom is None else bottom
+    t = r if top is None else top
+    return geometry.rounded((x0, y0, b), (x0, y1, t), (x1, y1, t), (x1, y0, b), smooth=STYLE["inner_smooth"],
                             chamfer=STYLE.get("chamfer", False))
+
+
+def joint(p, r):
+    """A counter's corner against a crossbar: no rounder than 1.3 bars, so two corners
+    back to back across a thin bar (the e's, the 8's) do not swell into a blob at Light."""
+    return min(r, 1.3 * p.H)
 
 
 def stem_top(p, x0, bottom):
@@ -406,9 +414,9 @@ def g_e(p):
     rc = ri * 1.5  # the e's counters are softer than the bowls', as in the wordmark's e
     outer = rounded(
         (0, 0, ro), (W, 0, ro), (W, term, rt), (W - V, term, rt), (W - V, H, ri * 2), (V, H, rc),
-        (V, bar0, rc), (W, bar0, rt), (W, XH, ro), (0, XH, ro),
+        (V, bar0, joint(p, rc)), (W, bar0, rt), (W, XH, ro), (0, XH, ro),
     )
-    eye = hole(V, bar1, W - V, XH - H, rc)
+    eye = hole(V, bar1, W - V, XH - H, rc, bottom=joint(p, rc))
     return [outer, eye], W, p.sides("e")
 
 
@@ -425,9 +433,11 @@ def g_r(p):
 
 @glyph("y", "y")
 def g_y(p):
-    """A symmetric V meeting on the baseline; the right arm runs on into the descender."""
+    """A symmetric V meeting on the baseline; the right arm runs on into the descender.
+
+    Its tops are cut flat, as the v's and x's are."""
     W = p.w("y")
-    V, r, rt = p.V, p.ri, p.rt
+    V, rt = p.V, p.rt
     cx = W / 2  # the arms' centre lines cross here, on the baseline
     hw = diag_hw(cx, XH, V)  # horizontal width of either arm
     slope = (cx - hw / 2) / XH  # x per unit of height, along a centre line
@@ -441,12 +451,12 @@ def g_y(p):
 
         xt = STYLE["y_tail_end"] * W  # where the foot stops
         right = rounded(
-            (xt, DSC, rt), (edge_x(DSC, hw / 2), DSC, ro * STYLE["y_bend"]), (W, XH, r), (W - hw, XH, rt),
+            (xt, DSC, rt), (edge_x(DSC, hw / 2), DSC, ro * STYLE["y_bend"]), (W, XH, rt), (W - hw, XH, rt),
             (edge_x(DSC + H, -hw / 2), DSC + H, p.ri * STYLE["y_bend"]), (xt, DSC + H, rt),
         )
     else:
         right = rounded(
-            (xd - hw / 2, DSC, r), (xd + hw / 2, DSC, rt), (W, XH, r), (W - hw, XH, rt),
+            (xd - hw / 2, DSC, rt), (xd + hw / 2, DSC, rt), (W, XH, rt), (W - hw, XH, rt),
         )
 
     # The left arm mirrors the right and stops on the right arm's centre line,
@@ -455,7 +465,7 @@ def g_y(p):
         y = edge / (2 * slope)
         return (cx + slope * y, y, 0)
 
-    left = rounded((0, XH, r), meet(-hw / 2), meet(hw / 2), (hw, XH, rt))
+    left = rounded((0, XH, rt), meet(-hw / 2), meet(hw / 2), (hw, XH, rt))
     return [right, left], W, p.sides("y")
 
 
@@ -825,7 +835,7 @@ def g_eight(p):
     V, H, ro, ri = p.V, p.H, p.ro, p.ri
     m0 = FH * lm("eight_mid", 0.518) - H / 2
     outer = box(0, 0, W, FH, ro, ro, ro, ro)
-    return [outer, hole(V, H, W - V, m0, ri), hole(V, m0 + H, W - V, FH - H, ri)], W, p.sides("eight")
+    return [outer, hole(V, H, W - V, m0, ri, top=joint(p, ri)), hole(V, m0 + H, W - V, FH - H, ri, bottom=joint(p, ri))], W, p.sides("eight")
 
 
 @glyph("nine", "9")
@@ -1309,9 +1319,10 @@ def g_Y(p):
 def g_Z(p):
     W = p.w("Z")
     H = p.H
-    hw = diag_hw(W, CH - 2 * H, p.V * 0.98)
-    diagonal = rpoly((W - hw, CH - H, 0), (W, CH - H, 0), (hw, H, 0), (0, H, 0))
-    return [bar(p, W * lm("Z_l", 0.036), W * lm("Z_r", 0.983), CH - H), bar(p, 0, W, 0), diagonal], W, p.sides("Z")
+    xr = W * lm("Z_r", 0.983)  # the top bar's right end: the diagonal starts under it, not past it
+    hw = diag_hw(xr, CH - 2 * H, p.V * 0.98)
+    diagonal = rpoly((xr - hw, CH - H, 0), (xr, CH - H, 0), (hw, H, 0), (0, H, 0))
+    return [bar(p, W * lm("Z_l", 0.036), xr, CH - H), bar(p, 0, W, 0), diagonal], W, p.sides("Z")
 
 
 # --- & @ % ----------------------------------------------------------------
@@ -1344,7 +1355,8 @@ def g_at(p):
         (0, b, ro), (xi1, b, rt), (xi1, b + H, rt), (V, b + H, ri), (V, t - H, ri), (W - V, t - H, ri),
         (W - V, yi0, rt), (W, yi0, rt), (W, t, ro), (0, t, ro),
     )
-    inner = [box(xi0, yi0, xi1, yi1, ro * 0.6, rt, ro * 0.6, ro * 0.6), hole(xi0 + V, yi0 + H, xi1 - V, yi1 - H, ri * 0.6),
+    # the inner bowl is square at the top right, where the stem rises through it
+    inner = [box(xi0, yi0, xi1, yi1, ro * 0.6, rt, rt, ro * 0.6), hole(xi0 + V, yi0 + H, xi1 - V, yi1 - H, ri * 0.6),
              box(xi1 - V, b, xi1, yi1, rt, rt, rt, rt)]
     return [outer] + inner, W, p.sides("at")
 

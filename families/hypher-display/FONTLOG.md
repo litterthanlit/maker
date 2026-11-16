@@ -9,6 +9,7 @@ Drawn in code for Hypher Display; no outlines are taken from another font.
 
 ## Changelog
 
+- **0.510 (2026-11-16):** a pass for broken shapes. The y's tops are cut flat like the v's, so the logo's y changes too. Z: the diagonal no longer pokes past the end of the top bar. 8 and e: a counter's corner against a crossbar is no rounder than 1.3 bars (`joint()`), so Light has no dark blobs where two counters meet across a thin bar; Regular and Bold are unchanged. @: the inner bowl is square where the stem rises through it, so no tick sticks up.
 - **0.500 (2026-11-16):** v and w cut every end flat, as the x does; the rounded outer ears are gone. The capital W is one outline too, like the w.
 - **0.490 (2026-11-16):** the w, in every version, is one outline with a flat middle peak at the x-height. It was two v's laid over each other, and each one's rounded top corner left a notch in the middle.
 - **0.480 (2026-11-16):** Hypher Display's e is now Datum's: the crossbar sits lower (0.43 of the x-height), the cut ends are softly rounded, and the letter is a little narrower. It keeps the wordmark's spacing, so words and the logo set as before. Any version can borrow another's e with `e_from`.
