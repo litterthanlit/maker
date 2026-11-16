@@ -273,7 +273,7 @@ class P:
         self.ro = STYLE["radius"] * XH  # outer corners
         self.ri = max(self.ro - STYLE["inner"] * stem, 0.3 * self.ro, 4)  # counters follow the outer corner
         if "counter" in STYLE:  # rounder counters, but never rounder than the outside, or corners go heavy at Light
-            self.ri = min(self.ri * STYLE["counter"], 0.85 * self.ro)
+            self.ri = min(self.ri * STYLE["counter"], 0.85 * self.ro, 1.2 * stem)  # and at most 1.2 stems, or a thin stem goes heavy beside a square corner
         self.rt = STYLE["term"] * XH  # cut ends
         self.grow = (stem - REGULAR_STEM) * 2.0  # letters widen as they gain weight, keeping counters open
 
@@ -325,6 +325,13 @@ def waist(p, side):
     return max(min(STYLE.get("waist", 2.0) * p.ro, room), 4)
 
 
+def tee(p, r):
+    """A counter's corner where three strokes meet (the B's middle bar at its stem,
+    the m's middle stem, the 6's bowl at its stem): no rounder than a stem, so the
+    joint stays as light as the e's at Light."""
+    return min(joint(p, r), p.V)
+
+
 def joint(p, r):
     """A counter's corner against a crossbar: no rounder than 1.3 bars, so two corners
     back to back across a thin bar (the e's, the 8's) do not swell into a blob at Light."""
@@ -338,15 +345,21 @@ def stem_top(p, x0, bottom):
     return [box(x0, bottom, x0 + p.V, XH, p.rt, p.rt, 0, p.rt)]
 
 
-def arch(p, x0, x1, top, bottom=0, left_bottom=None):
+def arch(p, x0, x1, top, bottom=0, left_bottom=None, on_stem=()):
     """The n's arch: two stems joined by a flat top, open at the bottom.
 
-    left_bottom ends the left leg higher, as a terminal (the a's hook)."""
+    left_bottom ends the left leg higher, as a terminal (the a's hook). on_stem
+    names the top corners ("left", "right") that sit on a stem with a square top:
+    those are square too, or the arch's curve would leave a notch beside it."""
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
     lb = bottom if left_bottom is None else left_bottom
+    tl = square(p, ro) if "left" in on_stem else ro
+    tr = square(p, ro) if "right" in on_stem else ro
+    il = tee(p, ri) if "left" in on_stem else ri  # the counter's corner where the arch meets the stem
+    ir = tee(p, ri) if "right" in on_stem else ri
     return rounded(
-        (x0, lb, rt), (x0 + V, lb, rt), (x0 + V, top - H, ri), (x1 - V, top - H, ri),
-        (x1 - V, bottom, rt), (x1, bottom, rt), (x1, top, ro), (x0, top, ro),
+        (x0, lb, rt), (x0 + V, lb, rt), (x0 + V, top - H, il), (x1 - V, top - H, ir),
+        (x1 - V, bottom, rt), (x1, bottom, rt), (x1, top, tr), (x0, top, tl),
     )
 
 
@@ -366,8 +379,12 @@ def dot(p, x0):
     return box(x0, ASC - p.V, x0 + p.V, ASC, p.rt, p.rt, p.rt, p.rt)
 
 
-def bowl(p, x0, x1, bottom=0, top=XH):
-    return [box(x0, bottom, x1, top, p.ro, p.ro, p.ro, p.ro),
+def bowl(p, x0, x1, bottom=0, top=XH, stem=None):
+    """A closed bowl; stem ("left" or "right") squares the corners on that side,
+    where they meet a square-ended stem, so no notch opens between them."""
+    lft = square(p, p.ro) if stem == "left" else p.ro
+    rgt = square(p, p.ro) if stem == "right" else p.ro
+    return [box(x0, bottom, x1, top, lft, rgt, rgt, lft),
             hole(x0 + p.V, bottom + p.H, x1 - p.V, top - p.H, p.ri)]
 
 
@@ -379,14 +396,14 @@ def g_space(p):
 @glyph("n", "n")
 def g_n(p):
     W = p.w("n")
-    return stem_top(p, 0, 0) + [arch(p, 0, W, XH)], W, p.sides("n")
+    return stem_top(p, 0, 0) + [arch(p, 0, W, XH, on_stem=("left",))], W, p.sides("n")
 
 
 @glyph("h", "h")
 def g_h(p):
     W = p.w("h")
     stem = box(0, 0, p.V, ASC, p.rt, p.rt, p.rt, p.rt)
-    return [stem, arch(p, 0, W, XH)], W, p.sides("h")
+    return [stem, arch(p, 0, W, XH, on_stem=("left",))], W, p.sides("h")
 
 
 @glyph("o", "o")
@@ -400,7 +417,7 @@ def g_p(p):
     W = p.w("p")
     tl = p.rt if STYLE["stem_tops"] == "square" else p.ro
     stem = box(0, DSC, p.V, XH, p.rt, p.rt, 0, tl)
-    return [stem] + bowl(p, 0, W), W, p.sides("p")
+    return [stem] + bowl(p, 0, W, stem="left"), W, p.sides("p")
 
 
 @glyph("e", "e")
@@ -441,7 +458,7 @@ def g_r(p):
     W = p.w("r")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
     c = rounded(
-        (0, 0, rt), (V, 0, rt), (V, XH - H, ri), (W, XH - H, rt), (W, XH, ro), (0, XH, ro),
+        (0, 0, rt), (V, 0, rt), (V, XH - H, ri), (W, XH - H, rt), (W, XH, ro), (0, XH, square(p, ro)),
     )
     return stem_top(p, 0, 0) + [c], W, p.sides("r")
 
@@ -491,14 +508,14 @@ def g_a(p):
     W = p.w("a")
     top = XH * lm("a_bowl", 0.58) + (p.H - 79) * 0.6  # top of the bowl, raised with weight so its counter stays open
     hook = arch(p, 0, W, XH, left_bottom=XH * lm("a_hook", 0.73))
-    return [hook] + bowl(p, 0, W, top=top), W, p.sides("a")
+    return [hook] + bowl(p, 0, W, top=top, stem="right"), W, p.sides("a")
 
 
 @glyph("b", "b")
 def g_b(p):
     W = p.w("b")
     stem = box(0, 0, p.V, ASC, square(p, p.ro), 0, p.rt, p.rt)
-    return [stem] + bowl(p, 0, W), W, p.sides("b")
+    return [stem] + bowl(p, 0, W, stem="left"), W, p.sides("b")
 
 
 @glyph("c", "c")
@@ -518,7 +535,7 @@ def g_c(p):
 def g_d(p):
     W = p.w("d")
     stem = box(W - p.V, 0, W, ASC, 0, square(p, p.ro), p.rt, p.rt)
-    return [stem] + bowl(p, 0, W), W, p.sides("d")
+    return [stem] + bowl(p, 0, W, stem="right"), W, p.sides("d")
 
 
 @glyph("f", "f")
@@ -545,7 +562,7 @@ def g_g(p):
         (xt, tip, rt), (xt, deep, ro), (W, deep, ro), (W, XH, square(p, ro)), (W - V, XH, rt),
         (W - V, deep + H, ri), (xt + V, deep + H, ri), (xt + V, tip, rt),
     )
-    return [tail] + bowl(p, 0, W), W, p.sides("g")
+    return [tail] + bowl(p, 0, W, stem="right"), W, p.sides("g")
 
 
 @glyph("i", "i")
@@ -609,14 +626,17 @@ def g_m(p):
     """Two n arches sharing the middle stem, with equal counters."""
     W = p.w("m")
     W1 = (W + p.V) / 2
-    return stem_top(p, 0, 0) + [arch(p, 0, W1, XH), arch(p, W1 - p.V, W, XH)], W, p.sides("m")
+    # the middle stem rises square between the arches, so neither curves into it
+    middle = stem_top(p, W1 - p.V, 0)
+    return stem_top(p, 0, 0) + middle + [arch(p, 0, W1, XH, on_stem=("left", "right")),
+                                         arch(p, W1 - p.V, W, XH, on_stem=("left",))], W, p.sides("m")
 
 
 @glyph("q", "q")
 def g_q(p):
     W = p.w("q")
     stem = box(W - p.V, DSC, W, XH, p.rt, p.rt, square(p, p.ro), 0)
-    return [stem] + bowl(p, 0, W), W, p.sides("q")
+    return [stem] + bowl(p, 0, W, stem="right"), W, p.sides("q")
 
 
 @glyph("s", "s")
@@ -734,8 +754,8 @@ def g_z(p):
     W = p.w("z")
     H, rt = p.H, p.rt
     hw = diag_hw(W, XH - 2 * H, p.V * 0.98)
-    top = box(0, XH - H, W, XH, rt, rt, rt, rt)
-    bottom = box(0, 0, W, H, rt, rt, rt, rt)
+    top = box(0, XH - H, W, XH, rt, 0, rt, rt)  # sharp where the diagonal leaves, so its corner does not poke out past a soft one
+    bottom = box(0, 0, W, H, rt, rt, rt, 0)
     diagonal = rpoly((W - hw, XH - H, 0), (W, XH - H, 0), (hw, H, 0), (0, H, 0))
     return [top, bottom, diagonal], W, p.sides("z")
 
@@ -761,7 +781,7 @@ def g_one(p):
     xs = W * lm("one_xs", 0.465) - (V - REGULAR_STEM) / 2  # the stem stays centred on the same line as it thickens
     drop = FH * lm("one_drop", 0.10)  # how far the flag falls across its length
     flag = rpoly((xs + 2, FH, 0), (0, FH - drop, rt), (0, FH - drop - H * 1.05, rt), (xs + 2, FH - H * 1.05, 0))
-    stem = box(xs, 0, xs + V, FH, 0, 0, rt, square(p, p.ro))
+    stem = box(xs, 0, xs + V, FH, 0, 0, rt, 0 if STYLE["stem_tops"] == "square" else p.ro)  # the flag runs on from a sharp corner
     base = box(0, 0, W, H, rt, rt, rt, rt)
     return [stem, flag, base], W, p.sides("one")
 
@@ -841,10 +861,10 @@ def g_six(p):
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
     bt, t = FH * lm("six_bowl", 0.57), FH * lm("six_t", 0.736)
     c = rounded(
-        (0, 0, ro), (W, 0, ro), (W, bt, ro), (V, bt, ri), (V, FH - H, ri), (W - V, FH - H, ri),
+        (0, 0, ro), (W, 0, ro), (W, bt, ro), (V, bt, tee(p, ri)), (V, FH - H, ri), (W - V, FH - H, ri),
         (W - V, t, rt), (W, t, rt), (W, FH, ro), (0, FH, ro),
     )
-    return [c, hole(V, H, W - V, bt - H, ri)], W, p.sides("six")
+    return [c, hole(V, H, W - V, bt - H, ri, top=tee(p, ri))], W, p.sides("six")  # three strokes meet here
 
 
 @glyph("seven", "7")
@@ -1105,11 +1125,15 @@ def g_numbersign(p):
 CH = ASC
 
 
-def capbowl(p, x0, x1, y0, y1, left="round"):
-    """A bowl for B, D, P and R: square on the left, where it meets the stem."""
+def capbowl(p, x0, x1, y0, y1, left="round", bar=None):
+    """A bowl for B, D, P and R: square on the left, where it meets the stem.
+    bar ("top" or "bottom") is the side that is a shared middle bar, whose counter
+    corners are capped like the e's (joint())."""
     ro, ri, rt = p.ro, p.ri, p.rt
     l = ro if left == "round" else rt
-    return [box(x0, y0, x1, y1, l, ro, ro, l), hole(x0 + p.V, y0 + p.H, x1 - p.V, y1 - p.H, ri)]
+    return [box(x0, y0, x1, y1, l, ro, ro, l),
+            hole(x0 + p.V, y0 + p.H, x1 - p.V, y1 - p.H, ri,
+                 top=tee(p, ri) if bar == "top" else None, bottom=tee(p, ri) if bar == "bottom" else None)]
 
 
 def stem(p, x0, y0=0, y1=CH):
@@ -1145,7 +1169,7 @@ def g_A(p):
 def g_B(p):
     W = p.w("B")
     m0 = CH * lm("B_mid", 0.532) - p.H / 2  # bottom of the middle bar
-    return [stem(p, 0)] + capbowl(p, 0, W, 0, m0 + p.H, "square") + capbowl(p, 0, W * lm("B_upper", 0.965), m0, CH, "square"), W, p.sides("B")
+    return [stem(p, 0)] + capbowl(p, 0, W, 0, m0 + p.H, "square", bar="top") + capbowl(p, 0, W * lm("B_upper", 0.965), m0, CH, "square", bar="bottom"), W, p.sides("B")
 
 
 def c_shape(p, W, h, t0, t1):
@@ -1361,7 +1385,9 @@ def g_Z(p):
     xr = W * lm("Z_r", 0.983)  # the top bar's right end: the diagonal starts under it, not past it
     hw = diag_hw(xr, CH - 2 * H, p.V * 0.98)
     diagonal = rpoly((xr - hw, CH - H, 0), (xr, CH - H, 0), (hw, H, 0), (0, H, 0))
-    return [bar(p, W * lm("Z_l", 0.036), xr, CH - H), bar(p, 0, W, 0), diagonal], W, p.sides("Z")
+    top = box(W * lm("Z_l", 0.036), CH - H, xr, CH, p.rt, 0, p.rt, p.rt)  # sharp where the diagonal leaves
+    bottom = box(0, 0, W, H, p.rt, p.rt, p.rt, 0)
+    return [top, bottom, diagonal], W, p.sides("Z")
 
 
 # --- & @ % ----------------------------------------------------------------
@@ -1386,16 +1412,17 @@ def g_ampersand(p):
     lo = lambda x: top0 - d0 - sl * x  # noqa: E731  lower edge
     wb, tr = W * 0.87, FH * 0.50  # the lower bowl's right side and terminal
     xr, tt = W * 0.82, FH * 0.68  # the upper loop's right side and terminal
-    x2 = 2 * V  # the upper stem's inner edge
+    x1 = 0.6 * V  # the upper stem's outer edge: set into the lower bowl's side, so the two do not stand side by side as one heavy block at Bold
+    x2 = x1 + V  # its inner edge
     lower = rpoly(
         (0, 0, ro), (wb, 0, ro), (wb, tr, rt), (wb - V, tr, rt), (wb - V, H, ri), (V, H, ri),
         (V, lo(V), joint(p, ri)), (W, lo(W), rt), (W, up(W), rt), (x2, up(x2), 0), (0, up(x2), ro),
     )
     j = 0.9 * V  # room along the diagonal for the fillet under the upper stem
     upper = rpoly(
-        (V, lo(V) + 0.5 * (up(x2) - lo(V)), 0), (x2 + j, up(x2 + j) - d0 / 2, 0), (x2 + j, up(x2 + j), 0),
+        (x1, lo(V) + 0.5 * (up(x2) - lo(V)), 0), (x2 + j, up(x2 + j) - d0 / 2, 0), (x2 + j, up(x2 + j), 0),
         (x2, up(x2), 0.8 * V), (x2, FH - H, ri), (xr - V, FH - H, ri), (xr - V, tt, rt), (xr, tt, rt),
-        (xr, FH, ro), (V, FH, ro),
+        (xr, FH, ro), (x1, FH, ro),
     )
     return [lower, upper], W, p.sides("ampersand")
 
@@ -1464,10 +1491,13 @@ def mark(p, kind, cap=False):
         r = min(p.ri, w / 3)
         return [box(-w / 2, 0, w / 2, w * 0.8, r, r, r, r), hole(-w / 2 + V * 0.8, H * 0.8, w / 2 - V * 0.8, w * 0.8 - H * 0.8, r / 2)], w * 0.8
     if kind == "tilde":
-        w, d = V * 4.4 * s, V * 0.8 * s
-        a, b = -w / 2 + w * 0.42, -w / 2 + w * 0.58
-        c = rounded((-w / 2, 0, rt), (a, 0, 0), (b, d, 0), (w / 2, d, rt), (w / 2, d + H, rt), (b, d + H, 0),
-                    (a, H, 0), (-w / 2, H, rt))
+        # A wave: low on the left, high on the right, the bends rounded so it reads as one
+        # stroke and not as a slash between two bars.
+        w, d = V * 4.4 * s, max(V * 1.1 * s, H * 1.3)
+        a, b = -w / 2 + w * 0.30, -w / 2 + w * 0.70
+        rr = H * 1.4
+        c = rounded((-w / 2, 0, rt), (a, 0, rr), (b, d, rr), (w / 2, d, rt), (w / 2, d + H, rt), (b, d + H, rr),
+                    (a, H, rr), (-w / 2, H, rt))
         return [c], d + H
     if kind == "cedilla":  # a small hook hanging below the baseline from y = 0, like the j's tail
         h, xl = H * 3.0, -V * 1.7
@@ -1504,6 +1534,8 @@ def accented(base, kind):
             y = 0
         else:
             y = (CH + CH * 0.06) if cap else (XH + XH * 0.13)
+            if kind == "ring":  # a closed ring reads as touching sooner than an open mark
+                y += p.V * 0.4
         cx = W / 2
         if base == "y":  # over the y's arms, not its tail
             cx = W / 2
@@ -1516,5 +1548,43 @@ for _base, _marks in ACCENTS.items():
         _name = f"uni{ord(_char):04X}"
         GLYPHS[_name] = (_char, accented(_base, _kind))
         BASE[_name] = _base
+
+# Overshoot: a round top or bottom has to pass the line a little to look as tall
+# as a flat one. Michroma's go 1.9% of the x-height past it on the lowercase and
+# 2.1% on capitals and figures. Only the round extremes move: points within a
+# horizontal stroke of the top (or bottom) line, so the stroke keeps its
+# thickness and the corner curves stretch to meet it; terminals, bars and
+# crossbars further in stay where they are. Letters with a flat stem at the
+# line (n, b, d, p, a, u) do not overshoot, or their stems would step.
+OVERSHOOT = {
+    **dict.fromkeys(["o", "c", "e", "s"], ("XH", "tb")),
+    **dict.fromkeys(["O", "C", "G", "Q", "S"], ("CH", "tb")),
+    **dict.fromkeys(["zero", "three", "six", "eight", "nine", "ampersand"], ("FH", "tb")),
+    "two": ("FH", "t"), "five": ("FH", "b"),
+}
+
+
+def overshot(fn, height, where):
+    def wrapped(p):
+        contours, W, sides = fn(p)
+        top = {"XH": XH, "CH": CH, "FH": FH}[height]
+        ov = top * (0.019 if height == "XH" else 0.021)
+        zone = p.H + 2
+
+        def move(pt):
+            x, y = pt
+            if "t" in where and y >= top - zone:
+                return (x, y + ov)
+            if "b" in where and y <= zone:
+                return (x, y - ov)
+            return pt
+
+        out = [[move(c[0])] + [(seg[0], *[move(q) for q in seg[1:]]) for seg in c[1:]] for c in contours]
+        return out, W, sides
+    return wrapped
+
+
+for _name, (_height, _where) in OVERSHOOT.items():
+    GLYPHS[_name] = (GLYPHS[_name][0], overshot(GLYPHS[_name][1], _height, _where))
 
 set_style(os.environ.get("HYPHER_STYLE", DEFAULT_STYLE))
