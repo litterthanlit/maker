@@ -9,6 +9,7 @@ Drawn in code for Hypher Display; no outlines are taken from another font.
 
 ## Changelog
 
+- **0.500 (2026-11-16):** v and w cut every end flat, as the x does; the rounded outer ears are gone. The capital W is one outline too, like the w.
 - **0.490 (2026-11-16):** the w, in every version, is one outline with a flat middle peak at the x-height. It was two v's laid over each other, and each one's rounded top corner left a notch in the middle.
 - **0.480 (2026-11-16):** Hypher Display's e is now Datum's: the crossbar sits lower (0.43 of the x-height), the cut ends are softly rounded, and the letter is a little narrower. It keeps the wordmark's spacing, so words and the logo set as before. Any version can borrow another's e with `e_from`.
 - **0.470 (2026-11-16):** the e, in every version: its bottom stroke sweeps up into the terminal instead of standing as a stub, its counters are softer, and its crossbar drops a little as weight grows so Bold keeps an open eye. Corner curves beside a sharp corner may now run the whole side, so every terminal (c, s, 2, 3, 5) runs its curve right up to its cut.

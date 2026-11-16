@@ -632,9 +632,11 @@ def g_u(p):
 
 
 def v_shape(p, x0, W, top=XH, bottom=0, foot=None, r_top=None):
-    """Two diagonals meeting at the bottom on a flat foot (b wide, 0.85 of an arm by default)."""
+    """Two diagonals meeting at the bottom on a flat foot (b wide, 0.85 of an arm by default).
+
+    Every end is cut like the x's, flat and square to the line."""
     V, rt = p.V, p.rt
-    r = p.ri if r_top is None else r_top
+    r = rt if r_top is None else r_top
     t = V * 0.98
     cx = x0 + W / 2
     h = top - bottom
@@ -656,24 +658,22 @@ def g_v(p):
     return [v_shape(p, 0, W)[0]], W, p.sides("v")
 
 
-@glyph("w", "w")
-def g_w(p):
-    """Two v's sharing their middle arms, drawn as one outline.
+def w_shape(p, W, top=XH):
+    """Two v's sharing their middle arms, drawn as one outline, every end cut flat.
 
-    The middle peak is flat at the x-height, cut like the terminals; laying two
+    The middle peak is flat at the top, cut like the terminals; laying two
     v's over each other left each one's rounded outer corner as a notch there."""
-    W = p.w("w")
-    V, rt, r = p.V, p.rt, p.ri
+    V, rt = p.V, p.rt
     t = V * 0.98
     hw = V * 1.3
     for _ in range(6):  # each v's width and its arms' width depend on each other
         Wv = (W + hw) / 2
         b = 0.85 * hw
-        slope = (Wv / 2 - b / 2) / XH
-        hw = diag_hw(Wv / 2 - b / 2, XH, t)
+        slope = (Wv / 2 - b / 2) / top
+        hw = diag_hw(Wv / 2 - b / 2, top, t)
     Wv = (W + hw) / 2
     c1, c2 = Wv / 2, W - Wv / 2
-    y_in = XH - (Wv / 2 - hw) / slope  # where each v's inner edges meet
+    y_in = top - (Wv / 2 - hw) / slope  # where each v's inner edges meet
 
     def cross(a, b, c, d):  # where line ab meets line cd
         (x1, y1), (x2, y2), (x3, y3), (x4, y4) = a, b, c, d
@@ -681,11 +681,17 @@ def g_w(p):
         u = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den
         return x1 + u * (x2 - x1), y1 + u * (y2 - y1)
 
-    mx, my = cross((c1 + b / 2, 0), (Wv, XH), (W - Wv, XH), (c2 - b / 2, 0))  # under the middle peak
-    return [rpoly(
-        (0, XH, r), (c1 - b / 2, 0, rt), (c1 + b / 2, 0, rt), (mx, my, 0), (c2 - b / 2, 0, rt), (c2 + b / 2, 0, rt),
-        (W, XH, r), (W - hw, XH, rt), (c2, y_in, 0), (Wv, XH, rt), (W - Wv, XH, rt), (c1, y_in, 0), (hw, XH, rt),
-    )], W, p.sides("w")
+    mx, my = cross((c1 + b / 2, 0), (Wv, top), (W - Wv, top), (c2 - b / 2, 0))  # under the middle peak
+    return rpoly(
+        (0, top, rt), (c1 - b / 2, 0, rt), (c1 + b / 2, 0, rt), (mx, my, 0), (c2 - b / 2, 0, rt), (c2 + b / 2, 0, rt),
+        (W, top, rt), (W - hw, top, rt), (c2, y_in, 0), (Wv, top, rt), (W - Wv, top, rt), (c1, y_in, 0), (hw, top, rt),
+    )
+
+
+@glyph("w", "w")
+def g_w(p):
+    W = p.w("w")
+    return [w_shape(p, W)], W, p.sides("w")
 
 
 @glyph("x", "x")
@@ -1278,12 +1284,7 @@ def g_V(p):
 @glyph("W", "W")
 def g_W(p):
     W = p.w("W")
-    hw = p.V * 1.3
-    for _ in range(4):
-        Wv = (W + hw) / 2
-        hw = v_shape(p, 0, Wv, top=CH)[1]
-    Wv = (W + hw) / 2
-    return [v_shape(p, 0, Wv, top=CH, r_top=p.rt)[0], v_shape(p, W - Wv, Wv, top=CH, r_top=p.rt)[0]], W, p.sides("W")
+    return [w_shape(p, W, top=CH)], W, p.sides("W")
 
 
 @glyph("X", "X")
