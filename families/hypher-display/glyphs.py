@@ -239,6 +239,10 @@ STYLES["BilletCompact"] = {**STYLES["Billet"], "widths": {c: round(w * 0.90) for
 # ends, a little narrower), keeping the wordmark's spacing around it. Set
 # after Lathe copies the Wordmark, so only the Wordmark itself borrows it.
 STYLES["Wordmark"]["e_from"] = "Datum"
+# Every curve follows that e: its corners (radius 0.215, eased 0.6, inside and
+# out), its softly rounded cut ends, and its counters, half again as round as
+# the bowls'. The Wordmark keeps its own widths, spacing and construction.
+STYLES["Wordmark"].update(radius=0.215, smooth=0.6, inner_smooth=0.6, inner=0.55, term=0.02, counter=1.5)
 DEFAULT_STYLE = "Wordmark"
 LABELS = {"LatheWide": "Lathe Wide", "LatheNarrow": "Lathe Narrow", "BilletCompact": "Billet Compact", "Datum20": "Datum 20"}  # family-name spelling, where it differs from the key
 
@@ -268,6 +272,8 @@ class P:
         self.H = round(stem * 0.86)  # horizontal stroke: a little thinner, so it looks equal
         self.ro = STYLE["radius"] * XH  # outer corners
         self.ri = max(self.ro - STYLE["inner"] * stem, 0.3 * self.ro, 4)  # counters follow the outer corner
+        if "counter" in STYLE:  # rounder counters, but never rounder than the outside, or corners go heavy at Light
+            self.ri = min(self.ri * STYLE["counter"], 0.85 * self.ro)
         self.rt = STYLE["term"] * XH  # cut ends
         self.grow = (stem - REGULAR_STEM) * 2.0  # letters widen as they gain weight, keeping counters open
 
@@ -310,10 +316,13 @@ def hole(x0, y0, x1, y1, r, bottom=None, top=None):
                             chamfer=STYLE.get("chamfer", False))
 
 
-def waist(p):
-    """The corner radius where two stacked bowls meet (the 3's, the 8's), sized so
-    the side pinches in about as deep as Michroma's."""
-    return STYLE.get("waist", 2.0) * p.ro
+def waist(p, side):
+    """The corner radius where two stacked bowls meet (the 3's, the 8's): up to
+    twice the outer corner, so the side pinches in about as deep as Michroma's,
+    but only as much as the side has room for beside the outer corner, so the
+    outer corner keeps its full size."""
+    room = (side - 1) / (1 + 0.6 * STYLE["smooth"]) - p.ro
+    return max(min(STYLE.get("waist", 2.0) * p.ro, room), 4)
 
 
 def joint(p, r):
@@ -781,13 +790,13 @@ def g_three(p):
     tb, tt = FH * lm("three_tb", 0.29), FH * lm("three_tt", 0.736)  # terminal heights
     m0 = FH * lm("three_mid", 0.518) - H / 2
     m1, xm = m0 + H, W * lm("three_xm", 0.405)  # the middle bar starts here
-    rw = waist(p)
+    rw_up, rw_lo = waist(p, FH - m0), waist(p, m1)
     upper = rpoly(
         (0, FH, ro), (0, tt, rt), (V, tt, rt), (V, FH - H, ri), (W - V, FH - H, ri), (W - V, m1, joint(p, ri)),
-        (xm, m1, rt), (xm, m0, rt), (W, m0, rw), (W, FH, ro),
+        (xm, m1, rt), (xm, m0, rt), (W, m0, rw_up), (W, FH, ro),
     )
     lower = rpoly(
-        (0, 0, ro), (W, 0, ro), (W, m1, rw), (xm, m1, rt), (xm, m0, rt), (W - V, m0, joint(p, ri)),
+        (0, 0, ro), (W, 0, ro), (W, m1, rw_lo), (xm, m1, rt), (xm, m0, rt), (W - V, m0, joint(p, ri)),
         (W - V, H, ri), (V, H, ri), (V, tb, rt), (0, tb, rt),
     )
     return [upper, lower], W, p.sides("three")
@@ -862,9 +871,9 @@ def g_eight(p):
     W = p.w("eight")
     V, H, ro, ri = p.V, p.H, p.ro, p.ri
     m0 = FH * lm("eight_mid", 0.518) - H / 2
-    rw = waist(p)
-    upper = box(0, m0, W, FH, rw, rw, ro, ro)
-    lower = box(0, 0, W, m0 + H, ro, ro, rw, rw)
+    rw_up, rw_lo = waist(p, FH - m0), waist(p, m0 + H)
+    upper = box(0, m0, W, FH, rw_up, rw_up, ro, ro)
+    lower = box(0, 0, W, m0 + H, ro, ro, rw_lo, rw_lo)
     return [upper, lower, hole(V, H, W - V, m0, ri, top=joint(p, ri)), hole(V, m0 + H, W - V, FH - H, ri, bottom=joint(p, ri))], W, p.sides("eight")
 
 
