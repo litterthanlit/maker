@@ -1368,18 +1368,36 @@ def g_Z(p):
 
 @glyph("ampersand", "&")
 def g_ampersand(p):
-    """A small bowl on a larger, open one, with a diagonal running out to the lower right."""
+    """Michroma's construction, in Hypher's corners: the lower bowl's left side rises
+    and runs on as the diagonal, out past the bowl to a cut at the right; the upper
+    loop's stem comes down into the same diagonal, and the loop is open at the
+    lower right like a 3's top, ending in a terminal. The lower bowl's right side
+    rises through the diagonal to its own terminal."""
     W = p.w("ampersand")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    Wl, top = W * 0.80, CH * 0.56  # the lower bowl
-    tr = top * 0.87  # the lower bowl's right side rises through the diagonal into a terminal
-    lower = rounded(
-        (0, 0, ro), (Wl, 0, ro), (Wl, tr, rt), (Wl - V, tr, rt), (Wl - V, H, ri), (V, H, ri),
-        (V, top - H, ri), (W * 0.30, top - H, rt), (W * 0.30, top, rt), (0, top, ro),
+    t = V * 0.98
+    top0 = FH * 0.88  # the diagonal's upper edge, carried back to x = 0
+    end = FH * 0.03  # its lower edge at the cut
+    d0 = t * 1.12  # its height, measured upright (it runs at about 1 in 2)
+    for _ in range(4):
+        sl = (top0 - d0 - end) / W  # fall per unit across
+        d0 = t * (1 + sl * sl) ** 0.5
+    up = lambda x: top0 - sl * x  # noqa: E731  upper edge
+    lo = lambda x: top0 - d0 - sl * x  # noqa: E731  lower edge
+    wb, tr = W * 0.87, FH * 0.50  # the lower bowl's right side and terminal
+    xr, tt = W * 0.82, FH * 0.68  # the upper loop's right side and terminal
+    x2 = 2 * V  # the upper stem's inner edge
+    lower = rpoly(
+        (0, 0, ro), (wb, 0, ro), (wb, tr, rt), (wb - V, tr, rt), (wb - V, H, ri), (V, H, ri),
+        (V, lo(V), joint(p, ri)), (W, lo(W), rt), (W, up(W), rt), (x2, up(x2), 0), (0, up(x2), ro),
     )
-    upper = [box(W * 0.07, top - H, W * 0.60, CH, ro, ro, ro, ro), hole(W * 0.07 + V, top, W * 0.60 - V, CH - H, ri)]
-    tail = stroke(p, (W * 0.22, top - H / 2), (W * 0.985, H * 0.2), V * 0.98)
-    return [lower] + upper + [tail], W, p.sides("ampersand")
+    j = 0.9 * V  # room along the diagonal for the fillet under the upper stem
+    upper = rpoly(
+        (V, lo(V) + 0.5 * (up(x2) - lo(V)), 0), (x2 + j, up(x2 + j) - d0 / 2, 0), (x2 + j, up(x2 + j), 0),
+        (x2, up(x2), 0.8 * V), (x2, FH - H, ri), (xr - V, FH - H, ri), (xr - V, tt, rt), (xr, tt, rt),
+        (xr, FH, ro), (V, FH, ro),
+    )
+    return [lower, upper], W, p.sides("ampersand")
 
 
 @glyph("at", "@")

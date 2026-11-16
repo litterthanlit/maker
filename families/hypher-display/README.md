@@ -64,6 +64,7 @@ Every glyph is a few polygons from `rounded()` in `src/core/geometry.py`: corner
 - **e:** Hypher Display draws its e as Datum does (`e_from` in `STYLES`): crossbar at 0.43 of the x-height, terminal at 0.30, softly rounded cut ends, in the wordmark's spacing.
 - **y:** a symmetric V that meets on the baseline; in the Wordmark design its tail hooks left into a flat foot.
 - **3 and 8** are two bowls stacked on the middle bar, each rounding its own corner there (`waist()`), so their sides pinch in at the middle as Michroma's do. **4 and 7** are single outlines whose diagonal leaves the bar at its corner.
+- **&** follows Michroma's construction: the lower bowl's left side runs on as the diagonal, the upper loop's stem comes down into it, and the loop opens into a terminal.
 - **Joints:** a counter's corner against a crossbar is no rounder than 1.3 bars (`joint()`), so two counters back to back across a thin bar do not swell into a blob at Light.
 - **Figures** are lining, at cap height, as wide as the lowercase bowls. Their landmarks (the 2's middle bar, the 3's and 5's terminals, the 6's bowl, the 4's crossbar) are measured from the lockup's font; the 9 is the 6 turned.
 - **Comma and quotes** are a wedge, wide at the top; the opening quotes turn it so their wide end is low, so “ and ” point opposite ways.
