@@ -378,17 +378,24 @@ def g_p(p):
 
 @glyph("e", "e")
 def g_e(p):
-    """A bowl with a crossbar; the lower right opens above a flat terminal."""
+    """A bowl with a crossbar; the lower right opens above a flat terminal.
+
+    The inner corner under the terminal is rounded twice as much as the rest,
+    so the bottom stroke sweeps up into the terminal as the wordmark's e does,
+    and the counters are rounded half again as much as the bowls'.
+    The crossbar moves down a little as the strokes thicken, so Bold keeps an
+    open eye."""
     W = p.w("e")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
-    bar0 = XH * STYLE["e_bar"]  # bottom of the crossbar
+    bar0 = XH * STYLE["e_bar"] - (H - 79) * 0.5  # bottom of the crossbar
     bar1 = bar0 + H
     term = XH * STYLE["e_term"]  # top of the lower terminal
+    rc = ri * 1.5  # the e's counters are softer than the bowls', as in the wordmark's e
     outer = rounded(
-        (0, 0, ro), (W, 0, ro), (W, term, rt), (W - V, term, rt), (W - V, H, ri), (V, H, ri),
-        (V, bar0, ri), (W, bar0, rt), (W, XH, ro), (0, XH, ro),
+        (0, 0, ro), (W, 0, ro), (W, term, rt), (W - V, term, rt), (W - V, H, ri * 2), (V, H, rc),
+        (V, bar0, rc), (W, bar0, rt), (W, XH, ro), (0, XH, ro),
     )
-    eye = hole(V, bar1, W - V, XH - H, ri)
+    eye = hole(V, bar1, W - V, XH - H, rc)
     return [outer, eye], W, p.sides("e")
 
 

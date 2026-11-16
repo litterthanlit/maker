@@ -185,19 +185,38 @@ def rounded(*corners, smooth=0.0, chamfer=False):
     """
     n = len(corners)
     pts = [(c[0], c[1]) for c in corners]
+
+    def angle(i):
+        x, y = pts[i]
+        a, b = pts[i - 1], pts[(i + 1) % n]
+        ua, ub = _unit((a[0] - x, a[1] - y)), _unit((b[0] - x, b[1] - y))
+        return ua, ub, math.acos(max(-1.0, min(1.0, ua[0] * ub[0] + ua[1] * ub[1])))  # interior angle
+
+    # How far along each side every corner's curve wants to run.
+    want = []
+    for i, (x, y, r) in enumerate(corners):
+        want.append(r / math.tan(angle(i)[2] / 2) * (1 + 0.6 * smooth) if r > 0 else 0.0)
+    # Corners at either end of a side share it in proportion to what they want;
+    # a curve beside a sharp corner may take the whole side (a terminal's
+    # curve runs right up to its cut). Stop half a unit short of using a side
+    # up: a side of zero length can vanish from one master and not another,
+    # and break interpolation.
+    fit = list(want)
+    for i in range(n):
+        j = (i + 1) % n
+        room = math.dist(pts[i], pts[j]) - 0.5
+        if want[i] + want[j] > room:
+            k = room / (want[i] + want[j])
+            fit[i] = min(fit[i], want[i] * k)
+            fit[j] = min(fit[j], want[j] * k)
+
     pieces = []
     for i, (x, y, r) in enumerate(corners):
-        a, b = pts[i - 1], pts[(i + 1) % n]
         if r <= 0:
             pieces.append(None)
             continue
-        ua = _unit((a[0] - x, a[1] - y))
-        ub = _unit((b[0] - x, b[1] - y))
-        theta = math.acos(max(-1.0, min(1.0, ua[0] * ub[0] + ua[1] * ub[1])))  # interior angle
-        t = r / math.tan(theta / 2) * (1 + 0.6 * smooth)
-        # Stop half a unit short of using up an edge: an edge of zero length
-        # can vanish from one master and not another, and break interpolation.
-        t = min(t, 0.5 * math.dist(a, (x, y)) - 0.5, 0.5 * math.dist(b, (x, y)) - 0.5)
+        ua, ub, theta = angle(i)
+        t = fit[i]
         r = t * math.tan(theta / 2) / (1 + 0.6 * smooth)
         h = 4 / 3 * math.tan((math.pi - theta) / 4) * r * (1 + 0.6 * smooth) * (1 + 0.22 * smooth)
         t1 = (x + ua[0] * t, y + ua[1] * t)
