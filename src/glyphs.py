@@ -282,14 +282,14 @@ def g_q(p):
 def g_g(p):
     V = p.V
     w = p.c(296 * LCW, 1.17) + V + p.VR
-    bw = bowl(0, w, -O + 20, XH + O, p.VR, p.HR, V)
+    bw = bowl(0, w, -O, XH + O, p.VR, p.HR, V)  # sits on the baseline, like the d and o
     bw = mirror_x(bw, w)
-    # descending hook
-    ry = 150 + p.dV * 0.2
+    # descending hook: deep and round, its tail curling up to the curve's middle
+    ry = 168 + p.dV * 0.2
     cy = DSC - O + ry
-    ho = Ellipse(p.VR * 0.1, DSC - O, w, DSC - O + 2 * ry, K)
-    hi = Ellipse(p.VR * 0.1 + p.VR, DSC - O + p.HR, w - V, DSC - O + 2 * ry - p.HR, KI)
-    yt = cy - 0.30 * ry
+    ho = Ellipse(p.VR * 0.25, DSC - O, w, DSC - O + 2 * ry, K)
+    hi = Ellipse(p.VR * 0.25 + p.VR, DSC - O + p.HR, w - V, DSC - O + 2 * ry - p.HR, KI)
+    yt = cy - 0.12 * ry  # cut just below the curve's widest point: a full sweep, not a shelf
     hook = band(ho, hi, ho.at_y(2, yt), (3, 1.0), hi.at_y(2, yt), (3, 1.0))
     return bw + [hook, rect(w - V, cy, w, XH)], w, (p.SBR, p.SB)
 

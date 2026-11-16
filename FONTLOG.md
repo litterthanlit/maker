@@ -25,6 +25,9 @@ type face for litt.md. It is released under the SIL Open Font License 1.1
 
 ## Changelog
 
+- 1.05: g redrawn: its bowl sits on the baseline (it floated 20 units above), and its
+  tail is deeper and rounder, cut just below the curve's widest point, so it sweeps
+  round instead of ending in a flat shelf.
 - 1.04: the rest of the symbols from Archivo: ! ? ¡ ¿ & @ brackets / \ | ¦ § † ‡ © ® ⁄,
   # $ % ¢ £ ¥ € and the maths signs and arrows (matching the figures' stem), and
   . : … · • - – — _ ~ (matching the lowercase stem). The & is Archivo's "Et" form.
