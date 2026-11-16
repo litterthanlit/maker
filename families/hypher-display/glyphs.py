@@ -235,6 +235,10 @@ STYLES["Weld"] = {**STYLES["Datum"], "y_tail": "hook", "y_tail_end": 0.19, "stem
 # Billet Compact: Billet at 90% width, out of the wordmark font's wide stance.
 STYLES["BilletCompact"] = {**STYLES["Billet"], "widths": {c: round(w * 0.90) for c, w in STYLES["Billet"]["widths"].items()},
                            "kern_scale": 0.86}
+# The Wordmark design draws its e as Datum does (lower crossbar, softer cut
+# ends, a little narrower), keeping the wordmark's spacing around it. Set
+# after Lathe copies the Wordmark, so only the Wordmark itself borrows it.
+STYLES["Wordmark"]["e_from"] = "Datum"
 DEFAULT_STYLE = "Wordmark"
 LABELS = {"LatheWide": "Lathe Wide", "LatheNarrow": "Lathe Narrow", "BilletCompact": "Billet Compact", "Datum20": "Datum 20"}  # family-name spelling, where it differs from the key
 
@@ -385,6 +389,15 @@ def g_e(p):
     and the counters are rounded half again as much as the bowls'.
     The crossbar moves down a little as the strokes thicken, so Bold keeps an
     open eye."""
+    if STYLE.get("e_from"):  # another version's e, in this version's spacing
+        saved, sides = dict(STYLE), p.sides("e")
+        set_style(STYLE["e_from"])
+        try:
+            contours, W, _ = g_e(P(p.wght, p.V))
+        finally:
+            STYLE.clear()
+            STYLE.update(saved)
+        return contours, W, sides
     W = p.w("e")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
     bar0 = XH * STYLE["e_bar"] - (H - 79) * 0.5  # bottom of the crossbar

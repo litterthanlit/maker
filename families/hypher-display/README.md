@@ -29,7 +29,7 @@ Each version is a named set of numbers in `STYLES` (`glyphs.py`) and builds as i
 
 | Version | Family | What it is |
 | --- | --- | --- |
-| **Wordmark** | **Hypher Display** | Today's logo letters redrawn in this system. Widths, spacing and landmark heights are measured from the lockup's font; the corners were fitted by overlap with its outlines (h 93%, r 93%, p 91%, e 85%, y 71%) |
+| **Wordmark** | **Hypher Display** | Today's logo letters redrawn in this system, with Datum's e. Widths, spacing and landmark heights are measured from the lockup's font; the corners were fitted by overlap with its outlines (h 93%, r 93%, p 91%, e 85%, y 71%) |
 | Mill | Hypher Display Mill | The first machined design: radius 0.20 x-heights, circular corners, sharp cut ends |
 | Fillet | Hypher Display Fillet | Bigger corners, radius 0.235 |
 | Polish | Hypher Display Polish | Corners eased into the sides instead of joined as circles |
@@ -61,6 +61,7 @@ Every glyph is a few polygons from `rounded()` in `src/core/geometry.py`: corner
 - **term:** the radius on cut ends (stem feet, terminals, the r's arm).
 - **Horizontals** are 0.86 of the stem, so they look equal to it, and **width** grows by twice the stem's gain, so Bold's counters stay open.
 - **k:** the outer edges of arm and leg meet the stem at fixed heights and the crotch falls where the inner edges cross, so the diagonals never cross on thin weights.
+- **e:** Hypher Display draws its e as Datum does (`e_from` in `STYLES`): crossbar at 0.43 of the x-height, terminal at 0.30, softly rounded cut ends, in the wordmark's spacing.
 - **y:** a symmetric V that meets on the baseline; in the Wordmark design its tail hooks left into a flat foot.
 - **Figures** are lining, at cap height, as wide as the lowercase bowls. Their landmarks (the 2's middle bar, the 3's and 5's terminals, the 6's bowl, the 4's crossbar) are measured from the lockup's font; the 9 is the 6 turned.
 - **Comma and quotes** are a wedge, wide at the top; the opening quotes turn it so their wide end is low, so “ and ” point opposite ways.
