@@ -41,6 +41,7 @@ HEAVY = 1.5  # ink thicker than this many stems: a filleted joint like the e's r
 SCALE = 0.5  # raster pixels per font unit for the heavy check
 
 WAISTS = {"three", "eight", "ampersand", "B", "R", "P"}  # bowls or parts that meet in a cusp on purpose
+SHOULDERS = set("nmhrpbdquga")  # with the wordmark's shoulder notch ("notch" in STYLES), their steps and dips are drawn on purpose
 ALLOW = {"numbersign": {"ledge"}}  # the # at Bold: the stems' short sides between close bars are slots, not steps
 DIAGONALS = set("AKMNVWXYZkvwxyz") | {"ampersand", "percent", "four", "seven", "asterisk", "numbersign", "Q", "y"}
 
@@ -186,6 +187,8 @@ def check(style):
             path = merged(contours)
             for kind, at, size in outline_faults(path, p.H):
                 if kind == "cusp" and base in WAISTS or kind in ALLOW.get(base, ()):
+                    continue
+                if G.STYLE.get("notch") and base in SHOULDERS and kind in ("ledge", "cusp"):
                     continue
                 found.append((name, wght, kind, at, size))
             if base not in DIAGONALS:

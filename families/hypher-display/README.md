@@ -66,7 +66,7 @@ Every glyph is a few polygons from `rounded()` in `src/core/geometry.py`: corner
 - **3 and 8** are two bowls stacked on the middle bar, each rounding its own corner there (`waist()`), so their sides pinch in at the middle as Michroma's do. **4 and 7** are single outlines whose diagonal leaves the bar at its corner.
 - **&** follows Michroma's construction: the lower bowl's left side runs on as the diagonal, the upper loop's stem comes down into it, and the loop opens into a terminal.
 - **Overshoot:** fully round letters and figures (o c e s, O C G Q S, 0 3 6 8 9 &, the top of the 2 and the bottom of the 5) pass the x-height, cap height and baseline by 1.9% of the x-height (lowercase) or 2.1% (capitals and figures), as Michroma's do, so they look as tall as flat ones. Only the extreme strokes move; letters with a flat stem at the line do not overshoot.
-- **Square stem ends:** where a stem ends square (the wordmark's n, m, h, r, p, b, d, q, u, g, a), the bowl's or arch's corner beside it is square too, so no notch opens between them.
+- **Shoulder notch:** where a stem ends square (the wordmark's n, m, h, r, p, b, d, q, u, g, a), the bowl's or arch's corner beside it stays round, so its curve starts just past the stem and leaves a small step: the wordmark's shoulder, kept on purpose (`notch` in `STYLES`, `shoulder()`). Versions without it square that corner off to run flush with the stem.
 - **Joints:** a counter's corner against a crossbar is no rounder than 1.3 bars (`joint()`), so two counters back to back across a thin bar do not swell into a blob at Light; where three strokes meet (the B's middle bar, the m's middle stem, the 6's bowl) it is also no rounder than a stem (`tee()`). Counters are at most 1.2 stems round, so a thin stem does not go heavy beside a square corner.
 - **Figures** are lining, at cap height, as wide as the lowercase bowls. Their landmarks (the 2's middle bar, the 3's and 5's terminals, the 6's bowl, the 4's crossbar) are measured from the lockup's font; the 9 is the 6 turned.
 - **Comma and quotes** are a wedge, wide at the top; the opening quotes turn it so their wide end is low, so “ and ” point opposite ways.
@@ -84,7 +84,7 @@ Every glyph is a few polygons from `rounded()` in `src/core/geometry.py`: corner
 | `lockup.py` | The logo, optically set, exported as outlined SVG to `lockup/` |
 | `build.py` | Family names, masters, kerning; `--versions` builds every version |
 | `proof/check_outlines.py` | Fails if any glyph's outline runs backwards over itself, at any master |
-| `proof/check_shapes.py` | Fails on what a reader sees as broken: a short step where one part sticks out past another, two curves meeting in a notch, or ink thicker than 1.5 stems away from diagonals |
+| `proof/check_shapes.py` | Fails on what a reader sees as broken: a short step where one part sticks out past another, two curves meeting in a notch, or ink thicker than 1.5 stems away from diagonals. Intended ones (the shoulder notch, the 3's and 8's waists) are listed in it |
 | `proof/lockup.html` | The mark beside the word at each weight, with today's lockup for reference |
 | `fonts/` | Built fonts; `fonts/versions/<Name>/` holds the alternates |
 

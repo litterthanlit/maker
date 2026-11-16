@@ -242,7 +242,8 @@ STYLES["Wordmark"]["e_from"] = "Datum"
 # Every curve follows that e: its corners (radius 0.215, eased 0.6, inside and
 # out), its softly rounded cut ends, and its counters, half again as round as
 # the bowls'. The Wordmark keeps its own widths, spacing and construction.
-STYLES["Wordmark"].update(radius=0.215, smooth=0.6, inner_smooth=0.6, inner=0.55, term=0.02, counter=1.5)
+STYLES["Wordmark"].update(radius=0.215, smooth=0.6, inner_smooth=0.6, inner=0.55, term=0.02, counter=1.5,
+                          notch=True)  # the shoulder notch beside square stem ends, kept by choice
 DEFAULT_STYLE = "Wordmark"
 LABELS = {"LatheWide": "Lathe Wide", "LatheNarrow": "Lathe Narrow", "BilletCompact": "Billet Compact", "Datum20": "Datum 20"}  # family-name spelling, where it differs from the key
 
@@ -353,8 +354,8 @@ def arch(p, x0, x1, top, bottom=0, left_bottom=None, on_stem=()):
     those are square too, or the arch's curve would leave a notch beside it."""
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
     lb = bottom if left_bottom is None else left_bottom
-    tl = square(p, ro) if "left" in on_stem else ro
-    tr = square(p, ro) if "right" in on_stem else ro
+    tl = shoulder(p, ro) if "left" in on_stem else ro
+    tr = shoulder(p, ro) if "right" in on_stem else ro
     il = tee(p, ri) if "left" in on_stem else ri  # the counter's corner where the arch meets the stem
     ir = tee(p, ri) if "right" in on_stem else ri
     return rounded(
@@ -374,6 +375,14 @@ def square(p, c):
     return p.rt if STYLE["stem_tops"] == "square" else c
 
 
+def shoulder(p, c):
+    """A bowl's or arch's corner beside a square-ended stem. With "notch" (the
+    wordmark's) it stays round, so the curve starts just past the stem's square
+    end and leaves a small step there: the wordmark's shoulder. Without it, the
+    corner squares off to run flush with the stem."""
+    return c if STYLE.get("notch") else square(p, c)
+
+
 def dot(p, x0):
     """The i's and j's dot: a stem-wide square whose top sits on the ascender."""
     return box(x0, ASC - p.V, x0 + p.V, ASC, p.rt, p.rt, p.rt, p.rt)
@@ -382,8 +391,8 @@ def dot(p, x0):
 def bowl(p, x0, x1, bottom=0, top=XH, stem=None):
     """A closed bowl; stem ("left" or "right") squares the corners on that side,
     where they meet a square-ended stem, so no notch opens between them."""
-    lft = square(p, p.ro) if stem == "left" else p.ro
-    rgt = square(p, p.ro) if stem == "right" else p.ro
+    lft = shoulder(p, p.ro) if stem == "left" else p.ro
+    rgt = shoulder(p, p.ro) if stem == "right" else p.ro
     return [box(x0, bottom, x1, top, lft, rgt, rgt, lft),
             hole(x0 + p.V, bottom + p.H, x1 - p.V, top - p.H, p.ri)]
 
@@ -458,7 +467,7 @@ def g_r(p):
     W = p.w("r")
     V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
     c = rounded(
-        (0, 0, rt), (V, 0, rt), (V, XH - H, ri), (W, XH - H, rt), (W, XH, ro), (0, XH, square(p, ro)),
+        (0, 0, rt), (V, 0, rt), (V, XH - H, ri), (W, XH - H, rt), (W, XH, ro), (0, XH, shoulder(p, ro)),
     )
     return stem_top(p, 0, 0) + [c], W, p.sides("r")
 
@@ -626,8 +635,9 @@ def g_m(p):
     """Two n arches sharing the middle stem, with equal counters."""
     W = p.w("m")
     W1 = (W + p.V) / 2
-    # the middle stem rises square between the arches, so neither curves into it
-    middle = stem_top(p, W1 - p.V, 0)
+    # without the shoulder notch, the middle stem rises square between the arches;
+    # with it, the arches meet over the middle stem in a small dip, as the n's shoulder steps
+    middle = [] if STYLE.get("notch") else stem_top(p, W1 - p.V, 0)
     return stem_top(p, 0, 0) + middle + [arch(p, 0, W1, XH, on_stem=("left", "right")),
                                          arch(p, W1 - p.V, W, XH, on_stem=("left",))], W, p.sides("m")
 
