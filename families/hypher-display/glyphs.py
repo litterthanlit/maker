@@ -1814,7 +1814,7 @@ def wave(p, w, cy, d=None):
 @glyph("asciitilde", "~")
 def g_asciitilde(p):
     W = p.w("asciitilde")
-    return [wave(p, W, MATH, d=max(W * 0.30, p.H * 1.3))], W, p.sides("asciitilde")
+    return [wave(p, W, MATH, d=max(W * 0.45, p.H * 1.3))], W, p.sides("asciitilde")
 
 
 @glyph("uni00A0", " ")
