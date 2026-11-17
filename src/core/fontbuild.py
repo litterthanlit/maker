@@ -46,6 +46,10 @@ class Family:
     out: Path
     upm: int = 1000
     hint: dict = None  # ttfautohint options for the statics; None leaves them unhinted
+    code_pages: tuple = ()  # OS/2 code page bits to declare, e.g. (0, 1) for Latin 1 and Latin 2
+    windows_names_only: bool = False  # leave out the old Macintosh name records
+    smart_dropout: bool = False  # a prep program that keeps thin parts from dropping out when unhinted
+    win_all_masters: bool = False  # set usWin* from the tallest and deepest glyph at any weight, so no instance clips
 
 
 def draw_master(fam, wght):
@@ -104,7 +108,7 @@ def notdef(width=500):
     return pen.glyph(), width
 
 
-def build_master(fam, wght, gl, path):
+def build_master(fam, wght, gl, path, win=None):
     order = [".notdef"] + list(fam.glyphs)
     glyf = {".notdef": notdef()[0]}
     metrics = {".notdef": (500, 50)}
@@ -119,7 +123,8 @@ def build_master(fam, wght, gl, path):
             cmap[ord(char)] = name
 
     ys = [(g.yMin, g.yMax) for g, _ in gl.values() if g.numberOfContours]
-    win = (min(y[0] for y in ys), max(y[1] for y in ys))  # Windows clips outside these
+    if win is None:
+        win = (min(y[0] for y in ys), max(y[1] for y in ys))  # Windows clips outside these
     style = fam.instances.get(wght, str(wght))
     fb = FontBuilder(fam.upm, isTTF=True)
     fb.setupGlyphOrder(order)
@@ -137,7 +142,7 @@ def build_master(fam, wght, gl, path):
         "copyright": fam.copyright,
         "licenseDescription": "This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: https://openfontlicense.org",
         "licenseInfoURL": "https://openfontlicense.org",
-    })
+    }, **({"mac": False} if fam.windows_names_only else {}))
     fb.setupOS2(
         sTypoAscender=fam.ascent, sTypoDescender=fam.descent, sTypoLineGap=0,
         usWinAscent=max(fam.ascent, win[1]), usWinDescent=max(-fam.descent, -win[0]),
@@ -145,6 +150,9 @@ def build_master(fam, wght, gl, path):
         usWeightClass=wght, achVendID="NONE", fsSelection=0x80 | (0x40 if wght == 400 else 0),
     )
     fb.font["OS/2"].version = 4
+    if fam.code_pages:
+        fb.font["OS/2"].ulCodePageRange1 = sum(1 << b for b in fam.code_pages if b < 32)
+        fb.font["OS/2"].ulCodePageRange2 = sum(1 << (b - 32) for b in fam.code_pages if b >= 32)
     fb.setupPost()
     fb.setupHead(unitsPerEm=fam.upm, fontRevision=float(fam.version))
     addOpenTypeFeaturesFromString(fb.font, fam.features(wght))
@@ -165,9 +173,16 @@ def build(fam, tmp):
     axis.tag, axis.name = "wght", "Weight"
     axis.minimum, axis.default, axis.maximum = min(fam.masters), fam.default, max(fam.masters)
     ds.addAxis(axis)
+    win = None
+    if fam.win_all_masters:
+        gs = [g for w in fam.masters for g, _ in quads[w].values() if g.numberOfContours]
+        for g in gs:
+            g.recalcBounds(None)
+        ys = [(g.yMin, g.yMax) for g in gs]
+        win = (min(y[0] for y in ys), max(y[1] for y in ys))
     for w in fam.masters:
         path = tmp / f"{fam.file}-master-{w}.ttf"
-        build_master(fam, w, quads[w], str(path))
+        build_master(fam, w, quads[w], str(path), win)
         src = SourceDescriptor()
         src.path, src.location = str(path), {"Weight": w}
         src.styleName = fam.instances[w]
@@ -186,6 +201,14 @@ def build(fam, tmp):
     gasp = newTable("gasp")
     gasp.gaspRange = {0xFFFF: 0x000F}  # smooth and grid-fit at every size
     vf["gasp"] = gasp
+    if fam.windows_names_only:  # varLib adds its axis and instance names on both platforms
+        vf["name"].names = [n for n in vf["name"].names if n.platformID != 1]
+    if fam.smart_dropout:
+        from fontTools.ttLib.tables import ttProgram
+        prep = newTable("prep")
+        prep.program = ttProgram.Program()
+        prep.program.fromAssembly(["PUSHW[ ]", "511", "SCANCTRL[ ]", "PUSHB[ ]", "4", "SCANTYPE[ ]"])
+        vf["prep"] = prep
     vf_path = fam.out / "variable" / f"{fam.file}[wght].ttf"
     vf.save(vf_path)
     vf.flavor = "woff2"
@@ -196,6 +219,8 @@ def build(fam, tmp):
         inst = instantiateVariableFont(TTFont(vf_path), {"wght": w}, updateFontNames=True,
                                        overlap=OverlapMode.REMOVE)
         inst["OS/2"].usWeightClass = w
+        if fam.windows_names_only:
+            inst["name"].names = [n for n in inst["name"].names if n.platformID != 1]
         sp = fam.out / "static" / f"{fam.file}-{style}.ttf"
         inst.save(sp)
         if fam.hint is not None:

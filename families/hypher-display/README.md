@@ -5,8 +5,9 @@ The display face for the Hypher wordmark and headlines, drawn in code. **Hypher 
 The other versions in `fonts/versions/` explore how far the design can move from Michroma, down to Datum (none of Michroma's numbers) and Chamfer (as unlike it as letters of this kind get).
 
 - **Weights:** variable `wght` 300–700; Light, Regular, Medium, SemiBold and Bold instances
-- **Characters:** A–Z, a–z, figures 0–9, `. , : ; ! ? - – — ' " ‘ ’ “ ” ( ) [ ] / + = * _ # & @ %`, the space, and the accented letters of Western European languages (à–ÿ, À–Ý: grave, acute, circumflex, tilde, dieresis, ring, cedilla), 145 in all
+- **Characters:** all of Google Fonts' **Latin Core** set (319 characters, which includes Latin Kernel): A–Z, a–z, figures, punctuation and symbols including `$ € £ ¥ ¢ © ® ™ ° § ¶ • … « » ‹ › < > { } | \ ~ ^ ×  ÷ −`, and the letters of Western and Central European languages and Turkish (`ß ẞ æ Æ œ Œ ø Ø ð Ð þ Þ ł Ł đ Đ ħ Ħ`, every accented letter with grave, acute, circumflex, tilde, dieresis, ring, cedilla, macron, breve, ogonek, dot, caron, double acute and comma below), with the spacing and combining marks
 - **Kerning:** 592 pairs; accented letters kern like their base letter
+- **Checked against:** Fontbakery's universal profile (OpenType spec and common practice): 0 failures in the variable font and every static instance. Remaining warnings are by design: ď ľ Ľ ť take a comma, not a caron; overlaps are kept in the variable font; no `avar` table.
 - **Metrics:** 1000 UPM · x-height 560 · ascender 740 (1.32 x-heights) · descender −185 (0.33)
 
 ## Using it
@@ -71,7 +72,8 @@ Every glyph is a few polygons from `rounded()` in `src/core/geometry.py`: corner
 - **Figures** are lining, at cap height, as wide as the lowercase bowls. Their landmarks (the 2's middle bar, the 3's and 5's terminals, the 6's bowl, the 4's crossbar) are measured from the lockup's font; the 9 is the 6 turned.
 - **Comma and quotes** are a wedge, wide at the top; the opening quotes turn it so their wide end is low, so “ and ” point opposite ways.
 - **Capitals** stand at the ascender. B's top bowl is narrower than its lower one, E's middle bar is shorter than its top, K's arm and leg leave a short stub on the stem, M's V dips almost to the baseline, and Y's arms meet at 0.42 of the cap height, all as in the lockup's font.
-- **Accents** are drawn once (`mark()`) and hung over the base letter; i takes them on a dotless i.
+- **Accents** are drawn once (`mark()`) and hung over the base letter; i takes them on a dotless i. Their height grows more slowly than the stroke, so Bold's stay inside the line. ď ľ Ľ ť take the caron as a comma beside the stem; the ogonek hangs from the letter's right foot.
+- **Math signs** (+ − × ÷ = < > ~) share the plus's width and centre line, so sums line up.
 - **Kerning** (`kerning.py`) is Michroma's own pair list, scaled. The Wordmark design shares Michroma's widths and spacing, so its pairs fit.
 
 ## Files

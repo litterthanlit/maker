@@ -921,10 +921,10 @@ def dot_at(p, x0, y0):
     return box(x0, y0, x0 + p.V, y0 + p.V, p.rt, p.rt, p.rt, p.rt)
 
 
-def comma_at(p, x0, top):
+def comma_at(p, x0, top, tail=None):
     """A wedge leaning down to the left: a stem wide at the top, two thirds of that at the tip."""
     V, rt = p.V, p.rt
-    tail = V * 2.0  # from top to tip
+    tail = V * 2.0 if tail is None else tail  # from top to tip
     return rpoly((x0 + V / 3, top, rt), (x0 + V / 3 + V, top, rt), (x0 + V * 0.67, top - tail, rt), (x0, top - tail, rt))
 
 
@@ -1485,19 +1485,20 @@ def mark(p, kind, cap=False):
     """(contours, height) for one mark."""
     V, H, rt = p.V, p.H, p.rt
     s = 0.9 if cap else 1.0  # marks on capitals sit lower and a touch smaller
+    mh = V * 0.9 + 73  # a mark's height: 1.7 stems at Regular, growing more slowly than the stroke so Bold's stay in the line
     if kind in ("acute", "grave"):
-        w, h = V * 1.9 * s, V * 1.7 * s
+        w, h = V * 1.9 * s, mh * s
         c = rpoly((-w / 2, 0, rt), (-w / 2 + V * 1.1, 0, rt), (w / 2, h, rt), (w / 2 - V * 1.1, h, rt))
         return ([c] if kind == "acute" else mirror_x([c], 0)), h
     if kind == "circumflex":
-        w, h = V * 4.2 * s, V * 1.7 * s
+        w, h = (V * 2.2 + 184) * s, mh * s
         vee = v_shape(p, -w / 2, w, top=h, foot=V * 1.2, r_top=rt)[0]
         return rotate180([vee], 0, h / 2), h
     if kind == "dieresis":
         g = V * 0.9
         return [dot_at(p, -g / 2 - V, 0), dot_at(p, g / 2, 0)], V
     if kind == "ring":
-        w = V * 3.0 * s
+        w = (V * 1.6 + 130) * s  # grows less than the stroke, so Bold's ring stays in proportion
         r = min(p.ri, w / 3)
         return [box(-w / 2, 0, w / 2, w * 0.8, r, r, r, r), hole(-w / 2 + V * 0.8, H * 0.8, w / 2 - V * 0.8, w * 0.8 - H * 0.8, r / 2)], w * 0.8
     if kind == "tilde":
@@ -1510,10 +1511,38 @@ def mark(p, kind, cap=False):
                     (a, H, rr), (-w / 2, H, rt))
         return [c], d + H
     if kind == "cedilla":  # a small hook hanging below the baseline from y = 0, like the j's tail
-        h, xl = H * 3.0, -V * 1.7
+        h, xl = XH * 0.30 + H * 0.6, -V * 1.7  # about as deep at every weight
         c = rounded((xl, -h + H, rt), (xl, -h, rt), (V / 2, -h, p.ro * 0.4), (V / 2, 0, rt), (-V / 2, 0, rt),
                     (-V / 2, -h + H, p.ri * 0.4))
         return [c], 0
+    if kind == "macron":
+        w = V * 3.6 * s
+        return [box(-w / 2, 0, w / 2, H, rt, rt, rt, rt)], H
+    if kind == "breve":  # a small cup
+        w, h = V * 3.8 * s, V * 1.4 * s
+        v, hh = V * 0.85, H * 0.8
+        r = min(p.ro * 0.5, h * 0.8)
+        cup = rounded((-w / 2, 0, r), (w / 2, 0, r), (w / 2, h, rt), (w / 2 - v, h, rt), (w / 2 - v, hh, r * 0.5),
+                      (-w / 2 + v, hh, r * 0.5), (-w / 2 + v, h, rt), (-w / 2, h, rt))
+        return [cup], h
+    if kind == "dotaccent":
+        return [dot_at(p, -V / 2, 0)], V
+    if kind == "caron":
+        w, h = (V * 2.2 + 184) * s, mh * s
+        return [v_shape(p, -w / 2, w, top=h, foot=V * 1.2, r_top=rt)[0]], h
+    if kind == "hungarumlaut":
+        a, h = mark(p, "acute", cap)
+        off = V * 1.15
+        return translate(a, -off) + translate(a, off), h
+    if kind == "ogonek":  # the cedilla's hook turned to hang from a letter's right foot, its tail to the right
+        h, xl = XH * 0.30 + H * 0.6, -V * 1.3
+        c = rounded((xl, -h + H, rt), (xl, -h, rt), (V / 2, -h, p.ro * 0.4), (V / 2, rt + 2, 0), (-V / 2, rt + 2, 0),
+                    (-V / 2, -h + H, p.ri * 0.4))  # its top tucks just past the letter's soft corner, square, so the two run on as one
+        return mirror_x([c], 0), 0
+    if kind == "commaaccent":  # a comma hung below the baseline
+        return [comma_at(p, -V * 2 / 3, -H * 0.5, tail=V * 0.9 + 100)], 0  # shorter than a comma, so Bold does not hang deep
+    if kind == "commaturned":  # a comma turned over, above (the ģ's)
+        return rotate180([comma_at(p, -V * 2 / 3, V * 2)], 0, V), V * 2
     raise ValueError(kind)
 
 
@@ -1534,30 +1563,737 @@ ACCENTS = {  # base: [(char, mark), ...]
 BASE = {}  # accented glyph name -> base glyph name, for kerning
 
 
+BELOW = ("cedilla", "ogonek", "commaaccent")
+OGONEK_AT = {"a": lambda p, W: W - p.V / 2, "A": lambda p, W: W - p.V * 0.75, "e": lambda p, W: W * 0.62,
+             "E": lambda p, W: W * 0.8, "i": lambda p, W: p.V / 2, "I": lambda p, W: p.V / 2,
+             "u": lambda p, W: W - p.V / 2, "U": lambda p, W: W * 0.72}
+
+
 def accented(base, kind):
     cap = base[0].isupper()
 
     def fn(p):
         contours, W, sides = GLYPHS[base][1](p)
+        if kind == "caronv":  # ď ľ Ľ ť: the caron as a comma beside the stem's top
+            x0, top = {"d": (W + p.V * 0.35, ASC), "l": (p.V * 1.35, ASC), "L": (p.V * 1.4, CH),
+                       "t": (p.V * 1.35, XH * lm("t_top", 1.273))}[base]
+            return contours + [comma_at(p, x0, top)], max(W, x0 + p.V * 4 / 3), sides
         m, h = mark(p, kind, cap)
-        if kind == "cedilla":
+        if kind in BELOW:
             y = 0
+        elif base == "l":  # over the ascender
+            y = ASC + XH * 0.13
         else:
             y = (CH + CH * 0.06) if cap else (XH + XH * 0.13)
             if kind == "ring":  # a closed ring reads as touching sooner than an open mark
                 y += p.V * 0.4
         cx = W / 2
-        if base == "y":  # over the y's arms, not its tail
-            cx = W / 2
+        if kind == "ogonek":
+            cx = OGONEK_AT[base](p, W)
+        elif base == "L" and kind not in BELOW:
+            cx = W * 0.3  # over the stem side
+        elif base in ("r", "R") and kind == "commaaccent":
+            cx = p.V / 2
         return contours + translate(m, cx, y), W, sides
     return fn
 
+
+# Google Fonts Latin Core: the rest of Western and Central Europe.
+for _base, _more in {
+    "a": [("ā", "macron"), ("ă", "breve"), ("ą", "ogonek")], "A": [("Ā", "macron"), ("Ă", "breve"), ("Ą", "ogonek")],
+    "c": [("ć", "acute"), ("ċ", "dotaccent"), ("č", "caron")], "C": [("Ć", "acute"), ("Ċ", "dotaccent"), ("Č", "caron")],
+    "d": [("ď", "caronv")], "D": [("Ď", "caron")],
+    "e": [("ē", "macron"), ("ė", "dotaccent"), ("ę", "ogonek"), ("ě", "caron")],
+    "E": [("Ē", "macron"), ("Ė", "dotaccent"), ("Ę", "ogonek"), ("Ě", "caron")],
+    "g": [("ğ", "breve"), ("ġ", "dotaccent"), ("ģ", "commaturned")],
+    "G": [("Ğ", "breve"), ("Ġ", "dotaccent"), ("Ģ", "commaaccent")],
+    "dotlessi": [("ī", "macron")], "i": [("į", "ogonek")],
+    "I": [("Ī", "macron"), ("Į", "ogonek"), ("İ", "dotaccent")],
+    "k": [("ķ", "commaaccent")], "K": [("Ķ", "commaaccent")],
+    "l": [("ĺ", "acute"), ("ļ", "commaaccent"), ("ľ", "caronv")],
+    "L": [("Ĺ", "acute"), ("Ļ", "commaaccent"), ("Ľ", "caronv")],
+    "n": [("ń", "acute"), ("ņ", "commaaccent"), ("ň", "caron")],
+    "N": [("Ń", "acute"), ("Ņ", "commaaccent"), ("Ň", "caron")],
+    "o": [("ő", "hungarumlaut")], "O": [("Ő", "hungarumlaut")],
+    "r": [("ŕ", "acute"), ("ř", "caron")], "R": [("Ŕ", "acute"), ("Ř", "caron")],
+    "s": [("ś", "acute"), ("ş", "cedilla"), ("š", "caron"), ("ș", "commaaccent")],
+    "S": [("Ś", "acute"), ("Ş", "cedilla"), ("Š", "caron"), ("Ș", "commaaccent")],
+    "t": [("ť", "caronv"), ("ț", "commaaccent")], "T": [("Ť", "caron"), ("Ț", "commaaccent")],
+    "u": [("ū", "macron"), ("ů", "ring"), ("ű", "hungarumlaut"), ("ų", "ogonek")],
+    "U": [("Ū", "macron"), ("Ů", "ring"), ("Ű", "hungarumlaut"), ("Ų", "ogonek")],
+    "w": [("ŵ", "circumflex"), ("ẁ", "grave"), ("ẃ", "acute"), ("ẅ", "dieresis")],
+    "W": [("Ŵ", "circumflex"), ("Ẁ", "grave"), ("Ẃ", "acute"), ("Ẅ", "dieresis")],
+    "y": [("ŷ", "circumflex"), ("ỳ", "grave")], "Y": [("Ŷ", "circumflex"), ("Ÿ", "dieresis"), ("Ỳ", "grave")],
+    "z": [("ź", "acute"), ("ż", "dotaccent"), ("ž", "caron")], "Z": [("Ź", "acute"), ("Ż", "dotaccent"), ("Ž", "caron")],
+}.items():
+    ACCENTS.setdefault(_base, []).extend(_more)
 
 for _base, _marks in ACCENTS.items():
     for _char, _kind in _marks:
         _name = f"uni{ord(_char):04X}"
         GLYPHS[_name] = (_char, accented(_base, _kind))
         BASE[_name] = _base
+
+# --- Google Fonts Latin Core: the remaining symbols and letters -------------
+# Widths and sidebearings are measured from Michroma like the rest of the
+# wordmark (ink x1.01, sides +41 units); every shape is built from the same
+# parts as the letters above: bars, bowls, stems, the v, the marks.
+
+WM_WIDTHS.update({
+    "dollar": 918, "less": 436, "greater": 436, "backslash": 436, "asciicircum": 467, "grave": 338,
+    "braceleft": 343, "bar": 93, "braceright": 343, "asciitilde": 436, "cent": 654, "sterling": 716,
+    "yen": 934, "copyright": 810, "registered": 810, "degree": 330, "periodcentered": 93, "multiply": 441,
+    "divide": 498, "bullet": 249, "ellipsis": 529, "Euro": 868, "trademark": 1215, "minus": 499,
+    "exclamdown": 93, "section": 607, "dieresis": 438, "ordfeminine": 612, "guillemotleft": 529,
+    "macron": 374, "acute": 338, "paragraph": 841, "cedilla": 187, "ordmasculine": 685,
+    "guillemotright": 529, "questiondown": 700, "AE": 1433, "Eth": 965, "Oslash": 919, "Thorn": 841,
+    "germandbls": 720, "eth": 686, "oslash": 686, "thorn": 685, "Hbar": 872, "Lslash": 747,
+    "dotlessj": 171, "uni1E9E": 840, "quotesinglbase": 125, "quotedblbase": 280, "guilsinglleft": 311,
+    "guilsinglright": 311,
+})
+WM_SIDES.update({
+    "dollar": (105, 100), "less": (162, 162), "greater": (162, 162), "backslash": (72, 71),
+    "asciicircum": (72, 72), "grave": (107, 103), "braceleft": (103, 103), "bar": (103, 103),
+    "braceright": (103, 103), "asciitilde": (162, 162), "cent": (87, 87), "sterling": (72, 102),
+    "yen": (72, 72), "copyright": (103, 103), "registered": (103, 103), "degree": (103, 103),
+    "periodcentered": (103, 103), "multiply": (160, 160), "divide": (132, 132), "bullet": (160, 160),
+    "ellipsis": (103, 103), "Euro": (103, 103), "trademark": (103, 103), "minus": (131, 131),
+    "exclamdown": (132, 132), "section": (103, 103), "dieresis": (86, 86), "ordfeminine": (103, 124),
+    "guillemotleft": (103, 103), "macron": (103, 103), "acute": (103, 107), "paragraph": (103, 103),
+    "cedilla": (103, 103), "ordmasculine": (103, 103), "guillemotright": (103, 103),
+    "questiondown": (146, 137), "AE": (71, 71), "Eth": (60, 102), "Oslash": (102, 102), "Thorn": (135, 76),
+    "germandbls": (104, 87), "ae": (103, 98), "eth": (87, 87), "oslash": (87, 87), "thorn": (104, 87),
+    "OE": (102, 71), "oe": (87, 98), "Dcroat": (60, 102), "dcroat": (87, 60), "Hbar": (90, 90),
+    "hbar": (60, 101), "Lslash": (72, 71), "lslash": (60, 60), "dotlessj": (22, 133), "uni1E9E": (133, 102),
+    "quotesinglbase": (71, 102), "quotedblbase": (102, 102), "guilsinglleft": (103, 103),
+    "guilsinglright": (103, 103),
+})
+for _n in list(WM_WIDTHS):
+    WIDTHS.setdefault(_n, round(WM_WIDTHS[_n] * 0.92))
+for _n in list(WM_SIDES):
+    SIDES.setdefault(_n, tuple(v * 0.93 for v in WM_SIDES[_n]))
+
+MATH = XH * 0.62  # the centre line of + - x / = and their kin, as the plus has it
+
+
+def scaled(contours, k, dx=0, dy=0):
+    return geometry.transform(contours, a=k, d=k, e=dx, f=dy)
+
+
+def small(p, k, thin=0.62):
+    """Weight parameters for a letter drawn full size and then scaled by k, so its
+    stems come out `thin` stems thick: the © and ® letters, ™, ª and º."""
+    return P(p.wght, p.V * thin / k)
+
+
+def chevron(p, W, h, cy, opening="right"):
+    """A < with flat cut ends: a v laid on its side, apex at the left."""
+    vee = v_shape(p, 0, h, top=W, foot=p.V * 0.5, r_top=p.rt)[0]  # opens up, h wide, W tall
+    c = rotate([vee], -90, 0, 0)  # apex now at the left, opening right
+    c = translate(c, 0, cy + h / 2)
+    return c if opening == "right" else mirror_x(c, W)
+
+
+def s_shape(p, W, h, mid=0.515, t0=0.33, t1=0.70):
+    """The S's outline, any size."""
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    m0 = h * mid - H / 2
+    m1 = m0 + H
+    return rounded(
+        (0, h * t0, rt), (0, 0, ro), (W, 0, ro), (W, m1, ro), (V, m1, ri), (V, h - H, ri),
+        (W - V, h - H, ri), (W - V, h * t1, rt), (W, h * t1, rt), (W, h, ro), (0, h, ro), (0, m0, ro),
+        (W - V, m0, ri), (W - V, H, ri), (V, H, ri), (V, h * t0, rt),
+    )
+
+
+@glyph("dollar", "$")
+def g_dollar(p):
+    """The S at figure height with a line through it, out past top and bottom."""
+    W = p.w("dollar")
+    t = p.V * 0.8
+    line = box(W / 2 - t / 2, -FH * 0.13, W / 2 + t / 2, FH * 1.13, p.rt, p.rt, p.rt, p.rt)
+    return [s_shape(p, W, FH), line], W, p.sides("dollar")
+
+
+@glyph("less", "<")
+def g_less(p):
+    W = p.w("less")
+    return chevron(p, W, W * 1.2, MATH, "right"), W, p.sides("less")
+
+
+@glyph("greater", ">")
+def g_greater(p):
+    W = p.w("greater")
+    return chevron(p, W, W * 1.2, MATH, "left"), W, p.sides("greater")
+
+
+@glyph("backslash", "\\")
+def g_backslash(p):
+    W = p.w("backslash")
+    return mirror_x(g_slash(p)[0], W), W, p.sides("backslash")
+
+
+@glyph("asciicircum", "^")
+def g_asciicircum(p):
+    """A v turned over, hung from cap height."""
+    W = p.w("asciicircum")
+    h = FH * 0.42
+    vee = v_shape(p, 0, W, top=h, foot=p.V * 1.1, r_top=p.rt)[0]
+    return translate(rotate180([vee], W / 2, h / 2), 0, FH - h), W, p.sides("asciicircum")
+
+
+def spacing_mark(p, name, kind, y=None):
+    """A mark on its own: centred in its width, where it sits over a lowercase letter."""
+    W = p.w(name)
+    m, _ = mark(p, kind)
+    return translate(m, W / 2, XH * 1.13 if y is None else y), W, p.sides(name)
+
+
+@glyph("grave", "`")
+def g_grave(p):
+    return spacing_mark(p, "grave", "grave")
+
+
+@glyph("acute", "´")
+def g_acute(p):
+    return spacing_mark(p, "acute", "acute")
+
+
+@glyph("dieresis", "¨")
+def g_dieresis(p):
+    return spacing_mark(p, "dieresis", "dieresis")
+
+
+@glyph("macron", "¯")
+def g_macron(p):
+    return spacing_mark(p, "macron", "macron")
+
+
+@glyph("cedilla", "¸")
+def g_cedilla(p):
+    return spacing_mark(p, "cedilla", "cedilla", y=0)
+
+
+def brace(p, W):
+    """An opening brace: the bracket, stepped in, with a tooth out to the left at its middle."""
+    xs = W * 0.36
+    mid = (DSC * 0.61 + FH + 34) / 2
+    b = translate([bracket(p, W - xs, p.ro * 1.2, p.ri * 1.2)], xs)
+    tooth = box(0, mid - p.H / 2, xs + p.V / 2, mid + p.H / 2, p.rt, 0, 0, p.rt)
+    return b + [tooth]
+
+
+@glyph("braceleft", "{")
+def g_braceleft(p):
+    W = p.w("braceleft")
+    return brace(p, W), W, p.sides("braceleft")
+
+
+@glyph("braceright", "}")
+def g_braceright(p):
+    W = p.w("braceright")
+    return mirror_x(brace(p, W), W), W, p.sides("braceright")
+
+
+@glyph("bar", "|")
+def g_bar(p):
+    return [box(0, DSC * 0.61, p.V, FH + 34, p.rt, p.rt, p.rt, p.rt)], p.V, p.sides("bar")
+
+
+def wave(p, w, cy, d=None):
+    """The tilde's wave, w wide, centred on cy; d is its rise."""
+    V, H, rt = p.V, p.H, p.rt
+    d = max(V * 1.1, H * 1.3) if d is None else d
+    a, b = w * 0.30, w * 0.70
+    rr = H * 1.4
+    y0 = cy - (d + H) / 2
+    return rounded((0, y0, rt), (a, y0, rr), (b, y0 + d, rr), (w, y0 + d, rt), (w, y0 + d + H, rt),
+                   (b, y0 + d + H, rr), (a, y0 + H, rr), (0, y0 + H, rt))
+
+
+@glyph("asciitilde", "~")
+def g_asciitilde(p):
+    W = p.w("asciitilde")
+    return [wave(p, W, MATH, d=max(W * 0.30, p.H * 1.3))], W, p.sides("asciitilde")
+
+
+@glyph("uni00A0", " ")
+def g_nbspace(p):
+    return [], 0, (150, 150)
+
+
+@glyph("cent", "¢")
+def g_cent(p):
+    """The c with a line through it, out past the x-height and the baseline."""
+    W = p.w("cent")
+    t = p.V * 0.8
+    c = c_shape(p, W, XH, XH * lm("c_t0", 0.334), XH * lm("c_t1", 0.686))
+    line = box(W / 2 - t / 2, -XH * 0.16, W / 2 + t / 2, XH * 1.16, p.rt, p.rt, p.rt, p.rt)
+    return [c, line], W, p.sides("cent")
+
+
+@glyph("sterling", "£")
+def g_sterling(p):
+    """A stem rising from a full-width base into the f's arm, crossed by a bar."""
+    W = p.w("sterling")
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    xs, t = W * 0.22, FH * 0.70  # stem, and the arm's terminal
+    arm = rounded(
+        (xs, H, rt), (xs + V, H, rt), (xs + V, FH - H, ri), (W - V, FH - H, ri), (W - V, t, rt), (W, t, rt),
+        (W, FH, ro), (xs, FH, ro),
+    )
+    cross = box(0, FH * 0.44 - H / 2, W * 0.70, FH * 0.44 + H / 2, rt, rt, rt, rt)
+    base = box(0, 0, W, H, rt, rt, rt, rt)
+    return [arm, cross, base], W, p.sides("sterling")
+
+
+@glyph("yen", "¥")
+def g_yen(p):
+    """The Y, with two bars across its stem."""
+    W = p.w("yen")
+    yj = FH * lm("Y_join", 0.416)
+    vee = v_shape(p, 0, W, top=FH, bottom=yj, foot=p.V, r_top=p.rt)[0]
+    bw = W * 0.62
+    b1 = yj - p.H * 0.4
+    bars = [box(W / 2 - bw / 2, y, W / 2 + bw / 2, y + p.H, p.rt, p.rt, p.rt, p.rt) for y in (b1 - p.H * 2.0, b1)]
+    return [vee, stem(p, W / 2 - p.V / 2, 0, yj + p.H)] + bars, W, p.sides("yen")
+
+
+def ring_box(p, W, h, y0, thin=0.62):
+    """A round-cornered ring, strokes `thin` stems thick: the ©'s and ®'s frame."""
+    v, hh = p.V * thin, p.H * thin
+    r = min(p.ro * 1.6, h / 2)
+    return [box(0, y0, W, y0 + h, r, r, r, r), hole(v, y0 + hh, W - v, y0 + h - hh, max(r - v * 0.8, 4))]
+
+
+def framed(p, name, letter_fn):
+    """© and ®: a capital, small, centred in a ring at cap height. letter_fn(q) -> (contours, width)."""
+    W = p.w(name)
+    h = W * 0.96
+    y0 = (FH - h) / 2
+    k = 0.46
+    q = small(p, k, thin=0.66)
+    c, lw = letter_fn(q)
+    lw *= k
+    return ring_box(p, W, h, y0) + scaled(c, k, (W - lw) / 2, y0 + (h - CH * k) / 2), W, p.sides(name)
+
+
+@glyph("copyright", "©")
+def g_copyright(p):
+    def letter(q):
+        w = WM_WIDTHS["C"] * 0.95
+        return [c_shape(q, w, CH, CH * 0.36, CH * 0.64)], w
+    return framed(p, "copyright", letter)
+
+
+@glyph("registered", "®")
+def g_registered(p):
+    def letter(q):
+        c, w, _ = g_R(q)
+        return c, w
+    return framed(p, "registered", letter)
+
+
+@glyph("degree", "°")
+def g_degree(p):
+    W = p.w("degree")
+    return translate(ring_box(p, W, W * 0.92, 0, thin=0.8), 0, FH - W * 0.92), W, p.sides("degree")
+
+
+@glyph("periodcentered", "·")
+def g_periodcentered(p):
+    return [dot_at(p, 0, XH * lm("dash", 0.514) - p.V / 2)], p.V, p.sides("periodcentered")
+
+
+@glyph("multiply", "×")
+def g_multiply(p):
+    """The x, square, on the centre line."""
+    W = p.w("multiply")
+    rt, y0 = p.rt, MATH - W / 2
+    hw = diag_hw(W, W, p.V * 0.98)
+    down = rpoly((0, y0 + W, rt), (hw, y0 + W, rt), (W, y0, rt), (W - hw, y0, rt))
+    up = rpoly((W - hw, y0 + W, rt), (W, y0 + W, rt), (hw, y0, rt), (0, y0, rt))
+    return [down, up], W, p.sides("multiply")
+
+
+@glyph("divide", "÷")
+def g_divide(p):
+    W = p.w("divide")
+    V, H, rt = p.V, p.H, p.rt
+    gap = V * 0.9
+    line = box(0, MATH - H / 2, W, MATH + H / 2, rt, rt, rt, rt)
+    return [line, dot_at(p, W / 2 - V / 2, MATH + H / 2 + gap), dot_at(p, W / 2 - V / 2, MATH - H / 2 - gap - V)], W, p.sides("divide")
+
+
+@glyph("minus", "−")
+def g_minus(p):
+    W = p.w("minus")
+    return [box(0, MATH - p.H / 2, W, MATH + p.H / 2, p.rt, p.rt, p.rt, p.rt)], W, p.sides("minus")
+
+
+@glyph("bullet", "•")
+def g_bullet(p):
+    W = max(p.w("bullet"), p.V * 2.2)
+    c = XH * lm("dash", 0.514)
+    r = W * 0.3
+    return [box(0, c - W / 2, W, c + W / 2, r, r, r, r)], W, p.sides("bullet")
+
+
+@glyph("ellipsis", "…")
+def g_ellipsis(p):
+    V = p.V
+    gap = V * 1.25
+    return [dot_at(p, i * (V + gap), 0) for i in range(3)], 3 * V + 2 * gap, p.sides("ellipsis")
+
+
+@glyph("Euro", "€")
+def g_Euro(p):
+    """The C, stepped right, with two bars through its back."""
+    W = p.w("Euro")
+    V, H, rt = p.V, p.H, p.rt
+    xo = W * 0.14
+    c = translate([c_shape(p, W - xo, FH, FH * lm("C_t0", 0.337), FH * lm("C_t1", 0.656))], xo)
+    x1 = xo + (W - xo) * 0.55
+    bars = [box(0, y - H / 2, x1, y + H / 2, rt, rt, rt, rt) for y in (FH * 0.35, FH * 0.63)]
+    return c + bars, W, p.sides("Euro")
+
+
+@glyph("trademark", "™")
+def g_trademark(p):
+    """T and M, small, hung from cap height."""
+    k = 0.42
+    q = small(p, k, thin=0.75)
+    T, M = g_T(q), g_M(q)
+    gap = p.V * 0.8
+    wt, wm = T[1] * k, M[1] * k
+    y = FH - CH * k
+    c = scaled(T[0], k, 0, y) + scaled(M[0], k, wt + gap, y)
+    return c, wt + gap + wm, p.sides("trademark")
+
+
+@glyph("exclamdown", "¡")
+def g_exclamdown(p):
+    c, W, _ = g_exclam(p)
+    return translate(rotate180(c, W / 2, FH / 2), 0, XH - FH), W, p.sides("exclamdown")
+
+
+@glyph("questiondown", "¿")
+def g_questiondown(p):
+    c, W, _ = g_question(p)
+    return translate(rotate180(c, W / 2, FH / 2), 0, XH - FH), W, p.sides("questiondown")
+
+
+@glyph("section", "\u00a7")
+def g_section(p):
+    """A closed loop in the middle, a hook rising from its left side to a terminal at
+    the top right, and the same hook turned over below it."""
+    W = p.w("section")
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    l0, l1 = FH * 0.29, FH * 0.71  # the loop
+    t1 = FH * 0.80  # the hooks' terminals
+    r = min(ro, (l1 - l0) / 2)
+    loop = [box(0, l0, W, l1, r, r, r, r), hole(V, l0 + H, W - V, l1 - H, min(ri, r / 2), )]
+    ym = (l0 + l1) / 2  # the hook starts on the loop's straight side, so the two sides run on as one
+    hook = rpoly(
+        (0, ym, 0), (V, ym, 0), (V, FH - H, ri), (W - V, FH - H, ri), (W - V, t1, rt), (W, t1, rt),
+        (W, FH, ro), (0, FH, ro),
+    )
+    return loop + [hook] + rotate180([hook], W / 2, FH / 2), W, p.sides("section")
+
+
+@glyph("paragraph", "¶")
+def g_paragraph(p):
+    """A solid bowl on the left, two stems hanging from a bar across the top."""
+    W = p.w("paragraph")
+    V, H, ro, rt = p.V, p.H, p.ro, p.rt
+    x1, x2 = W * 0.52, W - V
+    bowl_ = box(0, FH * 0.40, x1 + V, FH, ro, 0, 0, ro)
+    stems = [box(x1, 0, x1 + V, FH, rt, rt, 0, 0), box(x2, 0, W, FH, rt, rt, rt, 0)]
+    top = box(x1, FH - H, W, FH, 0, 0, rt, 0)
+    return [bowl_, top] + stems, W, p.sides("paragraph")
+
+
+def ordinal(p, name, letter):
+    """ª and º: the a or o, small, raised to cap height, over a short bar."""
+    k = 0.52
+    q = small(p, k, thin=0.72)
+    c, w, _ = letter(q)
+    wk = w * k
+    y = FH - XH * k
+    bar_y = y - p.H * 0.75 - p.V * 0.7
+    return scaled(c, k, 0, y) + [box(0, bar_y, wk, bar_y + p.H * 0.75, p.rt, p.rt, p.rt, p.rt)], wk, p.sides(name)
+
+
+@glyph("ordfeminine", "ª")
+def g_ordfeminine(p):
+    return ordinal(p, "ordfeminine", g_a)
+
+
+@glyph("ordmasculine", "º")
+def g_ordmasculine(p):
+    return ordinal(p, "ordmasculine", g_o)
+
+
+def guillemets(p, name, n, opening):
+    W1 = XH * 0.27 + p.V * 1.15  # grows with the stroke, so Bold keeps the inside of each chevron open
+    h = W1 * 1.45
+    gap = p.V * 0.45
+    c = []
+    for i in range(n):
+        c += translate(chevron(p, W1, h, XH * lm("dash", 0.514), opening), i * (W1 + gap))
+    return c, n * W1 + (n - 1) * gap, p.sides(name)
+
+
+@glyph("guillemotleft", "«")
+def g_guillemotleft(p):
+    return guillemets(p, "guillemotleft", 2, "right")
+
+
+@glyph("guillemotright", "»")
+def g_guillemotright(p):
+    return guillemets(p, "guillemotright", 2, "left")
+
+
+@glyph("guilsinglleft", "‹")
+def g_guilsinglleft(p):
+    return guillemets(p, "guilsinglleft", 1, "right")
+
+
+@glyph("guilsinglright", "›")
+def g_guilsinglright(p):
+    return guillemets(p, "guilsinglright", 1, "left")
+
+
+@glyph("quotesinglbase", "‚")
+def g_quotesinglbase(p):
+    return [comma_at(p, 0, p.V * 0.67)], p.V * 4 / 3, p.sides("quotesinglbase")
+
+
+@glyph("quotedblbase", "„")
+def g_quotedblbase(p):
+    V = p.V
+    w1, gap = V * 4 / 3, V * 0.5
+    return [comma_at(p, i * (w1 + gap), V * 0.67) for i in range(2)], 2 * w1 + gap, p.sides("quotedblbase")
+
+
+# Letters
+
+@glyph("AE", "Æ")
+def g_AE(p):
+    """The A's left leg running up into the E's stem, with the A's bar between them."""
+    W = p.w("AE")
+    V, H, rt = p.V, p.H, p.rt
+    xs = W * 0.40  # the E's stem
+    hw = diag_hw(xs, CH, V * 0.98)
+    leg = rpoly((0, 0, rt), (hw, 0, rt), (xs + V * 0.5, CH, 0), (xs + V * 0.5 - hw, CH, 0))
+    m0 = CH * lm("EFH_mid", 0.510) - H / 2
+    ab = CH * lm("A_bar", 0.229)
+    we = W - xs
+    xl = (ab + H / 2) / CH * (xs + V * 0.5 - hw) + hw * 0.5  # the bar starts inside the leg
+    parts = [stem(p, xs), bar(p, xs, xs + we * lm("E_top", 0.981), CH - H), bar(p, xs, xs + we * lm("E_mid", 0.945), m0),
+             bar(p, xs, W, 0), box(xl, ab, xs + V / 2, ab + H, 0, 0, 0, 0)]
+    return [leg] + parts, W, p.sides("AE")
+
+
+def crossbar(p, x0, x1, y):
+    return box(x0, y - p.H / 2, x1, y + p.H / 2, p.rt, p.rt, p.rt, p.rt)
+
+
+@glyph("Eth", "Ð")
+def g_Eth(p):
+    """The D, stepped right, with a bar through its stem."""
+    xo = p.V * 0.9
+    c, W, _ = g_D(p)
+    return translate(c, xo) + [crossbar(p, 0, xo + p.V * 2.3, CH * 0.5)], W + xo, p.sides("Eth")
+
+
+@glyph("Dcroat", "Đ")
+def g_Dcroat(p):
+    c, W, _ = g_Eth(p)
+    return c, W, p.sides("Dcroat")
+
+
+def slashed(p, contours, W, h, below, above):
+    """A letter with a diagonal through it, out past its top and bottom (Ø, ø)."""
+    t = p.V * 0.9
+    y0, y1 = -h * below, h * (1 + above)
+    hw = diag_hw(W * 0.84, y1 - y0, t)
+    x0 = W * 0.08
+    s = rpoly((x0, y0, p.rt), (x0 + hw, y0, p.rt), (W - x0, y1, p.rt), (W - x0 - hw, y1, p.rt))
+    return contours + [s]
+
+
+@glyph("Oslash", "Ø")
+def g_Oslash(p):
+    c, W, _ = GLYPHS["O"][1](p)  # with its overshoot
+    return slashed(p, c, W, CH, 0.14, 0.14), W, p.sides("Oslash")
+
+
+@glyph("oslash", "ø")
+def g_oslash(p):
+    c, W, _ = GLYPHS["o"][1](p)
+    return slashed(p, c, W, XH, 0.18, 0.18), W, p.sides("oslash")
+
+
+@glyph("Thorn", "Þ")
+def g_Thorn(p):
+    W = p.w("Thorn")
+    return [stem(p, 0)] + capbowl(p, 0, W, CH * 0.20, CH * 0.82, "square"), W, p.sides("Thorn")
+
+
+@glyph("thorn", "þ")
+def g_thorn(p):
+    """The p with its stem run up to the ascender."""
+    W = p.w("thorn")
+    stem_ = box(0, DSC, p.V, ASC, p.rt, p.rt, p.rt, p.rt)
+    return [stem_] + bowl(p, 0, W, stem="left"), W, p.sides("thorn")
+
+
+def eszett(p, W, top, round_top=True):
+    """ß: a stem and a top bowl open below, its bar handing over to a lower bowl like the 3's."""
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    W1, xm, xb = W * 0.86, W * 0.36, W * 0.30
+    m0 = XH * 0.60 - H / 2
+    m1 = m0 + H
+    rw = waist(p, m1)
+    upper = rpoly(
+        (0, 0, rt), (V, 0, rt), (V, top - H, ri), (W1 - V, top - H, ri), (W1 - V, m1, joint(p, ri)),
+        (xm, m1, rt), (xm, m0, rt), (W1, m0, waist(p, top - m0)), (W1, top, ro), (0, top, ro if round_top else rt),
+    )
+    lower = rpoly(
+        (xb, 0, rt), (W, 0, ro), (W, m1, rw), (xm, m1, rt), (xm, m0, rt), (W - V, m0, joint(p, ri)),
+        (W - V, H, ri), (xb, H, rt),
+    )
+    return [upper, lower]
+
+
+@glyph("germandbls", "ß")
+def g_germandbls(p):
+    W = p.w("germandbls")
+    return eszett(p, W, ASC), W, p.sides("germandbls")
+
+
+@glyph("uni1E9E", "ẞ")
+def g_Germandbls(p):
+    W = p.w("uni1E9E")
+    return eszett(p, W, CH, round_top=False), W, p.sides("uni1E9E")
+
+
+@glyph("eth", "\u00f0")
+def g_eth(p):
+    """Michroma's construction: the bowl's right side runs on up to the ascender and over
+    to a terminal on the left, and a short stroke rises across the shoulder."""
+    W = p.w("eth")
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    t = XH + (ASC - XH) * 0.35  # the top's left terminal
+    hook = rpoly(
+        (W - V, XH * 0.5, rt), (W, XH * 0.5, rt), (W, ASC, ro), (0, ASC, ro), (0, t, rt), (V, t, rt),
+        (V, ASC - H, ri), (W - V, ASC - H, ri),
+    )
+    w, rise, th = V * 2.4, V * 0.45, H * 0.8
+    cx, cy = W - V * 0.3, ASC - H * 1.25
+    cross = rpoly((cx - w / 2, cy - rise / 2 - th / 2, rt), (cx + w / 2, cy + rise / 2 - th / 2, rt),
+                  (cx + w / 2, cy + rise / 2 + th / 2, rt), (cx - w / 2, cy - rise / 2 + th / 2, rt))
+    return GLYPHS["o"][1](p)[0] + [hook, cross], W + V * 0.9, p.sides("eth")
+
+
+def joined(first, second, overlap):
+    """Two letters run together, the second starting `overlap` before the first ends (æ, œ, Œ)."""
+    a, wa, (lsb, _) = first
+    b, wb, (_, rsb) = second
+    return a + translate(b, wa - overlap), wa + wb - overlap, (lsb, rsb)
+
+
+@glyph("ae", "æ")
+def g_ae(p):
+    return joined(g_a(p), g_e(p), p.V)  # neither overshoots: the a has a flat stem at the line
+
+
+@glyph("oe", "œ")
+def g_oe(p):
+    return joined(GLYPHS["o"][1](p), GLYPHS["e"][1](p), p.V)
+
+
+@glyph("OE", "Œ")
+def g_OE(p):
+    return joined(GLYPHS["O"][1](p), g_E(p), p.V)
+
+
+@glyph("dcroat", "đ")
+def g_dcroat(p):
+    c, W, _ = g_d(p)
+    return c + [crossbar(p, W - p.V * 2.4, W + p.V * 0.9, ASC * 0.84)], W + p.V * 0.9, p.sides("dcroat")
+
+
+@glyph("Hbar", "Ħ")
+def g_Hbar(p):
+    xo = p.V * 0.5
+    c, W, _ = g_H(p)
+    return translate(c, xo) + [crossbar(p, 0, W + 2 * xo, CH * 0.78)], W + 2 * xo, p.sides("Hbar")
+
+
+@glyph("hbar", "ħ")
+def g_hbar(p):
+    xo = p.V * 0.7
+    c, W, _ = g_h(p)
+    return translate(c, xo) + [crossbar(p, 0, xo + p.V * 2.6, ASC * 0.84)], W + xo, p.sides("hbar")
+
+
+def lslash_bar(p, cx, cy):
+    """The stroke through Ł and ł: short, rising to the right, cut flat."""
+    w, rise, t = p.V * 2.6, p.V * 1.0, p.H * 0.95
+    x0, x1 = cx - w / 2, cx + w / 2
+    return rpoly((x0, cy - rise / 2 - t / 2, p.rt), (x1, cy + rise / 2 - t / 2, p.rt), (x1, cy + rise / 2 + t / 2, p.rt),
+                 (x0, cy - rise / 2 + t / 2, p.rt))
+
+
+@glyph("Lslash", "Ł")
+def g_Lslash(p):
+    xo = p.V * 0.8
+    c, W, _ = g_L(p)
+    return translate(c, xo) + [lslash_bar(p, xo + p.V / 2, CH * 0.46)], W + xo, p.sides("Lslash")
+
+
+@glyph("lslash", "ł")
+def g_lslash(p):
+    xo = p.V * 0.8
+    c, W, _ = g_l(p)
+    return translate(c, xo) + [lslash_bar(p, xo + p.V / 2, ASC * 0.52)], W + 2 * xo, p.sides("lslash")
+
+
+@glyph("dotlessj", "ȷ")
+def g_dotlessj(p):
+    c, W, _ = g_j(p)
+    return c[:1], W, p.sides("j")
+
+
+def free_mark(p, kind, y):
+    """A spacing modifier: the mark alone, as wide as its ink."""
+    m, _ = mark(p, kind)
+    xs = [pt[0] for c in m for seg in [[c[0]]] + [s[1:] for s in c[1:]] for pt in seg]
+    return translate(m, -min(xs), y), max(xs) - min(xs), (86, 86)
+
+
+def combining(kind, y):
+    """A combining mark: no width of its own, hung over the letter before it."""
+    def fn(p):
+        m, _ = mark(p, kind)
+        return translate(m, -300, y), 0, (0, 0)
+    return fn
+
+
+for _cp, _kind, _top in [(0x02C6, "circumflex", True), (0x02C7, "caron", True), (0x02D8, "breve", True),
+                         (0x02D9, "dotaccent", True), (0x02DA, "ring", True), (0x02DB, "ogonek", False),
+                         (0x02DC, "tilde", True), (0x02DD, "hungarumlaut", True)]:
+    GLYPHS[f"uni{_cp:04X}"] = (chr(_cp), (lambda k, t: lambda p: free_mark(p, k, XH * 1.13 if t else 0))(_kind, _top))
+
+for _cp, _kind in [(0x0300, "grave"), (0x0301, "acute"), (0x0302, "circumflex"), (0x0303, "tilde"), (0x0304, "macron"),
+                   (0x0306, "breve"), (0x0307, "dotaccent"), (0x0308, "dieresis"), (0x030A, "ring"),
+                   (0x030B, "hungarumlaut"), (0x030C, "caron")]:
+    GLYPHS[f"uni{_cp:04X}"] = (chr(_cp), combining(_kind, XH * 1.13))
+for _cp, _kind in [(0x0326, "commaaccent"), (0x0327, "cedilla"), (0x0328, "ogonek")]:
+    GLYPHS[f"uni{_cp:04X}"] = (chr(_cp), combining(_kind, 0))
+
 
 # Overshoot: a round top or bottom has to pass the line a little to look as tall
 # as a flat one. Michroma's go 1.9% of the x-height past it on the lowercase and
@@ -1596,5 +2332,22 @@ def overshot(fn, height, where):
 
 for _name, (_height, _where) in OVERSHOOT.items():
     GLYPHS[_name] = (GLYPHS[_name][0], overshot(GLYPHS[_name][1], _height, _where))
+
+# Math signs share one advance, the plus's, so sums set in columns line up;
+# each sits centred in it.
+MATH_SIGNS = ["plus", "minus", "multiply", "divide", "equal", "less", "greater", "asciitilde"]
+
+
+def math_width(fn):
+    def wrapped(p):
+        contours, W, _ = fn(p)
+        _, wp, (lp, rp) = GLYPHS["plus"][1](p)
+        side = (lp + wp + rp - W) / 2
+        return contours, W, (side, side)
+    return wrapped
+
+
+for _name in MATH_SIGNS[1:]:
+    GLYPHS[_name] = (GLYPHS[_name][0], math_width(GLYPHS[_name][1]))
 
 set_style(os.environ.get("HYPHER_STYLE", DEFAULT_STYLE))

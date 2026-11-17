@@ -76,7 +76,7 @@ def family(style):
     return Family(
         name="Hypher Display" if default else f"Hypher Display {G.LABELS.get(style, style)}",
         file="HypherDisplay" if default else f"HypherDisplay{style}",
-        version="0.560",
+        version="0.600",
         copyright="Copyright 2026 The Hypher Project Authors; proportions and kerning after Michroma, Copyright 2011 The Michroma Project Authors",
         glyphs=G.GLYPHS,
         params=lambda w: G.P(w, MASTERS[w]),
@@ -90,6 +90,10 @@ def family(style):
         features=features,
         out=HERE / "fonts" if default else HERE / "fonts" / "versions" / style,
         hint=None,  # a display face: set large, where hinting does nothing
+        code_pages=(0, 1, 4),  # Latin 1, Latin 2 (Central Europe), Turkish: what Latin Core covers
+        windows_names_only=True,
+        smart_dropout=True,
+        win_all_masters=True,
     )
 
 

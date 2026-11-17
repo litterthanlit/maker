@@ -35,15 +35,18 @@ sys.path.insert(0, str(HERE.parent))
 import build  # noqa: E402
 import glyphs as G  # noqa: E402
 
+MIN_STEP = 5  # font units: a step this small does not show
 LEDGE = 0.35  # a straight step shorter than this many bars, cornered at both ends
 TURN = 25  # degrees: a turn sharper than this is a corner, not a curve running on
 HEAVY = 1.5  # ink thicker than this many stems: a filleted joint like the e's reaches 1.33; the blobby 8 and e of 0.500 reached 1.53 to 1.67
 SCALE = 0.5  # raster pixels per font unit for the heavy check
 
-WAISTS = {"three", "eight", "ampersand", "B", "R", "P"}  # bowls or parts that meet in a cusp on purpose
-SHOULDERS = set("nmhrpbdquga")  # with the wordmark's shoulder notch ("notch" in STYLES), their steps and dips are drawn on purpose
+WAISTS = {"three", "eight", "ampersand", "B", "R", "P", "ae", "oe", "OE", "germandbls", "uni1E9E", "eth", "ordfeminine"}  # bowls or parts that meet in a cusp on purpose
+SHOULDERS = set("nmhrpbdquga") | {"dcroat", "thorn", "hbar"}  # with the wordmark's shoulder notch ("notch" in STYLES), their steps and dips are drawn on purpose
 ALLOW = {"numbersign": {"ledge"}}  # the # at Bold: the stems' short sides between close bars are slots, not steps
-DIAGONALS = set("AKMNVWXYZkvwxyz") | {"ampersand", "percent", "four", "seven", "asterisk", "numbersign", "Q", "y"}
+SOLID = {"bullet", "paragraph"}  # filled on purpose
+CROSSINGS = {"dollar", "cent", "yen", "sterling", "Euro", "dcroat", "hbar", "Hbar", "Eth", "Dcroat", "Lslash", "lslash", "section"}  # a bar through a stem is heavy where they cross, in any typeface
+DIAGONALS = SOLID | CROSSINGS | set("AKMNVWXYZkvwxyz") | {"multiply", "AE", "less", "greater", "guillemotleft", "guillemotright", "guilsinglleft", "guilsinglright", "ampersand", "percent", "four", "seven", "asterisk", "numbersign", "Q", "y"}
 
 
 def merged(contours):
@@ -119,7 +122,7 @@ def outline_faults(path, H):
         for i, (kind, pts) in enumerate(segs):
             a, b = turns[i], turns[(i + 1) % n]
             length = math.dist(pts[0], pts[-1])
-            if kind == "line" and 1.0 < length < LEDGE * H and a > TURN and b > TURN:
+            if kind == "line" and MIN_STEP < length < LEDGE * H and a > TURN and b > TURN:
                 faults.append(("ledge", pts[0], round(length)))
             if kind == "curve" and segs[i - 1][0] == "curve" and a > TURN:
                 faults.append(("cusp", pts[0], round(a)))
