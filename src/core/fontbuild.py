@@ -33,7 +33,7 @@ class Family:
     file: str  # "LittGrotesk"
     version: str  # "1.040"
     copyright: str
-    glyphs: dict  # name -> (char or None, fn(params) -> (contours, ink, (lsb, rsb)))
+    glyphs: dict  # name -> (chars or None, fn(params) -> (contours, ink, (lsb, rsb))); each char maps to the glyph
     params: Callable  # wght -> the params object the glyph functions take
     masters: list  # weights drawn, e.g. [300, 400, 700]
     default: int
@@ -115,8 +115,8 @@ def build_master(fam, wght, gl, path):
         g.recalcBounds(None) if hasattr(g, "recalcBounds") else None
         lsb = g.xMin if g.numberOfContours else 0
         metrics[name] = (adv, lsb)
-        if char:
-            cmap[ord(char)] = name
+        for c in char or "":
+            cmap[ord(c)] = name
 
     ys = [(g.yMin, g.yMax) for g, _ in gl.values() if g.numberOfContours]
     win = (min(y[0] for y in ys), max(y[1] for y in ys))  # Windows clips outside these
