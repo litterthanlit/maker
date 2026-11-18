@@ -1512,7 +1512,7 @@ def mark(p, kind, cap=False):
         return [c], d + H
     if kind == "cedilla":  # a small hook hanging below the baseline from y = 0, like the j's tail
         h, xl = XH * 0.30 + H * 0.6, -V * 1.7  # about as deep at every weight
-        c = rounded((xl, -h + H, rt), (xl, -h, rt), (V / 2, -h, p.ro * 0.4), (V / 2, 0, rt), (-V / 2, 0, rt),
+        c = rounded((xl, -h + H, rt), (xl, -h, rt), (V / 2, -h, p.ro * 0.4), (V / 2, rt + 2, 0), (-V / 2, rt + 2, 0),
                     (-V / 2, -h + H, p.ri * 0.4))
         return [c], 0
     if kind == "macron":
@@ -1565,14 +1565,14 @@ BASE = {}  # accented glyph name -> base glyph name, for kerning
 
 BELOW = ("cedilla", "ogonek", "commaaccent")
 OGONEK_AT = {"a": lambda p, W: W - p.V / 2, "A": lambda p, W: W - p.V * 0.75, "e": lambda p, W: W * 0.62,
-             "E": lambda p, W: W * 0.8, "i": lambda p, W: p.V / 2, "I": lambda p, W: p.V / 2,
+             "E": lambda p, W: W * 0.8, "i": lambda p, W: p.V / 2, "dotlessi": lambda p, W: p.V / 2, "I": lambda p, W: p.V / 2,
              "u": lambda p, W: W - p.V / 2, "U": lambda p, W: W * 0.72}
 
 
 def accented(base, kind):
-    cap = base[0].isupper()
-
     def fn(p):
+        ch = GLYPHS[base][0]  # looked up when drawn: some bases (ǯ's, ǿ's) are defined further down
+        cap = (ch or base)[0].isupper()  # by the character where there is one: uni01B7 is a capital
         contours, W, sides = GLYPHS[base][1](p)
         if kind == "caronv":  # ď ľ Ľ ť: the caron as a comma beside the stem's top
             x0, top = {"d": (W + p.V * 0.35, ASC), "l": (p.V * 1.35, ASC), "L": (p.V * 1.4, CH),
@@ -1581,7 +1581,9 @@ def accented(base, kind):
         m, h = mark(p, kind, cap)
         if kind in BELOW:
             y = 0
-        elif base == "l":  # over the ascender
+            if kind == "cedilla" and base in ("t", "T"):  # under a stem it hangs free, or the stem reads as running on into a hook
+                y = -(p.rt + 2) - p.H * 0.45
+        elif base in ("l", "h", "k"):  # over the ascender
             y = ASC + XH * 0.13
         else:
             y = (CH + CH * 0.06) if cap else (XH + XH * 0.13)
@@ -1625,6 +1627,23 @@ for _base, _more in {
     "W": [("Ŵ", "circumflex"), ("Ẁ", "grave"), ("Ẃ", "acute"), ("Ẅ", "dieresis")],
     "y": [("ŷ", "circumflex"), ("ỳ", "grave")], "Y": [("Ŷ", "circumflex"), ("Ÿ", "dieresis"), ("Ỳ", "grave")],
     "z": [("ź", "acute"), ("ż", "dotaccent"), ("ž", "caron")], "Z": [("Ź", "acute"), ("Ż", "dotaccent"), ("Ž", "caron")],
+}.items():
+    ACCENTS.setdefault(_base, []).extend(_more)
+# The auxiliary letters these languages' orthographies list (Fontbakery's language check)
+for _base, _more in {
+    "o": [("ō", "macron"), ("ŏ", "breve")], "O": [("Ō", "macron"), ("Ŏ", "breve")],
+    "e": [("ĕ", "breve"), ("ẽ", "tilde")], "E": [("Ĕ", "breve"), ("Ẽ", "tilde")],
+    "dotlessi": [("ĭ", "breve"), ("ĩ", "tilde")], "I": [("Ĭ", "breve"), ("Ĩ", "tilde")], "u": [("ŭ", "breve"), ("ǔ", "caron"), ("ũ", "tilde")],
+    "U": [("Ŭ", "breve"), ("Ǔ", "caron"), ("Ũ", "tilde")],
+    "t": [("ţ", "cedilla")], "T": [("Ţ", "cedilla")],
+    "a": [("ǎ", "caron")], "A": [("Ǎ", "caron")], "r": [("ŗ", "commaaccent")],
+    "R": [("Ŗ", "commaaccent")],
+    "g": [("ǧ", "caron"), ("ĝ", "circumflex")], "G": [("Ǧ", "caron"), ("Ĝ", "circumflex")],
+    "k": [("ǩ", "caron")], "K": [("Ǩ", "caron")],
+    "h": [("ȟ", "caron"), ("ĥ", "circumflex")], "H": [("Ȟ", "caron"), ("Ĥ", "circumflex")],
+    "c": [("ĉ", "circumflex")], "C": [("Ĉ", "circumflex")], "s": [("ŝ", "circumflex")], "S": [("Ŝ", "circumflex")],
+    "dotlessj": [("ĵ", "circumflex")], "J": [("Ĵ", "circumflex")],
+    "uni0292": [("ǯ", "caron")], "uni01B7": [("Ǯ", "caron")], "oslash": [("ǿ", "acute")], "Oslash": [("Ǿ", "acute")],
 }.items():
     ACCENTS.setdefault(_base, []).extend(_more)
 
@@ -2265,6 +2284,142 @@ def g_lslash(p):
 def g_dotlessj(p):
     c, W, _ = g_j(p)
     return c[:1], W, p.sides("j")
+
+
+GLYPHS["uni012F.dotless"] = (None, accented("dotlessi", "ogonek"))  # į under an accent: the ccmp feature swaps it in
+BASE["uni012F.dotless"] = "i"
+
+
+@glyph("ldot", "\u0140")
+def g_ldot(p):
+    """ŀ (Catalan l·l): the l with a dot beside it at the middle of the x-height."""
+    V = p.V
+    return [box(0, 0, V, ASC, p.rt, p.rt, p.rt, p.rt), dot_at(p, V * 1.9, XH * 0.5 - V / 2)], V * 2.9, p.sides("l")
+
+
+@glyph("Ldot", "\u013f")
+def g_Ldot(p):
+    c, W, _ = g_L(p)
+    return c + [dot_at(p, W * 0.5, CH * 0.5 - p.V / 2)], W, p.sides("L")
+
+
+@glyph("ij", "\u0133")
+def g_ij(p):
+    """The Dutch ij: i and j set as one letter."""
+    i, Wi, _ = g_i(p)
+    j, Wj, _ = g_j(p)
+    gap = p.V * 1.1
+    return i + translate(j, Wi + gap), Wi + gap + Wj, p.sides("i")
+
+
+@glyph("IJ", "\u0132")
+def g_IJ(p):
+    I, Wi, _ = g_I(p)
+    J, Wj, _ = g_J(p)
+    gap = p.V * 1.2
+    return I + translate(J, Wi + gap), Wi + gap + Wj, (p.sides("I")[0], p.sides("J")[1])
+
+
+def ezh(p, W, top, bottom):
+    """ʒ: the z's top bar and diagonal, landing on a middle bar that hands over to the 3's lower bowl."""
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    h = top - bottom
+    m0 = bottom + h * 0.40 - H / 2  # the middle bar, low enough that the diagonal stays steep at Bold
+    m1 = m0 + H
+    xm = W * 0.40  # where the diagonal lands
+    tb = bottom + h * 0.20  # the bowl's terminal
+    hw = diag_hw(W - xm, top - H - m1, V * 0.98)
+    bar = box(0, top - H, W, top, rt, 0, rt, rt)
+    diagonal = rpoly((W - hw, top - H, 0), (W, top - H, 0), (xm + hw, m1, 0), (xm, m1, 0))
+    rw = min(waist(p, m1 - bottom), ro * 0.6)  # shallower than a plain corner: the bowl here is shallow, and at Bold the diagonal lands close by
+    lower = rpoly(
+        (0, tb, rt), (0, bottom, ro), (W, bottom, ro), (W, m1, rw), (xm, m1, 0), (xm, m0, rt),
+        (W - V, m0, ri), (W - V, bottom + H, ri), (V, bottom + H, ri), (V, tb, rt),
+    )  # sharp where the diagonal lands, so its corner does not poke out past a soft one
+    return [bar, diagonal, lower]
+
+
+@glyph("uni0292", "\u0292")
+def g_ezh(p):
+    W = p.w("z")
+    return ezh(p, W, XH, DSC * 0.9), W, p.sides("z")
+
+
+@glyph("uni01B7", "\u01b7")
+def g_Ezh(p):
+    W = p.w("Z")
+    return ezh(p, W, CH, 0), W, p.sides("Z")
+
+
+@glyph("uni01E5", "\u01e5")
+def g_gstroke(p):
+    """ǥ: the g with a bar through its tail."""
+    c, W, _ = GLYPHS["g"][1](p)
+    return c + [crossbar(p, W - p.V * 1.8, W + p.V * 0.7, XH * 0.30)], W + p.V * 0.7, p.sides("g")  # across the stem, above the tail
+
+
+@glyph("uni01E4", "\u01e4")
+def g_Gstroke(p):
+    c, W, _ = GLYPHS["G"][1](p)
+    return c + [crossbar(p, W * 0.55, W + p.V * 0.3, CH * 0.26)], W + p.V * 0.3, p.sides("G")
+
+
+@glyph("eng", "\u014b")
+def g_eng(p):
+    """The n whose right leg runs on below the baseline into the j's hook."""
+    c, W, _ = g_n(p)
+    hook, Wj, _ = g_j(p)
+    return c + translate(hook[:1], W - Wj), W, p.sides("n")
+
+
+@glyph("Eng", "\u014a")
+def g_Eng(p):
+    """The N whose right stem runs on below the baseline and hooks left."""
+    c, W, _ = g_N(p)
+    V, H, ro, ri, rt = p.V, p.H, p.ro, p.ri, p.rt
+    xh = W * 0.55
+    hook = rounded((xh, DSC + H, rt), (xh, DSC, rt), (W, DSC, ro), (W, CH * 0.5, rt), (W - V, CH * 0.5, rt), (W - V, DSC + H, ri))
+    return c + [hook], W, p.sides("N")
+
+
+@glyph("tbar", "\u0167")
+def g_tbar(p):
+    c, W, _ = g_t(p)
+    y = (XH * lm("t_foot", 0.436) + XH - p.H) / 2  # centred between the foot and the crossbar
+    t = p.H * 0.8
+    return c + [box(0, y - t / 2, W * 0.72, y + t / 2, p.rt, p.rt, p.rt, p.rt)], W, p.sides("t")
+
+
+@glyph("Tbar", "\u0166")
+def g_Tbar(p):
+    c, W, _ = g_T(p)
+    return c + [crossbar(p, W * 0.22, W * 0.78, CH * 0.48)], W, p.sides("T")
+
+
+@glyph("longs", "\u017f")
+def g_longs(p):
+    """ſ: the f without its crossbar."""
+    c, W, _ = g_f(p)
+    return c[:1], W, p.sides("f")
+
+
+@glyph("uni02BB", "\u02bb")
+def g_turnedcomma(p):
+    m, W = quote(p, 1, True)
+    return m, W, p.sides("quoteleft")
+
+
+@glyph("uni25CC", "\u25cc")
+def g_dottedcircle(p):
+    """◌: where an accent typed on its own is shown. Twelve dots on a circle."""
+    import math
+    d = p.V * 0.62
+    R = XH * 0.42
+    cy = XH * 0.5
+    dots = [box(R + R * math.cos(a) - d / 2, cy + R * math.sin(a) - d / 2, R + R * math.cos(a) + d / 2,
+                cy + R * math.sin(a) + d / 2, d * 0.3, d * 0.3, d * 0.3, d * 0.3)
+            for a in (2 * math.pi * i / 12 for i in range(12))]
+    return dots, 2 * R + d, (80, 80)
 
 
 def free_mark(p, kind, y):

@@ -42,10 +42,10 @@ HEAVY = 1.5  # ink thicker than this many stems: a filleted joint like the e's r
 SCALE = 0.5  # raster pixels per font unit for the heavy check
 
 WAISTS = {"three", "eight", "ampersand", "B", "R", "P", "ae", "oe", "OE", "germandbls", "uni1E9E", "eth", "ordfeminine"}  # bowls or parts that meet in a cusp on purpose
-SHOULDERS = set("nmhrpbdquga") | {"dcroat", "thorn", "hbar"}  # with the wordmark's shoulder notch ("notch" in STYLES), their steps and dips are drawn on purpose
-ALLOW = {"numbersign": {"ledge"}}  # the # at Bold: the stems' short sides between close bars are slots, not steps
+SHOULDERS = set("nmhrpbdquga") | {"dcroat", "thorn", "hbar", "eng", "uni01E5"}  # with the wordmark's shoulder notch ("notch" in STYLES), their steps and dips are drawn on purpose
+ALLOW = {"numbersign": {"ledge"}, "tbar": {"ledge"}}  # the # at Bold: the stems' short sides between close bars are slots, not steps
 SOLID = {"bullet", "paragraph"}  # filled on purpose
-CROSSINGS = {"dollar", "cent", "yen", "sterling", "Euro", "dcroat", "hbar", "Hbar", "Eth", "Dcroat", "Lslash", "lslash", "section"}  # a bar through a stem is heavy where they cross, in any typeface
+CROSSINGS = {"uni01E5", "uni01E4", "tbar", "Tbar", "uni0292", "uni01B7", "dollar", "cent", "yen", "sterling", "Euro", "dcroat", "hbar", "Hbar", "Eth", "Dcroat", "Lslash", "lslash", "section"}  # a bar through a stem is heavy where they cross, in any typeface
 DIAGONALS = SOLID | CROSSINGS | set("AKMNVWXYZkvwxyz") | {"multiply", "AE", "less", "greater", "guillemotleft", "guillemotright", "guilsinglleft", "guilsinglright", "ampersand", "percent", "four", "seven", "asterisk", "numbersign", "Q", "y"}
 
 

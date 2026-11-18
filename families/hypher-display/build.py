@@ -62,10 +62,58 @@ def kern_pairs():
     return out
 
 
+TOP_MARKS = ["uni0300", "uni0301", "uni0302", "uni0303", "uni0304", "uni0306", "uni0307", "uni0308", "uni030A",
+             "uni030B", "uni030C"]
+BOTTOM_MARKS = ["uni0326", "uni0327"]
+MARK_X = -300  # where combining marks are drawn, so unpositioned they still sit over the letter before
+
+
+def anchors(wght):
+    """Per base letter at this weight: (top, bottom, ogonek) anchors, in final font units."""
+    p = G.P(wght, MASTERS[wght])
+    out = {}
+    for name in LETTERS + ["dotlessi", "dotlessj", "uni25CC"]:
+        _, W, (lsb, _) = G.GLYPHS[name][1](p)
+        cap = name[0].isupper()
+        top = G.CH if cap else {"b": G.ASC, "d": G.ASC, "h": G.ASC, "k": G.ASC, "l": G.ASC,
+                                "f": G.XH * G.lm("f_top", 1.40), "t": G.XH * G.lm("t_top", 1.273)}.get(name, G.XH)
+        cx = lsb + (W * 0.3 if name == "L" else W / 2)
+        og = G.OGONEK_AT.get(name, lambda p, W: W - p.V / 2)(p, W) + lsb
+        out[name] = ((round(cx), round(top)), (round(lsb + W / 2), 0), (round(og), 0))
+    # accented letters take a second accent above the one they carry, or below it
+    kinds = {f"uni{ord(ch):04X}": kind for base, marks in G.ACCENTS.items() for ch, kind in marks}
+    for name, base in G.BASE.items():
+        if base not in out:
+            continue
+        (tx, ty), bottom, og = out[base]
+        kind = kinds.get(name)
+        if kind and kind not in G.BELOW and kind != "caronv":
+            h = G.mark(p, kind, base[0].isupper())[1]
+            lift = (G.CH * 0.06) if base[0].isupper() else (G.XH * 0.13)
+            ty = round(ty + lift + h)
+        out[name] = ((tx, ty), bottom, og)
+    return out
+
+
 def features(wght):
-    lines = ["languagesystem DFLT dflt;", "languagesystem latn dflt;", "feature kern {"]
+    lines = ["languagesystem DFLT dflt;", "languagesystem latn dflt;"]
+    # i and j lose their dot under an accent typed after them (soft dotted)
+    lines += [f"@TOP_MARKS = [{' '.join(TOP_MARKS)}];", f"@BELOW = [{' '.join(BOTTOM_MARKS)} uni0328];",
+              "feature ccmp {", "  lookup soft_dotted {",
+              "    sub i' @TOP_MARKS by dotlessi;", "    sub j' @TOP_MARKS by dotlessj;",
+              "    sub i' @BELOW @TOP_MARKS by dotlessi;", "    sub j' @BELOW @TOP_MARKS by dotlessj;",
+              "    sub uni012F' @TOP_MARKS by uni012F.dotless;", "    sub uni012F' @BELOW @TOP_MARKS by uni012F.dotless;",
+              "  } soft_dotted;", "} ccmp;"]
+    lines.append("feature kern {")
     lines += [f"  pos {l} {r} {v};" for (l, r), v in sorted(kern_pairs().items()) if l in G.GLYPHS and r in G.GLYPHS]
     lines.append("} kern;")
+    # accents typed after a letter attach to it
+    lines += [f"markClass [{' '.join(TOP_MARKS)}] <anchor {MARK_X} {G.XH}> @TOP;",
+              f"markClass [{' '.join(BOTTOM_MARKS)}] <anchor {MARK_X} 0> @BOTTOM;",
+              f"markClass [uni0328] <anchor {MARK_X} 0> @OGONEK;", "feature mark {"]
+    for name, ((tx, ty), (bx, by), (ox, oy)) in anchors(wght).items():
+        lines.append(f"  pos base {name} <anchor {tx} {ty}> mark @TOP <anchor {bx} {by}> mark @BOTTOM <anchor {ox} {oy}> mark @OGONEK;")
+    lines.append("} mark;")
     return "\n".join(lines)
 
 
@@ -76,8 +124,10 @@ def family(style):
     return Family(
         name="Hypher Display" if default else f"Hypher Display {G.LABELS.get(style, style)}",
         file="HypherDisplay" if default else f"HypherDisplay{style}",
-        version="0.600",
-        copyright="Copyright 2026 The Hypher Project Authors; proportions and kerning after Michroma, Copyright 2011 The Michroma Project Authors",
+        version="0.610",
+        copyright="Copyright 2026 The Hypher Display Project Authors (https://github.com/litterthanlit/maker)",
+        description="Display face for the Hypher wordmark. Proportions and kerning measured from Michroma (OFL).",
+        fs_type=0,  # installable: an open font sets no embedding restrictions
         glyphs=G.GLYPHS,
         params=lambda w: G.P(w, MASTERS[w]),
         masters=list(MASTERS),
@@ -94,6 +144,7 @@ def family(style):
         windows_names_only=True,
         smart_dropout=True,
         win_all_masters=True,
+        meta_scripts="Latn",
     )
 
 

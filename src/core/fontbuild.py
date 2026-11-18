@@ -49,6 +49,9 @@ class Family:
     code_pages: tuple = ()  # OS/2 code page bits to declare, e.g. (0, 1) for Latin 1 and Latin 2
     windows_names_only: bool = False  # leave out the old Macintosh name records
     smart_dropout: bool = False  # a prep program that keeps thin parts from dropping out when unhinted
+    fs_type: int = None  # OS/2 fsType; None keeps fontTools' default (4, preview and print); open fonts want 0
+    description: str = None  # name ID 10
+    meta_scripts: str = None  # e.g. "Latn": the meta table's design and supported languages
     win_all_masters: bool = False  # set usWin* from the tallest and deepest glyph at any weight, so no instance clips
 
 
@@ -142,12 +145,14 @@ def build_master(fam, wght, gl, path, win=None):
         "copyright": fam.copyright,
         "licenseDescription": "This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: https://openfontlicense.org",
         "licenseInfoURL": "https://openfontlicense.org",
+        **({"description": fam.description} if fam.description else {}),
     }, **({"mac": False} if fam.windows_names_only else {}))
     fb.setupOS2(
         sTypoAscender=fam.ascent, sTypoDescender=fam.descent, sTypoLineGap=0,
         usWinAscent=max(fam.ascent, win[1]), usWinDescent=max(-fam.descent, -win[0]),
         sxHeight=fam.x_height, sCapHeight=fam.cap_height,
         usWeightClass=wght, achVendID="NONE", fsSelection=0x80 | (0x40 if wght == 400 else 0),
+        **({"fsType": fam.fs_type} if fam.fs_type is not None else {}),
     )
     fb.font["OS/2"].version = 4
     if fam.code_pages:
@@ -201,6 +206,10 @@ def build(fam, tmp):
     gasp = newTable("gasp")
     gasp.gaspRange = {0xFFFF: 0x000F}  # smooth and grid-fit at every size
     vf["gasp"] = gasp
+    if fam.meta_scripts:
+        meta = newTable("meta")
+        meta.data = {"dlng": fam.meta_scripts, "slng": fam.meta_scripts}
+        vf["meta"] = meta
     if fam.windows_names_only:  # varLib adds its axis and instance names on both platforms
         vf["name"].names = [n for n in vf["name"].names if n.platformID != 1]
     if fam.smart_dropout:
